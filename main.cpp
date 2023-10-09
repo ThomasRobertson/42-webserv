@@ -17,7 +17,7 @@ int	main(int argc, char **argv)
         std::cout << "Error: could not open " << argv[1] << std::endl;
         return 0;
     }
-
+    
 
 
     return 0;

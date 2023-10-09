@@ -24,11 +24,12 @@ ConfigFile::~ConfigFile()
 
 
 
+
 int ConfigFile::loadDataConfigFile(const std::string &filename)
 {
     std::string line;
-    std::string leftDateStr;
-    std::string rightRateStr;
+    std::string leftIndexStr;
+    std::string rightValueStr;
     size_t positionComma;
     size_t positionTab;
     std::string value;
@@ -46,11 +47,11 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
         {
 			if (positionComma != std::string::npos)
         	{
-            	leftDateStr = line.substr(1, positionComma -1);
-            	rightRateStr = line.substr(positionComma + 1);
+            	leftIndexStr = line.substr(1, positionComma -1);
+            	rightValueStr = line.substr(positionComma + 1);
 
-				value = rightRateStr;
-            	this->configMap[leftDateStr] = rightRateStr;
+				value = rightValueStr;
+            	this->configMap[leftIndexStr] = rightValueStr;
                 // std::cout << "Index:" << leftDateStr << "\nValue:" << value << std::endl;
 
 			}
