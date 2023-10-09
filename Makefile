@@ -1,7 +1,7 @@
 CC = c++
-CPPFLAGS = -std=c++98 -Wall -Wextra -Werror -pedantic
+CPPFLAGS = -std=c++98 -Wall -Wextra -Werror -g3
 
-SRCS = main.cpp 
+SRCS = main.cpp ConfigFile.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 RM = rm -f
