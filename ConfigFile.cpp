@@ -5,34 +5,31 @@ ConfigFile::ConfigFile()
     return ;
 }
 
-ConfigFile::ConfigFile(const ConfigFile &src)
-{
-	*this = src;
-    return ;
-}
-
-ConfigFile &ConfigFile::operator=(const ConfigFile &src)
-{
-	this->configMap = src.configMap;
-    return *this;
-}
-
 ConfigFile::~ConfigFile()
 {
     return ;
 }
 
 
+std::string ConfigFile::getHost()
+{
+    return this->host;
+}
 
+std::string ConfigFile::getPort()
+{
+    return this->port;
+}
 
 int ConfigFile::loadDataConfigFile(const std::string &filename)
 {
     std::string line;
     std::string leftIndexStr;
     std::string rightValueStr;
-    size_t positionComma;
+    size_t positionSpace;
+    size_t positionSemicolon;
     size_t positionTab;
-    std::string value;
+    // std::string value;
 
 
     std::ifstream file(filename.c_str());
@@ -41,21 +38,24 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
     while (std::getline(file, line))
     {
         positionTab = line.find('	');
-        positionComma = line.find(' ');
+        positionSpace = line.find(' ');
+        positionSemicolon = line.find(';');
         
-        if (positionTab != std::string::npos)
+
+		if (positionTab != std::string::npos)
         {
-			if (positionComma != std::string::npos)
-        	{
-            	leftIndexStr = line.substr(1, positionComma -1);
-            	rightValueStr = line.substr(positionComma + 1);
+        	leftIndexStr = line.substr(1, positionSpace - 1);
+        	rightValueStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+            // rightValueStr.resize(rightValueStr.size() - 1);
+			// value = rightValueStr;
+            // std::cout << "rightValueStr:" << rightValueStr.size() << "fd" << std::endl;
+            // std::cout << "value:" << value.size()  << "fd" << std::endl;
 
-				value = rightValueStr;
-            	this->configMap[leftIndexStr] = rightValueStr;
-                // std::cout << "Index:" << leftDateStr << "\nValue:" << value << std::endl;
+        	this->configMap[leftIndexStr] = rightValueStr;
+            // std::cout << "Index:" << leftIndexStr << "\nValue:" << rightValueStr << "vlaue"  <<  "fd" << std::endl;
 
-			}
-        }
+		}
+
     }
     file.close();
 
@@ -90,11 +90,12 @@ std::string ConfigFile::valuesFromMap(std::string index)
 
 void ConfigFile::setValuesConfigFile()
 {
-	this->host = valuesFromMap("host");
-	this->port = convertStrToInt(valuesFromMap("port"));
-	this->server_name = valuesFromMap("server_name");
-	this->root = valuesFromMap("root");
-	this->maxClientBodySize = convertStrToInt(valuesFromMap("maxClientBodySize"));
+	this->host = this->configMap["host"];
+	// this->port = convertStrToInt(valuesFromMap("port"));
+	this->port = this->configMap["port"];
+	this->server_name = this->configMap["server_name"];
+	this->root = this->configMap["root"];
+	this->maxClientBodySize = convertStrToInt(this->configMap["maxClientBodySize"]);
 
 
     std::cout << "host: " << this->host << std::endl;

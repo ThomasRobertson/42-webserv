@@ -1,10 +1,14 @@
-server:
-	host 0.0.0.0
-	listen 80
-	port 80
-	server_name localhost
-	root /usr/share/nginx/html
-	index index.html
-	error_page_404 /errors/404.html
-	error_page_500 /errors/500.html
-	maxClientBodySize 1024
+server {
+	host 127.0.0.1;
+	port 1337;
+	root /usr/share/nginx/html;
+	error_page_404 www/errors/404.html;
+	error_page_500 www/errors/500.html;
+	maxClientBodySize 1000;
+	
+	location / {
+		index index.html;
+		methods GET;
+		root www/;
+	}
+}

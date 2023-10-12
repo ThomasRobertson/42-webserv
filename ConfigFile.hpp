@@ -11,8 +11,6 @@ class ConfigFile
 {
     public:
         ConfigFile();
-        ConfigFile(const ConfigFile &src);
-        ConfigFile &operator=(const ConfigFile &src);
         ~ConfigFile();
 
         int loadDataConfigFile(const std::string &filename);
@@ -20,11 +18,14 @@ class ConfigFile
 		std::string valuesFromMap(std::string index);
 		int convertStrToInt(std::string str);
 
+        std::string getHost();
+        std::string getPort();
+
     private:
         std::map<std::string, std::string> configMap;
 
 		std::string host;
-		int port;
+		std::string port;
 		std::string server_name;
 		std::string root;
         std::map<int, std::string> error_pages;
