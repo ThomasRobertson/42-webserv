@@ -1,26 +1,48 @@
-CC = c++
-CPPFLAGS = -std=c++98 -Wall -Wextra -Werror -g3
+SRCS_DIR = srcs
 
-SRCS = main.cpp ConfigFile.cpp Server.cpp
+OBJS_DIR = objs
 
-OBJS = $(SRCS:.cpp=.o)
-RM = rm -f
+SRCS := $(shell find srcs/*.cpp -exec basename \ {} \;)
+
+OBJS = $(patsubst %.cpp,$(OBJS_DIR)/%.o,$(SRCS))
+
+INCLUDES = $(shell find includes/*.hpp)
+
 NAME = webserv
+
+CXX = c++
+
+CXXFLAGS = -Werror -Wall -Wextra -std=c++98
+# CXXFLAGS = -Werror -Wall -Wextra -std=c++98
+
+# ------------------- RULES ------------------- #
+
+$(NAME): $(OBJS_DIR) $(OBJS) $(INCLUDES)
+	@$(CXX) $(CXXFLAGS) $(OBJS) -I./includes -o $(NAME)
+	@echo "\033[32m$ $(NAME) compiled !"
+	@echo "----------------------------\033[0m"
 
 all: $(NAME)
 
-%.o : %.cpp
-	$(CC) $(CPPFLAGS) -c $<
+nf: $(OBJS_DIR) $(OBJS) $(INCLUDES)
+	@$(CXX) $(OBJS) -I./includes -o $(NAME)
+	@echo "\033[32m$ $(NAME) compiled without flags !"
+	@echo "----------------------------\033[0m"
 
-$(NAME): $(OBJS)
-	$(CC) $(CPPFLAGS) $(OBJS) -o $(NAME)
+$(OBJS_DIR):
+	@mkdir -p $(OBJS_DIR)
+	@echo "\033[33mcompiling $(NAME)..."
+
+$(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
+	@$(CXX) $(CXXFLAGS) -I./includes -c $< -o $@
 
 clean:
-	$(RM) $(OBJS)
+	@rm -rf $(OBJS_DIR)
+	@echo "\033[32mclean !\033[0m"
 
 fclean: clean
-	$(RM) $(NAME)
+	@rm -f $(NAME)
 
-re: fclean $(NAME)
+re: fclean all
 
 .PHONY: all clean fclean re
