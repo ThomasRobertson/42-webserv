@@ -26,10 +26,17 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
     std::string line;
     std::string leftIndexStr;
     std::string rightValueStr;
+    std::string locationStr;
+    std::string locationIndexStr;
+    std::string locationMethodStr;
+
     size_t positionSpace;
     size_t positionSemicolon;
+    size_t positionLeftBracket;
     size_t positionTab;
-
+    size_t positionDoubleTab;
+    size_t positionLocation;
+    page myPage;
 
     std::ifstream file(filename.c_str());
     if (!file.is_open())
@@ -37,20 +44,45 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
     while (std::getline(file, line))
     {
         positionTab = line.find('	');
+        positionDoubleTab = line.find("		");
         positionSpace = line.find(' ');
         positionSemicolon = line.find(';');
-        
+        positionLeftBracket = line.find('{');
+        positionLocation = line.find("	location");          
 
-		if (positionTab != std::string::npos)
+        if (positionLocation != std::string::npos)
+        {
+            locationStr = line.substr(positionSpace + 2, (positionLeftBracket) - (positionSpace + 2));
+            
+            if (!std::getline(file, line))
+                break;
+            positionSpace = line.find(' ');
+            positionSemicolon = line.find(';');
+            locationIndexStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+            myPage.index = locationIndexStr;
+            if (!std::getline(file, line))
+                break;
+            positionSpace = line.find(' ');
+            positionSemicolon = line.find(';');
+            locationMethodStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+            myPage.method = locationMethodStr;
+            this->htmlPage[locationStr] = myPage;
+        }
+
+		else if (positionTab != std::string::npos)
         {
         	leftIndexStr = line.substr(1, positionSpace - 1);
         	rightValueStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
 
         	this->configMap[leftIndexStr] = rightValueStr;
 		}
-
+        
     }
     file.close();
+
+    std::map<std::string, page>::iterator it;
+    for (it = htmlPage.begin(); it != htmlPage.end(); ++it)
+        std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method: " << it->second.method << std::endl;
 
 	setValuesConfigFile();
 

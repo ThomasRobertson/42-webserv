@@ -1,14 +1,24 @@
 server {
-	host 127.0.0.1;
+	host 10.34.3.3;
 	port 4243;
 	root /usr/share/nginx/html;
 	error_page_404 www/errors/404.html;
 	error_page_500 www/errors/500.html;
 	maxClientBodySize 1000;
-	
 	location / {
 		index index.html;
 		methods GET;
-		root www/;
+	}
+	location /test {
+		index www/index.html;
+		methods GET;
+	}
+	location /404 {
+		index www/errors/404.html;
+		methods GET;
+	}
+	location /500 {
+		index www/errors/500.html;
+		methods GET;
 	}
 }
