@@ -1,0 +1,52 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+}
+
+.main-title {
+	/* border: 1px solid #000; */
+	font-family: 'Open sans', sans-serif;
+	font-size: 5vw;
+}
+
+.main-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.buttons-container {
+	display: grid;
+	grid-template-columns: 1fr 1fr; /* Two equal-width columns */
+    grid-gap: 10px; /* Adjust the gap between items as needed */
+}
+
+.button {
+
+}
+
+#exit-button {
+	
+}
+
+/* Style the links as buttons */
+.button-link {
+	display: inline-block;
+	padding: 10px 20px;
+	background-color: #007BFF;
+	color: #fff;
+	text-decoration: none;
+	border: none;
+	cursor: pointer;
+	margin: 5px;
+}
+
+/* Change the appearance when hovering */
+.button-link:hover {
+	background-color: #0056b3;
+}

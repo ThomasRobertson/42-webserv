@@ -10,7 +10,6 @@ ConfigFile::~ConfigFile()
     return ;
 }
 
-
 std::string ConfigFile::getHost()
 {
     return this->host;
@@ -29,7 +28,6 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
     size_t positionSpace;
     size_t positionSemicolon;
     size_t positionTab;
-
 
     std::ifstream file(filename.c_str());
     if (!file.is_open())
@@ -57,7 +55,6 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
     return 1;
 }
 
-
 void ConfigFile::setValuesConfigFile()
 {
 	this->host = this->configMap["host"];
@@ -72,7 +69,6 @@ void ConfigFile::setValuesConfigFile()
     std::cout << "server_name: " << this->server_name << std::endl;
     std::cout << "root: " << this->root << std::endl;
     std::cout << "maxClientBodySize: " << this->maxClientBodySize << std::endl;
-
 }
 
 int ConfigFile::convertStrToInt(std::string str)
@@ -80,7 +76,10 @@ int ConfigFile::convertStrToInt(std::string str)
 	int valueInt = std::atoi(str.c_str());
     if (valueInt != 0 || (valueInt == 0 && str[0] == '0'))
         	return valueInt;
-    else
-        return -1;
     return -1;
 }
+
+// std::string ConfigFile::getHtmlPage(std::string location)
+// {
+//     if 
+// }

@@ -20,6 +20,7 @@ class ConfigFile
 
         std::string getHost();
         std::string getPort();
+        std::string getHtmlPage(std::string location);
 
     private:
         std::map<std::string, std::string> configMap;
@@ -28,7 +29,7 @@ class ConfigFile
 		std::string port;
 		std::string server_name;
 		std::string root;
-        std::map<int, std::string> error_pages;
+        std::map<std::string, std::string> htmlPage;
 		int maxClientBodySize;
 
 };
