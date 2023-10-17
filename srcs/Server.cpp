@@ -12,6 +12,8 @@ Server::~Server()
 
 void Server::listenClientRequest(int serverSocket)
 {
+    std::string response;
+
     while (true)
     {
         sockaddr_in clientAddress;
@@ -39,7 +41,7 @@ void Server::listenClientRequest(int serverSocket)
 
         UserRequest userRequest = getUserRequest(requestData);
 
-        std::string response = manageUserResponse(userRequest, this->_configFile);
+        response = manageUserResponse(userRequest, this->_configFile);
 
         send(clientSocket, response.c_str(), response.size(), 0);
         close(clientSocket);
@@ -48,11 +50,12 @@ void Server::listenClientRequest(int serverSocket)
 
 int Server::startServer()
 {
+    struct addrinfo hints, *serverInfo, *p;
     ConfigFile configFile = this->_configFile;
+
     std::string host = configFile.getHost();
     std::string port = configFile.getPort();
 
-    struct addrinfo hints, *serverInfo, *p;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;

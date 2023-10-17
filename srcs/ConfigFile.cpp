@@ -20,6 +20,11 @@ std::string ConfigFile::getPort()
     return this->port;
 }
 
+std::string ConfigFile::getHtmlPage(std::string location)
+{
+    return this->htmlPage[location].index;
+}
+
 int ConfigFile::loadDataConfigFile(const std::string &filename)
 {
     std::string line;
@@ -120,8 +125,3 @@ int ConfigFile::convertStrToInt(std::string str)
         	return valueInt;
     return -1;
 }
-
-// std::string ConfigFile::getHtmlPage(std::string location)
-// {
-//     if 
-// }

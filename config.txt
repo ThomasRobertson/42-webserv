@@ -1,9 +1,6 @@
 server {
 	host 127.0.0.1;
 	port 4243;
-	root /usr/share/nginx/html;
-	error_page_404 www/errors/404.html;
-	error_page_500 www/errors/500.html;
 	maxClientBodySize 1000;
 
 	location / {
@@ -11,14 +8,11 @@ server {
 		methods GET;
 	}
 
-<<<<<<< HEAD
-=======
-	location /test {
-		index www/test.html;
+	location /script {
+		index www/srcs/test.html;
 		methods GET;
 	}
 
->>>>>>> fa50f9d (modifs)
 	location /404 {
 		index www/errors/404.html;
 		methods GET;

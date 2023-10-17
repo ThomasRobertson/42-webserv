@@ -14,6 +14,16 @@ struct page {
 
 class ConfigFile
 {
+    private:
+        std::map<std::string, std::string> configMap;
+
+		std::string host;
+		std::string port;
+		std::string server_name;
+		std::string root;
+        std::map<std::string, page> htmlPage;
+		int maxClientBodySize;
+
     public:
         ConfigFile();
         ~ConfigFile();
@@ -26,16 +36,6 @@ class ConfigFile
         std::string getHost();
         std::string getPort();
         std::string getHtmlPage(std::string location);
-
-    private:
-        std::map<std::string, std::string> configMap;
-
-		std::string host;
-		std::string port;
-		std::string server_name;
-		std::string root;
-        std::map<std::string, page> htmlPage;
-		int maxClientBodySize;
 
 };
 
