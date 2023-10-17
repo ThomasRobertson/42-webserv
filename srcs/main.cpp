@@ -21,7 +21,8 @@ int	main(int argc, char **argv)
     }
 
     Server serv(configFile);
-    serv.startServer();
+    // serv.startServer();
+    serv.testServer(configFile.getHost(), configFile.getPort());
 
     return 0;
 }

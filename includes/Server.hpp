@@ -6,6 +6,8 @@
 #include <cstring>
 #include <unistd.h>
 #include <netdb.h>
+#include <fcntl.h>
+#include <sys/epoll.h>
 
 class Server
 {
@@ -17,6 +19,7 @@ class Server
         ~Server();
 
 		int startServer();
+        int testServer(std::string hostStr, std::string portStr);
         void listenClientRequest(int serverSocket);
 };
 
