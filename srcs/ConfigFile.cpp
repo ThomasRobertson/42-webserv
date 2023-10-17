@@ -80,10 +80,10 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
     file.close();
 
     std::map<std::string, page>::iterator it;
-    for (it = htmlPage.begin(); it != htmlPage.end(); ++it)
-    {
-        std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method: " << it->second.method << std::endl;
-    }
+    // for (it = htmlPage.begin(); it != htmlPage.end(); ++it)
+    // {
+    //     std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method: " << it->second.method << std::endl;
+    // }
 
 	setValuesConfigFile();
 

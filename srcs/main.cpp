@@ -13,7 +13,6 @@ int	main(int argc, char **argv)
     }
 
     ConfigFile configFile;
-    Server serv;
 
     if (!configFile.loadDataConfigFile(argv[1]))
     {
@@ -21,7 +20,8 @@ int	main(int argc, char **argv)
         return 0;
     }
 
-    serv.startServer(configFile);
+    Server serv(configFile);
+    serv.startServer();
 
     return 0;
 }

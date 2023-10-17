@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server()
+Server::Server(ConfigFile configFile) : _configFile(configFile)
 {
     return ;
 }
@@ -10,40 +10,8 @@ Server::~Server()
     return ;
 }
 
-struct UserRequest {
-    std::string method;
-    std::string root;
-};
-
-UserRequest getUserRequest(std::string requestStr)
+void Server::listenClientRequest(int serverSocket)
 {
-    UserRequest data;
-    
-    size_t spaceSepPos = requestStr.find(' '); // first space char after "GET /scripts/script.js HTTP/1.1"
-    data.method = requestStr.substr(0, spaceSepPos);
-    requestStr.erase(0, spaceSepPos + 1);
-    spaceSepPos = requestStr.find(' '); // first space char after "GET /scripts/script.js HTTP/1.1"
-    data.root = requestStr.substr(0, spaceSepPos);
-    return data;
-}
-
-void listenClientRequest(int serverSocket)
-{
-    std::ifstream htmlFile("www/srcs/index.html"); 
-    if (!htmlFile.is_open())
-    {
-        std::cerr << "Failed to open HTML file." << std::endl;
-        return ;
-    }
-
-    std::string htmlContent((std::istreambuf_iterator<char>(htmlFile)), std::istreambuf_iterator<char>());
-
-    std::string response = "HTTP/1.1 200 OK\r\n";
-    response += "Content-Type: text/html\r\n";
-    response += "Content-Length: " + htmlContent + "\r\n";
-    response += "\r\n";
-    response += htmlContent;
-
     while (true)
     {
         sockaddr_in clientAddress;
@@ -66,21 +34,21 @@ void listenClientRequest(int serverSocket)
             close(clientSocket);
             continue;
         }
+
         std::string requestData(buffer, bytesRead);
+
         UserRequest userRequest = getUserRequest(requestData);
-        if (userRequest.root == "/exit")
-        {
-            send(clientSocket, response.c_str(), response.size(), 0);
-            close(clientSocket);
-            break;
-        }
+
+        std::string response = manageUserResponse(userRequest, this->_configFile);
+
         send(clientSocket, response.c_str(), response.size(), 0);
         close(clientSocket);
     }
 }
 
-int Server::startServer(ConfigFile configFile)
+int Server::startServer()
 {
+    ConfigFile configFile = this->_configFile;
     std::string host = configFile.getHost();
     std::string port = configFile.getPort();
 
