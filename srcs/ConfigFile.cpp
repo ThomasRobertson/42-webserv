@@ -92,14 +92,15 @@ void ConfigFile::setValuesConfigFile()
 {
 	this->host = this->configMap["host"];
 	this->port = this->configMap["port"];
-	this->server_name = this->configMap["server_name"];
 	this->root = this->configMap["root"];
 	this->maxClientBodySize = convertStrToInt(this->configMap["maxClientBodySize"]);
 
+    std::map<std::string, page>::iterator it;
+    for (it = htmlPage.begin(); it != htmlPage.end(); ++it)
+        std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method: " << it->second.method << std::endl;
 
     std::cout << "host: " << this->host << std::endl;
     std::cout << "port: " << this->port << std::endl;
-    std::cout << "server_name: " << this->server_name << std::endl;
     std::cout << "root: " << this->root << std::endl;
     std::cout << "maxClientBodySize: " << this->maxClientBodySize << std::endl;
 }
