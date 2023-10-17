@@ -7,6 +7,11 @@
 #include <iostream>
 #include <cstdlib>
 
+struct page {
+    std::string index;
+    std::string method;
+};
+
 class ConfigFile
 {
     public:
@@ -29,7 +34,7 @@ class ConfigFile
 		std::string port;
 		std::string server_name;
 		std::string root;
-        std::map<std::string, std::string> htmlPage;
+        std::map<std::string, page> htmlPage;
 		int maxClientBodySize;
 
 };
