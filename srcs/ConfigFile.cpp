@@ -32,9 +32,12 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
     size_t positionSpace;
     size_t positionSemicolon;
     size_t positionLeftBracket;
+    size_t positionRightBracket;
     size_t positionTab;
     size_t positionDoubleTab;
     size_t positionLocation;
+    size_t positionIndex;
+    size_t positionMethods;
     page myPage;
 
     std::ifstream file(filename.c_str());
@@ -47,24 +50,33 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
         positionSpace = line.find(' ');
         positionSemicolon = line.find(';');
         positionLeftBracket = line.find('{');
-        positionLocation = line.find("	location");          
+        positionLocation = line.find("	location");
 
         if (positionLocation != std::string::npos)
         {
-            locationStr = line.substr(positionSpace + 2, (positionLeftBracket) - (positionSpace + 2));
-            
-            if (!std::getline(file, line))
-                break;
-            positionSpace = line.find(' ');
-            positionSemicolon = line.find(';');
-            locationIndexStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-            myPage.index = locationIndexStr;
-            if (!std::getline(file, line))
-                break;
-            positionSpace = line.find(' ');
-            positionSemicolon = line.find(';');
-            locationMethodStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-            myPage.method = locationMethodStr;
+            locationStr = line.substr(positionSpace + 1, (positionLeftBracket) - (positionSpace + 2));
+            while (std::getline(file, line))
+            {
+                positionSpace = line.find(' ');
+                positionSemicolon = line.find(';');
+                positionRightBracket = line.find('}');
+                positionIndex = line.find("		index");      
+                positionMethods = line.find("		methods");
+                if (positionRightBracket != std::string::npos)
+                {
+                    break;
+                }
+                else if (positionIndex != std::string::npos)
+                {
+                    locationIndexStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+                    myPage.index = locationIndexStr;
+                }
+                else if (positionMethods != std::string::npos)
+                {
+                    locationMethodStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+                    myPage.methods = locationMethodStr;
+                }
+            }
             this->htmlPage[locationStr] = myPage;
         }
 
@@ -78,12 +90,6 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
         
     }
     file.close();
-
-    std::map<std::string, page>::iterator it;
-    // for (it = htmlPage.begin(); it != htmlPage.end(); ++it)
-    // {
-    //     std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method: " << it->second.method << std::endl;
-    // }
 
 	setValuesConfigFile();
 
@@ -99,7 +105,7 @@ void ConfigFile::setValuesConfigFile()
 
     std::map<std::string, page>::iterator it;
     for (it = htmlPage.begin(); it != htmlPage.end(); ++it)
-        std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method: " << it->second.method << std::endl;
+        std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method: " << it->second.methods << std::endl;
 
     std::cout << "host: " << this->host << std::endl;
     std::cout << "port: " << this->port << std::endl;

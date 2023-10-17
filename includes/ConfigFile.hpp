@@ -9,7 +9,7 @@
 
 struct page {
     std::string index;
-    std::string method;
+    std::string methods;
 };
 
 class ConfigFile

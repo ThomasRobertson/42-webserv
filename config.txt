@@ -11,6 +11,14 @@ server {
 		methods GET;
 	}
 
+<<<<<<< HEAD
+=======
+	location /test {
+		index www/test.html;
+		methods GET;
+	}
+
+>>>>>>> fa50f9d (modifs)
 	location /404 {
 		index www/errors/404.html;
 		methods GET;
