@@ -79,17 +79,17 @@ void listenClientRequest(int serverSocket)
     }
 }
 
-int Server::startServer(std::string hostStr, std::string portStr)
+int Server::startServer(ConfigFile configFile)
 {
-    const char *host = hostStr.c_str();
-    const char *port = portStr.c_str();
+    std::string host = configFile.getHost();
+    std::string port = configFile.getPort();
 
     struct addrinfo hints, *serverInfo, *p;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    if (getaddrinfo(host, port, &hints, &serverInfo) != 0)
+    if (getaddrinfo(host.c_str(), port.c_str(), &hints, &serverInfo) != 0)
     {
         std::cerr << "Error retrieving host information" << std::endl;
         return 0;

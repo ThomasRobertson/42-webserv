@@ -13,7 +13,7 @@ class Server
         Server();
         ~Server();
 
-		int startServer(std::string host, std::string port);
+		int startServer(ConfigFile configFile);
 };
 
 #endif

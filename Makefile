@@ -13,7 +13,7 @@ NAME = webserv
 CXX = c++
 
 CXXFLAGS =
-# CXXFLAGS = -Werror -Wall -Wextra -std=c++98
+CXXFLAGS = -Werror -Wall -Wextra -std=c++98
 
 # ------------------- RULES ------------------- #
 
