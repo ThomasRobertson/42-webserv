@@ -31,7 +31,8 @@ SRC_DIR= srcs/
 #                                .C & .H FILES                                 #
 # **************************************************************************** #
 
-SRC_FILE=	$(shell find srcs/*.cpp -exec basename \ {} \;)
+CXXFLAGS =
+CXXFLAGS = -Werror -Wall -Wextra -std=c++98 -g3
 
 SRC=		$(addprefix $(SRC_DIR), $(SRC_FILE))
 OBJ=		$(addprefix $(OBJ_DIR), ${SRC_FILE:.cpp=.o})
