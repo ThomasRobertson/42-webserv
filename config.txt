@@ -4,7 +4,6 @@ server {
 	maxClientBodySize 1000;
 	error_page 404 www/srcs/errors/errors/404.html;
 	error_page 500 www/srcs/errors/errors/500.html;
-
 	location /styles/favicon.png {
 		index www/styles/favicon.png;
 		methods GET POST;
@@ -15,13 +14,13 @@ server {
 		methods GET;
 	}
 
-	location /styles/style.css {
-		index www/styles/style.css;
+	location /test {
+		index www/srcs/test.html;
 		methods GET;
 	}
 
-	location /scripts/script.js {
-		index www/script.js;
+	location /lol {
+		index www/srcs/lol.html;
 		methods GET;
 	}
 }

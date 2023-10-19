@@ -94,7 +94,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				positionRightBracket = line.find("	}");
 				positionIndex = line.find("		index");
 				positionMethods = line.find("		methods");
-				if (positionRightBracket != std::string::npos)
+				if (positionRightBracket != std::string::npos && line[1] != '	')
 				{
 					break;
 				}
@@ -114,6 +114,11 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 					splitStr(locationMethodStr, ' ', methodsVector);
 
 					myPage.methods = methodsVector;
+				}
+				else
+				{
+					std::cout << line << std::endl;
+					return 0;
 				}
 			}
 			this->htmlPage[locationStr] = myPage;
@@ -141,6 +146,11 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 
 				this->configMap[leftIndexStr] = rightValueStr;
 			}
+		}
+		else if (line != "}" && line != "\n" && line != "\r")
+		{
+			std::cout << line << std::endl;
+			return 0;
 		}
 	}
 	file.close();
@@ -181,7 +191,7 @@ void ConfigFile::displayValuesConfigFile()
 		// std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method 1: " << it->second.methods[0] << " Method 2: " << it->second.methods[1] << std::endl;
 		std::cout << "Code: " << it2->first << " Path: " << it2->second << std::endl;
 	}
-	
+
 	std::cout << getErrorPages("404") << std::endl;
 }
 
