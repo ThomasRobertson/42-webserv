@@ -21,5 +21,15 @@ void CgiHandler::execute()
 {
 	pid_t child_pid;
 
-	child_pid = launch_child();
+	try
+	{
+		child_pid = launch_child();
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+		if (child_pid != 0)
+			exit(EXIT_FAILURE);
+	}
+	
 }
