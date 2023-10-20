@@ -2,7 +2,7 @@
 #include "ConfigFile.hpp"
 #include <sstream>
 
-bool DEBUG_VERBOSE = true;
+bool DEBUG_VERBOSE = false;
 
 std::string sizeToString(size_t value) {
     std::ostringstream oss;
