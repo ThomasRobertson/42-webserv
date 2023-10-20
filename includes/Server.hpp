@@ -9,6 +9,8 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 
+struct UserRequest;
+
 class Server
 {
     private:
@@ -23,6 +25,8 @@ class Server
 
         int testServer(std::string hostStr, std::string portStr);
         int testListenClientRequest(int serverSocket, int epollFd);
+        void epollOut(UserRequest &userRequest, std::string &response, int &clientSocket);
+        void epollIn(UserRequest &userRequest, int &clientSocket);
 };
 
 struct UserRequest {

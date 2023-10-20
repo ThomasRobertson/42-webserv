@@ -77,7 +77,7 @@ int Server::testListenClientRequest(int serverSocket, int epollFd)
         return 0;
     }
 
-    UserRequest userRequest; 
+    UserRequest userRequest;
     std::string response;
     while (true)
     {
@@ -118,33 +118,12 @@ int Server::testListenClientRequest(int serverSocket, int epollFd)
 
                 if (events[i].events & EPOLLIN)
                 {
-                    char buffer[1024];
-                    ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-                    if (bytesRead <= 0)
-                    {
-                        close(clientSocket);
-                    }
-                    else
-                    {
-                        std::string requestData(buffer, bytesRead);
-                        userRequest = getUserRequest(requestData);
-                        std::cout << "Received HTTP request:\n" << requestData << std::endl;
-                    }
+                    epollIn(userRequest, clientSocket);
                 }
 
                 if (events[i].events & EPOLLOUT)
                 {
-                    response = getUserResponse(userRequest, this->_configFile);
-                    ssize_t bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
-                    if (bytesSent == -1)
-                    {
-                        std::cerr << "Error sending response" << std::endl;
-                        close(clientSocket);
-                    }
-                    else
-                    {
-                        close(clientSocket);
-                    }
+                    epollOut(userRequest, response, clientSocket);
                 }
             }
         }
@@ -152,8 +131,33 @@ int Server::testListenClientRequest(int serverSocket, int epollFd)
     return 1;
 }
 
-
-void epollOut()
+void Server::epollIn(UserRequest &userRequest, int &clientSocket)
 {
-    
+    char buffer[1024];
+    ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+    if (bytesRead <= 0)
+    {
+        close(clientSocket);
+    }
+    else
+    {
+        std::string requestData(buffer, bytesRead);
+        userRequest = getUserRequest(requestData);
+        std::cout << "Received HTTP request:\n" << requestData << std::endl;
+    }
+}
+
+void Server::epollOut(UserRequest &userRequest, std::string &response, int &clientSocket)
+{
+    response = manageUserResponse(userRequest, this->_configFile);
+    ssize_t bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
+    if (bytesSent == -1)
+    {
+        std::cerr << "Error sending response" << std::endl;
+        close(clientSocket);
+    }
+    else
+    {
+        close(clientSocket);
+    }
 }
