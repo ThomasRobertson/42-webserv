@@ -34,8 +34,8 @@ std::string getContentType(std::string fileName)
 
 std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 {
-	std::cout << "---------------------- REQUEST ----------------------" << std::endl;
-	std::cout << userRequest.root << std::endl;
+	if (DEBUG_VERBOSE) std::cout << "---------------------- REQUEST ----------------------" << std::endl;
+	if (DEBUG_VERBOSE) std::cout << userRequest.root << std::endl;
 	std::string response, fileName, contentType, status;
 
 	fileName = userRequest.root;
@@ -43,6 +43,10 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 
 	if (contentType == "text/html" || contentType == "image/png")
 		fileName = configFile.getFileRoute(fileName, status);
+
+	if (status == "404" && contentType == "text/html")
+		fileName = configFile.getErrorPages(status);
+
 	fileName = "www" + fileName;
 
 	std::ifstream file(fileName.c_str());
@@ -82,6 +86,7 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 		response = "HTTP/1.1 404 Not Found\r\n\r\n";
 		if (DEBUG_VERBOSE) std::cout << "404 NOT FOUND: " << fileName << std::endl;
 	}
+
 	return response;
 }
 
