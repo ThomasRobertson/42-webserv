@@ -76,41 +76,27 @@ int Server::testListenClientRequest(int serverSocket, int epollFd)
         close(epollFd);
         return 0;
     }
-
+    
+    
+    struct epoll_event events[10];
     UserRequest userRequest;
     std::string response;
+
     while (true)
     {
-        struct epoll_event events[10];
         int numEvents = epoll_wait(epollFd, events, 10, -1);
+
+        if (numEvents == -1) {
+            std::cerr << "Error in epoll_wait" << std::endl;
+            return 0;
+        }
+
 
         for (int i = 0; i < numEvents; i++)
         {
             if (events[i].data.fd == serverSocket)
             {
-                sockaddr_in clientAddr;
-                socklen_t clientAddrSize = sizeof(clientAddr);
-
-                int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
-                if (clientSocket == -1)
-                {
-                    std::cerr << "Error accepting connection" << std::endl;
-                    continue;
-                }
-
-                int flags = fcntl(clientSocket, F_GETFL, 0);
-                fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK);
-
-                event.events = EPOLLIN | EPOLLOUT | EPOLLET;
-                event.data.fd = clientSocket;
-
-
-                if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) == -1)
-                {
-                    std::cerr << "Error adding client socket to epoll" << std::endl;
-                    close(clientSocket);
-                    continue;
-                }
+                newConnection(serverSocket, epollFd);
             }
             else
             {
@@ -149,7 +135,7 @@ void Server::epollIn(UserRequest &userRequest, int &clientSocket)
 
 void Server::epollOut(UserRequest &userRequest, std::string &response, int &clientSocket)
 {
-    response = manageUserResponse(userRequest, this->_configFile);
+    response = getUserResponse(userRequest, this->_configFile);
     ssize_t bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
     if (bytesSent == -1)
     {
@@ -160,4 +146,35 @@ void Server::epollOut(UserRequest &userRequest, std::string &response, int &clie
     {
         close(clientSocket);
     }
+}
+
+int Server::newConnection(int &serverSocket, int &epollFd)
+{
+    sockaddr_in clientAddr;
+    socklen_t clientAddrSize = sizeof(clientAddr);
+
+    int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
+    if (clientSocket == -1)
+    {
+        std::cerr << "Error accepting connection" << std::endl;
+        return 0;
+    }
+
+    int flags = fcntl(clientSocket, F_GETFL, 0);
+    fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK);
+
+    struct epoll_event event;
+    event.events = EPOLLIN | EPOLLOUT | EPOLLET;
+    event.data.fd = clientSocket;
+
+
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) == -1)
+    {
+        std::cerr << "Error adding client socket to epoll" << std::endl;
+        close(clientSocket);
+        return 0;
+    }
+    std::cout << "new co fd = " << event.data.fd << std::endl;
+
+    return 1;
 }
