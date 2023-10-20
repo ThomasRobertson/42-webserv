@@ -1,48 +1,124 @@
-SRCS_DIR = srcs
+#*************************************************************************** #
+#                                                                              #
+#            :::      ::::::::                                                 #
+#          :+:      :+:    :+:                                                 #
+#        +:+ +:+         +:+         Makefile v2.1                             #
+#      +#+  +:+       +#+                                                      #
+#    +#+#+#+#+#+   +#+               By: troberts <troberts@student.42.fr>     #
+#         #+#    #+#                                                           #
+#        ###   ########.fr                                                     #
+#                                                                              #
+# **************************************************************************** #
 
-OBJS_DIR = objs
+# **************************************************************************** #
+#                              VARIABLE REFERENCE                              #
+# **************************************************************************** #
 
-SRCS := $(shell find srcs/*.cpp -exec basename \ {} \;)
+NAME= webserv
 
-OBJS = $(patsubst %.cpp,$(OBJS_DIR)/%.o,$(SRCS))
+CXX= c++
+CXXFLAGS= -Wall -Wextra -g3 -std=c++98 $(DEPFLAGS) $(INCLUDE)
+LDFLAGS= 
+DEPFLAGS= -MMD -MP
 
-INCLUDES = $(shell find includes/*.hpp)
+INCLUDE = -I$(INCLUDE_DIR)
 
-NAME = webserv
+INCLUDE_DIR= includes/
+OBJ_DIR= objs/
+SRC_DIR= srcs/
 
-CXX = c++
+# **************************************************************************** #
+#                                .C & .H FILES                                 #
+# **************************************************************************** #
 
-CXXFLAGS =
-CXXFLAGS = -Werror -Wall -Wextra -std=c++98
+SRC_FILE=	$(shell find srcs/*.cpp -exec basename \ {} \;)
 
-# ------------------- RULES ------------------- #
+SRC=		$(addprefix $(SRC_DIR), $(SRC_FILE))
+OBJ=		$(addprefix $(OBJ_DIR), ${SRC_FILE:.cpp=.o})
+DEP=		$(addprefix $(OBJ_DIR), ${OBJ:.o=.d})
 
-$(NAME): $(OBJS_DIR) $(OBJS) $(INCLUDES)
-	@$(CXX) $(CXXFLAGS) $(OBJS) -I./includes -o $(NAME)
-	@echo "\033[32m$ $(NAME) compiled !"
-	@echo "----------------------------\033[0m"
+# **************************************************************************** #
+#                                HEADER CONFIG                                 #
+# **************************************************************************** #
+
+#                 # <-- start here         | <-- middle             # <-- stop here
+HEADER_NAME 	= +                     Webserv                     #
+
+COLOR_RED		= \033[0;31m
+COLOR_GREEN		= \033[0;32m
+COLOR_YELLOW	= \033[0;33m
+COLOR_BLUE		= \033[0;34m
+COLOR_PURPLE	= \033[0;35m
+COLOR_CYAN		= \033[0;36m
+COLOR_WHITE		= \033[0;37m
+COLOR_END		= \033[m
+
+HEADER =		@echo "${COLOR_CYAN}\
+				\n/* ************************************************************************** */\
+				\n/*                                                                            */\
+				\n/*            :::      ::::::::                                               */\
+				\n/*          :+:      :+:    :+:                                               */\
+				\n/*        +:+ +:+         +:${HEADER_NAME}*/\
+				\n/*      +\#+  +:+       +\#+                                                    */\
+				\n/*    +\#+\#+\#+\#+\#+   +\#+                   <aradice@student.42.fr>             */\
+				\n/*         \#+\#    \#+\#                     <rvincent@student.42.fr>            */\
+				\n/*        \#\#\#   \#\#\#\#\#\#\#\#.fr               <troberts@student.42.fr>            */\
+				\n/*                                                                            */\
+				\n/* ************************************************************************** */\
+				\n \
+				\n${COLOR_END}"
+
+HEADER_VAR =	@echo "${COLOR_CYAN}\
+				\n \
+				BINARY NAME: $(NAME) \
+				\n CXX: $(CXX) \
+				\n CXXFLAGS: $(CXXFLAGS) \
+				\n LDFLAGS: $(LDFLAGS) \
+				\n${COLOR_END}"
+
+# **************************************************************************** #
+#                                    RULES                                     #
+# **************************************************************************** #
 
 all: $(NAME)
 
-nf: $(OBJS_DIR) $(OBJS) $(INCLUDES)
-	@$(CXX) $(OBJS) -I./includes -o $(NAME)
-	@echo "\033[32m$ $(NAME) compiled without flags !"
-	@echo "----------------------------\033[0m"
+$(NAME): FORCE header
+	$(HEADER_VAR)
+	@echo -n "${COLOR_YELLOW}Compiling : \n[${COLOR_END}"
+	@$(MAKE) --no-print-directory --silent $(OBJ)
+	@echo -n "${COLOR_YELLOW}]\n\n${COLOR_END}"
+	@echo -n "${COLOR_GREEN}Linking : "
+	@$(CXX) -o $@ $(OBJ) $(LDFLAGS)
+	@echo "${COLOR_GREEN}Done. ${COLOR_END}"
 
-$(OBJS_DIR):
-	@mkdir -p $(OBJS_DIR)
-	@echo "\033[33mcompiling $(NAME)..."
+FORCE: ;
 
-$(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
-	@$(CXX) $(CXXFLAGS) -I./includes -c $< -o $@
+$(OBJ): $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
+	@echo -n "${COLOR_YELLOW}#${COLOR_END}"
+	@mkdir -p $(OBJ_DIR)
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
-clean:
-	@rm -rf $(OBJS_DIR)
-	@echo "\033[32mclean !\033[0m"
+header:
+	$(HEADER)
+
+cleanobj:
+	@rm -f $(OBJ) $(DEP)
+
+cleanobjdir: cleanobj
+	@rm -rf $(OBJ_DIR)
+
+clean: header
+	@echo "${COLOR_RED}Removing objects.${COLOR_END}"
+	@$(MAKE) --no-print-directory --silent cleanobj
+	@echo "${COLOR_RED}Removing object directory.${COLOR_END}"
+	@$(MAKE) --no-print-directory --silent cleanobjdir
 
 fclean: clean
-	@rm -f $(NAME)
+	@echo "${COLOR_RED}Removing binary file.${COLOR_END}"
+	@rm -f $(NAME) $(NAME_BONUS)
 
-re: fclean all
+re: header fclean all
 
-.PHONY: all clean fclean re
+-include $(OBJ:.o=.d)
+
+.PHONY: all clean fclean re header cleanobj debug FORCE cleanobjdir

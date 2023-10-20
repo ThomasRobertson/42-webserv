@@ -2,6 +2,7 @@
 # define CONFIGFILE_HPP
 
 #include <map>
+#include <vector>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -9,7 +10,7 @@
 
 struct page {
     std::string index;
-    std::string methods;
+    std::vector<std::string> methods;
 };
 
 class ConfigFile
@@ -22,6 +23,7 @@ class ConfigFile
 		std::string server_name;
 		std::string root;
         std::map<std::string, page> htmlPage;
+        std::map<std::string, std::string> errorsMap;
 		int maxClientBodySize;
 
     public:
@@ -30,12 +32,15 @@ class ConfigFile
 
         int loadDataConfigFile(const std::string &filename);
 		void setValuesConfigFile();
+        void displayValuesConfigFile();
 		std::string valuesFromMap(std::string index);
 		int convertStrToInt(std::string str);
+        void splitStr(std::string input, char delimiter, std::vector<std::string> &tokens);
 
         std::string getHost();
         std::string getPort();
         std::string getHtmlPage(std::string location);
+        std::string getErrorPages(std::string errorCode);
 
 };
 

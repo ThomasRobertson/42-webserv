@@ -19,8 +19,10 @@ class Server
         ~Server();
 
 		int startServer();
-        int testServer(std::string hostStr, std::string portStr);
         void listenClientRequest(int serverSocket);
+
+        int testServer(std::string hostStr, std::string portStr);
+        int testListenClientRequest(int serverSocket, int epollFd);
 };
 
 struct UserRequest {
