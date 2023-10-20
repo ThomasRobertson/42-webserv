@@ -134,7 +134,7 @@ int Server::testListenClientRequest(int serverSocket, int epollFd)
 
                 if (events[i].events & EPOLLOUT)
                 {
-                    response = manageUserResponse(userRequest, this->_configFile);
+                    response = getUserResponse(userRequest, this->_configFile);
                     ssize_t bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
                     if (bytesSent == -1)
                     {

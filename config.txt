@@ -9,18 +9,18 @@ server {
 		methods GET POST;
 	}
 
+	location /styles/favicon.png {
+		index /styles/favicon.png;
+		methods GET;
+	}
+
 	location / {
-		index www/srcs/index.html;
+		index /srcs/index.html;
 		methods GET;
 	}
 
-	location /test {
-		index www/srcs/test.html;
-		methods GET;
-	}
-
-	location /lol {
-		index www/srcs/lol.html;
+	location /404 {
+		index /srcs/errors/404.html;
 		methods GET;
 	}
 }

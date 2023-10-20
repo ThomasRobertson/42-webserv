@@ -20,10 +20,20 @@ std::string ConfigFile::getPort()
 	return this->port;
 }
 
-std::string ConfigFile::getHtmlPage(std::string location)
+std::string ConfigFile::getFileRoute(std::string location, std::string &status)
 {
-	return this->htmlPage[location].index;
+    std::map<std::string, page>::iterator it = this->htmlPage.find(location);
+    status = "200";
+
+    if (it == this->htmlPage.end())
+    {
+        status = "404";
+        return this->htmlPage["/404"].index;
+    }
+
+    return this->htmlPage[location].index;
 }
+
 std::string ConfigFile::getErrorPages(std::string errorCode)
 {
 	return this->errorsMap[errorCode];

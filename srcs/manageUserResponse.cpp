@@ -1,30 +1,87 @@
 #include "Server.hpp"
 #include "ConfigFile.hpp"
+#include <sstream>
 
-std::string manageUserResponse(UserRequest userRequest, ConfigFile configFile)
+bool DEBUG_VERBOSE = true;
+
+std::string sizeToString(size_t value) {
+    std::ostringstream oss;
+
+    oss << value;
+    return oss.str();
+}
+
+std::string getContentType(std::string fileName)
 {
-	(void)configFile;
-	std::string fileName = userRequest.root;
-	// if (fileName == "/")
-	// std::cout << configFile.getHtmlPage(fileName) << std::endl;
-	// std::cout << "file to get: " << fileName << std::endl;
+	std::string type;
 
-	(void)userRequest;
-	std::ifstream htmlFile("www/srcs/index.html"); 
-	if (!htmlFile.is_open())
+	size_t dotPos = fileName.find_last_of(".");
+    if (dotPos != std::string::npos)
 	{
-		std::cerr << "Failed to open HTML file." << std::endl;
-		return "";
+		if (fileName.substr(dotPos + 1) == "html")
+			type = "text/html";
+		if (fileName.substr(dotPos + 1) == "css")
+			type = "text/css";
+		if (fileName.substr(dotPos + 1) == "js")
+			type = "text/javascript";
+		if (fileName.substr(dotPos + 1) == "png")
+			type = "image/png";
+    }
+	else
+		type = "text/html";
+    return type;
+}
+
+std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
+{
+	std::cout << "---------------------- REQUEST ----------------------" << std::endl;
+	std::cout << userRequest.root << std::endl;
+	std::string response, fileName, contentType, status;
+
+	fileName = userRequest.root;
+	contentType = getContentType(fileName);
+
+	if (contentType == "text/html" || contentType == "image/png")
+		fileName = configFile.getFileRoute(fileName, status);
+	fileName = "www" + fileName;
+
+	std::ifstream file(fileName.c_str());
+
+	if (status == "200" && file.is_open())
+	{
+		if (DEBUG_VERBOSE) std::cout << "case 1 file: " << fileName << std::endl;
+		std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+		response = "HTTP/1.1 " + status + " OK\r\n";
+		response += "Content-Type: " + contentType + "\r\n";
+		response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
+		response += htmlContent;
 	}
+	else if ((contentType == "text/css" || contentType == "text/javascript") && file.is_open())
+	{
+		if (DEBUG_VERBOSE) std::cout << "case 2 file: " << fileName << std::endl;
+		std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-	std::string htmlContent((std::istreambuf_iterator<char>(htmlFile)), std::istreambuf_iterator<char>());
+		response = "HTTP/1.1 " + status + " Not Found\r\n";
+		response += "Content-Type: " + contentType + "\r\n";
+		response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
+		response += htmlContent;
+	}
+	else if (status == "404" && contentType == "text/html" && file.is_open())
+	{
+		if (DEBUG_VERBOSE) std::cout << "case 3 file: " << fileName << std::endl;
+		std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-	std::string response = "HTTP/1.1 200 OK\r\n";
-	response += "Content-Type: text/html\r\n";
-	response += "Content-Length: " + htmlContent + "\r\n";
-	response += "\r\n";
-	response += htmlContent;
-
+		response = "HTTP/1.1 " + status + " Not Found\r\n";
+		response += "Content-Type: " + contentType + "\r\n";
+		response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
+		response += htmlContent;
+	}
+	else
+	{
+		response = "HTTP/1.1 404 Not Found\r\n\r\n";
+		if (DEBUG_VERBOSE) std::cout << "404 NOT FOUND: " << fileName << std::endl;
+	}
 	return response;
 }
 
@@ -32,7 +89,6 @@ UserRequest getUserRequest(std::string requestStr)
 {
     UserRequest data;
 
-	std::cout << requestStr << std::endl;
     size_t spaceSepPos = requestStr.find(' '); // first space char after "GET /scripts/script.js HTTP/1.1"
     data.method = requestStr.substr(0, spaceSepPos);
     requestStr.erase(0, spaceSepPos + 1);

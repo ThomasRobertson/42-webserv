@@ -40,8 +40,7 @@ void Server::listenClientRequest(int serverSocket)
         std::string requestData(buffer, bytesRead);
 
         UserRequest userRequest = getUserRequest(requestData);
-
-        response = manageUserResponse(userRequest, this->_configFile);
+        response = getUserResponse(userRequest, this->_configFile);
 
         send(clientSocket, response.c_str(), response.size(), 0);
         close(clientSocket);

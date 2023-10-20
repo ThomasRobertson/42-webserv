@@ -30,7 +30,7 @@ struct UserRequest {
     std::string root;
 };
 
-std::string manageUserResponse(UserRequest userRequest, ConfigFile configFile);
+std::string getUserResponse(UserRequest userRequest, ConfigFile configFile);
 UserRequest getUserRequest(std::string requestStr);
 
 #endif

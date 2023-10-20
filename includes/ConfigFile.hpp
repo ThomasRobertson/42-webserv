@@ -39,8 +39,8 @@ class ConfigFile
 
         std::string getHost();
         std::string getPort();
-        std::string getHtmlPage(std::string location);
         std::string getErrorPages(std::string errorCode);
+        std::string getFileRoute(std::string location, std::string &status);
 
 };
 
