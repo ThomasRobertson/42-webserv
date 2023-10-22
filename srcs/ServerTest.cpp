@@ -68,7 +68,7 @@ int Server::testServer(std::string hostStr, std::string portStr)
 int Server::testListenClientRequest(int serverSocket, int epollFd)
 {
     struct epoll_event event;
-    event.events = EPOLLIN | EPOLLET;
+    event.events = EPOLLIN;
     event.data.fd = serverSocket;
     if (epoll_ctl(epollFd, EPOLL_CTL_ADD, serverSocket, &event) == -1) {
         std::cerr << "Error adding server socket to epoll" << std::endl;
@@ -78,9 +78,12 @@ int Server::testListenClientRequest(int serverSocket, int epollFd)
     }
     
     
-    struct epoll_event events[10];
-    UserRequest userRequest;
+    UserRequest userRequest; 
     std::string response;
+    int clientAddr, clientSocket;
+    struct epoll_event events[10];
+    socklen_t clientAddrLen = sizeof(clientAddr);
+
 
     while (true)
     {
@@ -94,22 +97,87 @@ int Server::testListenClientRequest(int serverSocket, int epollFd)
 
         for (int i = 0; i < numEvents; i++)
         {
+            std::cout << "i : " <<i << std::endl;
+            std::cout << "EPOLLIN/OUT : " << event.events << std::endl;
+            std::cout << "EPOLLIN : " << EPOLLIN << std::endl;
+            std::cout << "EPOLLOUT : " << EPOLLOUT << std::endl;
+            std::cout << "EPOLLIN/OUT i : " << events[i].events << std::endl;
+            std::cout << "EPOLLIN& : " << (events[i].events & EPOLLIN) << std::endl;
+            std::cout << "EPOLLOUT& : " << (events[i].events & EPOLLOUT) << std::endl;
+            std::cout << "serverSocket : " << serverSocket << std::endl;
+            std::cout << "fd i : " << events[i].data.fd << std::endl << std::endl;
+            
             if (events[i].data.fd == serverSocket)
             {
-                newConnection(serverSocket, epollFd);
+                sockaddr_in clientAddr;
+                socklen_t clientAddrSize = sizeof(clientAddr);
+
+                int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
+                if (clientSocket == -1)
+                {
+                    std::cerr << "Error accepting connection" << std::endl;
+                    return 0;
+                }
+
+                int flags = fcntl(clientSocket, F_GETFL, 0);
+                fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK);
+
+                event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP;
+                event.data.fd = clientSocket;
+
+
+                if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) == -1)
+                {
+                    std::cerr << "Error adding client socket to epoll" << std::endl;
+                    close(clientSocket);
+                    return 0;
+                }
+                std::cout << "new co fd = " << event.data.fd << std::endl;
             }
             else
             {
                 int clientSocket = events[i].data.fd;
 
-                if (events[i].events & EPOLLIN)
+                if ( (events[i].events & EPOLLRDHUP) == EPOLLRDHUP)
                 {
-                    epollIn(userRequest, clientSocket);
+                    epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, &event);
+                    close(clientSocket);
+			    }
+
+                else if ((events[i].events & EPOLLIN) == EPOLLIN)
+                {
+                    char buffer[2048];
+                    ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+                    if (bytesRead <= 0)
+                    {
+                        epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, &event);
+                        close(clientSocket);
+                    }
+                    else
+                    {
+                        std::string requestData(buffer, bytesRead);
+                        userRequest = getUserRequest(requestData);
+                        std::cout << "Received HTTP request:\n" << requestData << std::endl;
+                    }
                 }
 
-                if (events[i].events & EPOLLOUT)
+
+                else if ((events[i].events & EPOLLOUT) == EPOLLOUT)
                 {
-                    epollOut(userRequest, response, clientSocket);
+                    // std::cout << "\033[32m" << "INSIDE EPOLLOUT" << "\033[0m" << std::endl;
+
+
+                    response = getUserResponse(userRequest, this->_configFile);
+
+
+                    // std::cout << response << std::endl;
+                    ssize_t bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
+                    if (bytesSent <= 0)
+                    {
+                        epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, &event);
+                        close(events[i].data.fd);
+                        std::cout << "Error sending data; client disconnected: " << clientSocket << std::endl;
+                    }
                 }
             }
         }
@@ -119,10 +187,11 @@ int Server::testListenClientRequest(int serverSocket, int epollFd)
 
 void Server::epollIn(UserRequest &userRequest, int &clientSocket)
 {
-    char buffer[1024];
+    char buffer[2048];
     ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
     if (bytesRead <= 0)
     {
+        // epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, &event);
         close(clientSocket);
     }
     else
