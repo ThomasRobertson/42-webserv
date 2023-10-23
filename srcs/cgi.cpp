@@ -7,11 +7,14 @@ pid_t CgiHandler::launch_child()
 	check_args_env();
 	pid_t pid = fork();
 	if (pid == -1)
-		perror("launch_child_process: Cannot launch child");
+	{
+		std::cerr << "Error, cannont launch child.\n";
+	}
 	else if (pid == 0)
 	{
-		VectorToStringArray args(_args);
-		pid = execve(_cgi_path.c_str(), args.getArray(), _environ);
+		VectorToStringArray<std::vector<std::string> > args(_args);
+		VectorToStringArray<std::map<std::string, std::string> > environ(_environ);
+		pid = execve(_cgi_path.c_str(), args.getArray(), environ.getArray());
 		throw std::runtime_error("Cannot launch" + _cgi_path);
 	}
 	return (pid);
