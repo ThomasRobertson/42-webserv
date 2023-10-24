@@ -1,5 +1,5 @@
 server {
-	host 10.32.6.3;
+	host 127.0.0.1;
 	port 4243;
 	maxClientBodySize 1000;
 	error_page 404 www/srcs/errors/errors/404.html;
@@ -25,5 +25,35 @@ server {
 	location /test {
 		index /srcs/errors/500.html;
 		methods GET;
+	}
+}
+
+server {
+	host a;
+	port b c;
+	maxClientBodySize 55;
+	error_page ee e;
+	error_page ff f;
+	cgi g g;
+	cgi h h;
+
+	location /i {
+		index j;
+		methods hhh;
+	}
+
+	location /i {
+		index j;
+		methods kkk;
+	}
+
+	location /l {
+		index /m;
+		methods nnn;
+	}
+
+	location /o {
+		index p;
+		methods qqq;
 	}
 }

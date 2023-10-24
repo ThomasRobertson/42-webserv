@@ -32,7 +32,7 @@ std::string getContentType(std::string fileName)
     return type;
 }
 
-std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
+std::string getUserResponse(UserRequest userRequest, ConfigFile configFile, int serverIndex)
 {
 	if (DEBUG_VERBOSE) std::cout << "---------------------- REQUEST ----------------------" << std::endl;
 	if (DEBUG_VERBOSE) std::cout << userRequest.root << std::endl;
@@ -42,10 +42,10 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 	contentType = getContentType(fileName);
 
 	if (contentType == "text/html" || contentType == "image/png")
-		fileName = configFile.getFileRoute(fileName, status);
+		fileName = configFile.getFileRoute(fileName, status, serverIndex);
 
 	if (status == "404" && contentType == "text/html")
-		fileName = configFile.getErrorPages(status);
+		fileName = configFile.getErrorPages(status, serverIndex);
 
 	fileName = "www" + fileName;
 

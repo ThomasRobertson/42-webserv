@@ -63,7 +63,7 @@ int Server::listenClientRequest(int serverSocket, int epollFd)
                 if (events[i].events & EPOLLOUT)
                 {
                     std::cout << "----------------------- NEW REPONSE: " << events[i].data.fd << " -----------------------" << std::endl;
-                    response = getUserResponse(userRequest, this->_configFile);
+                    response = getUserResponse(userRequest, this->_configFile, 0);
 
                     ssize_t bytesSent = write(events[i].data.fd, response.c_str(), response.length());
                     std::cout << "response sent" << response.substr(0, 200) << std::endl;
@@ -100,8 +100,8 @@ int Server::listenClientRequest(int serverSocket, int epollFd)
 
 int Server::startServer()
 {
-    std::string hostStr = this->_configFile.getHost();
-    std::string portStr = this->_configFile.getPort();
+    std::string hostStr = this->_configFile.getHost(0);
+    std::string portStr = this->_configFile.getPort(0);
 
     const char *host = hostStr.c_str();
     const char *port = portStr.c_str();
