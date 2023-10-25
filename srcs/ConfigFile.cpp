@@ -12,42 +12,39 @@ ConfigFile::~ConfigFile()
 
 std::string ConfigFile::getHost(int serverIndex)
 {
-	return this->configMap[serverIndex]["host"];
+	return this->_configVecOfMap[serverIndex]["host"];
 }
 
-std::string ConfigFile::getPort(int serverIndex)
+std::vector<std::string> ConfigFile::getPort(int serverIndex)
 {
-	return this->portsVec[serverIndex][0];
+	return this->_portsVec[serverIndex];
 }
 
 int ConfigFile::getMaxClientBodySize(int serverIndex)
 {
-	return convertStrToInt(this->configMap[serverIndex]["maxClientBodySize"]);
+	return convertStrToInt(this->_configVecOfMap[serverIndex]["maxClientBodySize"]);
 }
 
-std::string ConfigFile::getFileRoute(std::string location, std::string &status, int serverIndex)
+std::map<std::string, page> ConfigFile::getFileRoutes(int serverIndex)
 {
-    std::map<std::string, page>::iterator it = this->htmlPage[serverIndex].find(location);
-    status = "200";
-
-    if (it == this->htmlPage[serverIndex].end())
-    {
-        status = "404";
-        return this->htmlPage[serverIndex]["/404"].index;
-    }
-
-    return this->htmlPage[serverIndex][location].index;
+    return this->_htmlPageVecOfMap[serverIndex];
 }
 
-std::string ConfigFile::getErrorPages(std::string errorCode, int serverIndex)
+std::map<std::string, std::string> ConfigFile::getErrorPages(int serverIndex)
 {
-	return this->errorsMap[serverIndex][errorCode];
+	return this->_errorsVecOfMap[serverIndex];
 }
 
-std::string ConfigFile::getCgiPages(std::string cgiName, int serverIndex)
+std::map<std::string, std::string> ConfigFile::getCgiPages(int serverIndex)
 {
-	return this->cgiMap[serverIndex][cgiName];
+	return this->_cgiVecOfMap[serverIndex];
 }
+
+int ConfigFile::getServerNumber()
+{
+	return serverNumber;
+}
+
 
 bool hasSingleTabLocation(const std::string &line)
 {
@@ -91,7 +88,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 	page newPage;
 
 	std::map<std::string, std::string> newErrorMap;
-	std::map<std::string, page> newHtmlPage;
+	std::map<std::string, page> newHtmlPageMap;
 	std::map<std::string, std::string> newConfigMap;
 	std::map<std::string, std::string> newCgiMap;
 
@@ -160,7 +157,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 					return 0;
 				}
 			}
-			newHtmlPage[locationStr] = newPage;
+			newHtmlPageMap[locationStr] = newPage;
 		}
 
 		else if (positionTab != std::string::npos)
@@ -174,7 +171,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				portsStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
 				std::vector<std::string> portsVector;
 				splitStrInVector(portsStr, ' ', portsVector);
-				this->portsVec.push_back(portsVector);
+				this->_portsVec.push_back(portsVector);
 				portsVector.clear();
 			}
 			else if (positionErrors != std::string::npos && line[1] != '	')
@@ -207,14 +204,14 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 		}
 		else if (line == "}" || line == "}\n" || line == "}\r")
 		{
-			this->configMap.push_back(newConfigMap);
-			this->errorsMap.push_back(newErrorMap);
-			this->htmlPage.push_back(newHtmlPage);
-			this->cgiMap.push_back(newCgiMap);
+			this->_configVecOfMap.push_back(newConfigMap);
+			this->_errorsVecOfMap.push_back(newErrorMap);
+			this->_htmlPageVecOfMap.push_back(newHtmlPageMap);
+			this->_cgiVecOfMap.push_back(newCgiMap);
 
 			newConfigMap.clear();
 			newErrorMap.clear();
-			newHtmlPage.clear();
+			newHtmlPageMap.clear();
 			newCgiMap.clear();
 
 			setValuesConfigFile(serverIndex);
@@ -232,32 +229,30 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 
 void ConfigFile::setValuesConfigFile(int serverIndex)
 {
+	this->serverNumber = serverIndex;
 	displayValuesConfigFile(serverIndex);
 }
 
 void ConfigFile::displayValuesConfigFile(int serverIndex)
 {
 	std::cout << "Server number " << serverIndex + 1 << std::endl;
-	std::cout << "host: " << this->configMap[serverIndex]["host"] << std::endl;
-	std::cout << "port: " << this->portsVec[serverIndex][0] << std::endl;
-	std::cout << "maxClientBodySize: " << convertStrToInt(this->configMap[serverIndex]["maxClientBodySize"]) << std::endl;
+	std::cout << "host: " << this->_configVecOfMap[serverIndex]["host"] << std::endl;
+	std::cout << "port: " << this->_portsVec[serverIndex][0] << std::endl;
+	std::cout << "maxClientBodySize: " << convertStrToInt(this->_configVecOfMap[serverIndex]["maxClientBodySize"]) << std::endl;
 
 	std::map<std::string, page>::iterator it;
-	for (it = htmlPage[serverIndex].begin(); it != htmlPage[serverIndex].end(); ++it)
+	for (it = _htmlPageVecOfMap[serverIndex].begin(); it != _htmlPageVecOfMap[serverIndex].end(); it++)
 	{
 		// std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method 1: " << it->second.methods[0] << " Method 2: " << it->second.methods[1] << std::endl;
 		std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method 1: " << it->second.methods[0] << std::endl;
 	}
 	std::map<std::string, std::string>::iterator it2;
-	for (it2 = errorsMap[serverIndex].begin(); it2 != errorsMap[serverIndex].end(); ++it2)
+	for (it2 = _errorsVecOfMap[serverIndex].begin(); it2 != _errorsVecOfMap[serverIndex].end(); it2++)
 		std::cout << "Code: " << it2->first << " Path: " << it2->second << std::endl;
 
 	std::map<std::string, std::string>::iterator it3;
-	for (it3 = cgiMap[serverIndex].begin(); it3 != cgiMap[serverIndex].end(); ++it3)
+	for (it3 = _cgiVecOfMap[serverIndex].begin(); it3 != _cgiVecOfMap[serverIndex].end(); it3++)
 		std::cout << "Name: " << it3->first << " Path: " << it3->second <<  std::endl;
-
-	std::cout << getErrorPages("404", serverIndex) << std::endl;
-	std::cout << getCgiPages(".js", serverIndex) << std::endl << std::endl;
 }
 
 int ConfigFile::convertStrToInt(std::string str)

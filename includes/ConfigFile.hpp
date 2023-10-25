@@ -18,13 +18,14 @@ class ConfigFile
     private:
 
 		// std::vector<std::string> hostVec;
-		std::vector<std::vector<std::string> > portsVec;
+		std::vector<std::vector<std::string> > _portsVec;
 
-        std::vector<std::map<std::string, std::string> > configMap;
-        std::vector<std::map<std::string, page> > htmlPage;
-        std::vector<std::map<std::string, std::string> > errorsMap;
-        std::vector<std::map<std::string, std::string> > cgiMap;
+        std::vector<std::map<std::string, std::string> > _configVecOfMap;
+        std::vector<std::map<std::string, page> > _htmlPageVecOfMap;
+        std::vector<std::map<std::string, std::string> > _errorsVecOfMap;
+        std::vector<std::map<std::string, std::string> > _cgiVecOfMap;
 
+        int serverNumber;
 		// int maxClientBodySize;
 
     public:
@@ -41,11 +42,13 @@ class ConfigFile
 
 
         std::string getHost(int serverIndex);
-        std::string getPort(int serverIndex);
+        std::vector<std::string> getPort(int serverIndex);
         int getMaxClientBodySize(int serverIndex);
-        std::string getErrorPages(std::string errorCode, int serverIndex);
-        std::string getCgiPages(std::string cgiName, int serverIndex);
-        std::string getFileRoute(std::string location, std::string &status, int serverIndex);
+        std::map<std::string, std::string> getErrorPages(int serverIndex);
+        std::map<std::string, std::string> getCgiPages(int serverIndex);
+        std::map<std::string, page> getFileRoutes(int serverIndex);
+        int getServerNumber();
+
 
 };
 
