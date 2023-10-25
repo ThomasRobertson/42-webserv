@@ -55,7 +55,7 @@ int Server::listenClientRequest(int serverSocket, int epollFd)
     }
 
     UserRequest userRequest; 
-    epoll_event events[10];
+    epoll_event events[100];
     sockaddr clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
     std::string response;
@@ -64,29 +64,31 @@ int Server::listenClientRequest(int serverSocket, int epollFd)
 
     while (true)
     {
-        int numEvents = epoll_wait(epollFd, events, 10, -1);
+        int numEvents = epoll_wait(epollFd, events, 100, -1);
         for (int i = 0; i < numEvents; i++)
         {
             std::cout << "EVENT NBR: " << i << std::endl;
             if (events[i].data.fd == serverSocket)
             {
                 clientSocket = accept(serverSocket, &clientAddr, &clientAddrLen);
+                setNonBlocking(clientSocket);
 
                 Client currentClient(&clientAddr);
                 // if (isConnectedAddress(connectedAddress, currentClient))
                 // {
-                //     std::cout << "\033[31m" << "Client already connected, disconnected: " << clientSocket << "\033[0m" << std::endl;
-                //     epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, NULL);
-                //     // close(clientSocket);
+                    // std::cout << "\033[31m" << "Client already connected, disconnected: " << clientSocket << "\033[0m" << std::endl;
+                    // epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, NULL);
+                    // close(clientSocket);
+                    // i--;
                 // }
                 // else
                 // {
-                    setNonBlocking(clientSocket);
+
                     event.data.fd = clientSocket;
                     event.events = EPOLLIN;
                     epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event);
                     std::cout << "\033[32m" << "New client with ip: " << currentClient.getIpAddress() << "\033[0m" << std::endl;
-                    // connectedAddress.push_back(currentClient);
+                    connectedAddress.push_back(currentClient);
                 // }
             }
             else
@@ -124,10 +126,6 @@ int Server::listenClientRequest(int serverSocket, int epollFd)
                     event.data.fd = events[i].data.fd;
                     event.events = EPOLLIN;
                     epoll_ctl(epollFd, EPOLL_CTL_MOD, events[i].data.fd, &event);
-
-                    // std::cout << "\033[31m" << "Client disconnected: " << clientSocket << "\033[0m" << std::endl;
-                    // epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
-                    // close(events[i].data.fd);
                 }
             }
         }
