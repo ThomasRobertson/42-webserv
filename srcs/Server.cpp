@@ -1,5 +1,6 @@
 #include "Server.hpp"
-#include <set>
+#include <vector>
+#include "Client.hpp"
 
 Server::Server(ConfigFile configFile) : _configFile(configFile)
 {
@@ -26,48 +27,17 @@ void setNonBlocking(int sock)
     }
 }
 
-int isConnectedAddress(std::set<char *> connectedAddress, struct sockaddr clientAddr)
+int isConnectedAddress(std::vector<Client> connectedAddress, Client newClient)
 {
-    std::set<char *>::iterator it = connectedAddress.find(clientAddr.sa_data);
+    std::vector<Client>::iterator it = connectedAddress.begin();
 
-    if (it != connectedAddress.end())
-        return 1;
-    return 0;
-}
-
-void convertt(sockaddr sa)
-{
-    // Assume sa contains a valid IPv4 address
-
-    if (sa.sa_family == AF_INET) {
-        // Check if it's an IPv4 address
-
-        // Cast the sockaddr pointer to sockaddr_in
-        sockaddr_in* ipv4Addr = (sockaddr_in*)&sa;
-
-        // Extract the IPv4 address
-        unsigned char* addrBytes = (unsigned char*)&(ipv4Addr->sin_addr);
-
-        char ipAddress[INET_ADDRSTRLEN]; // Buffer for the IP address
-        int index = 0;
-
-        for (int i = 0; i < 4; ++i) {
-            int num = static_cast<int>(addrBytes[i]);
-            if (i > 0) {
-                ipAddress[index++] = '.';
-            }
-            // Convert each byte to string and append it to the buffer
-            do {
-                ipAddress[index++] = '0' + num % 10;
-                num /= 10;
-            } while (num > 0);
-        }
-        ipAddress[index] = '\0';
-
-        std::cout << "IPv4 Address: " << ipAddress << std::endl;
-    } else {
-        std::cout << "Not an IPv4 address." << std::endl;
+    while (it != connectedAddress.end())
+    {
+        if (*it == newClient)
+            return 1;
+        it++;
     }
+    return 0;
 }
 
 int Server::listenClientRequest(int serverSocket, int epollFd)
@@ -85,55 +55,43 @@ int Server::listenClientRequest(int serverSocket, int epollFd)
     }
 
     UserRequest userRequest; 
+    epoll_event events[10];
+    sockaddr clientAddr;
+    socklen_t clientAddrLen = sizeof(clientAddr);
     std::string response;
     int clientSocket;
-    struct epoll_event events[10];
-    struct sockaddr clientAddr;
-    socklen_t clientAddrLen = sizeof(clientAddr);
-    std::set<char *> connectedAddress;
+    std::vector<Client> connectedAddress;
 
     while (true)
     {
         int numEvents = epoll_wait(epollFd, events, 10, -1);
         for (int i = 0; i < numEvents; i++)
         {
+            std::cout << "EVENT NBR: " << i << std::endl;
             if (events[i].data.fd == serverSocket)
             {
                 clientSocket = accept(serverSocket, &clientAddr, &clientAddrLen);
                 setNonBlocking(clientSocket);
 
-                event.data.fd = clientSocket;
-                event.events = EPOLLIN;
-                epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event);
-                // if (isConnectedAddress(connectedAddress, clientAddr))
+                Client currentClient(&clientAddr);
+                // if (isConnectedAddress(connectedAddress, currentClient))
                 // {
                 //     std::cout << "\033[31m" << "Client already connected, disconnected: " << clientSocket << "\033[0m" << std::endl;
                 //     epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, NULL);
-                //     close(events[i].data.fd);
+                //     close(clientSocket);
+                //     continue;
                 // }
                 // else
                 // {
-                    // connectedAddress.insert(clientAddr.sa_data);
-                    if (clientAddr.sa_family == AF_INET) std::cout << "IPV4" << std::endl;
-                    convertt(clientAddr);
-                    if (clientAddr.sa_family == AF_INET6) std::cout << "IPV6" << std::endl;
-                    std::cout << "\033[32m" << "New client connected: " << clientSocket << "\033[0m" << std::endl;
+                    event.data.fd = clientSocket;
+                    event.events = EPOLLIN;
+                    epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event);
+                    connectedAddress.push_back(currentClient);
+                    std::cout << "\033[32m" << "New client with ip: " << currentClient.getIpAddress() << "\033[0m" << std::endl;
                 // }
             }
             else
             {
-                if (events[i].events & EPOLLOUT)
-                {
-                    std::cout << "----------------------- NEW REPONSE: " << events[i].data.fd << " -----------------------" << std::endl;
-                    response = getUserResponse(userRequest, this->_configFile);
-
-                    ssize_t bytesSent = write(events[i].data.fd, response.c_str(), response.length());
-                    // std::cout << "response sent" << response.substr(0, 200) << std::endl;
-
-                    std::cout << "\033[31m" << "Client disconnected: " << clientSocket << "\033[0m" << std::endl;
-                    epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
-                    close(events[i].data.fd);
-                }
                 if (events[i].events & EPOLLIN)
                 {
                     std::cout << "----------------------- NEW REQUEST: " << events[i].data.fd << " -----------------------" << std::endl;
@@ -143,7 +101,7 @@ int Server::listenClientRequest(int serverSocket, int epollFd)
                     {
                         epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, &event);
                         close(events[i].data.fd);
-                    std::cout << "\033[31m" << "Client disconnected from error: " << clientSocket << "\033[0m" << std::endl;
+                        std::cout << "\033[31m" << "Client disconnected from error: " << clientSocket << "\033[0m" << std::endl;
                     }
                     else
                     {
@@ -152,9 +110,25 @@ int Server::listenClientRequest(int serverSocket, int epollFd)
                         std::cout << "Received HTTP request:\n" << requestData << std::endl;
 
                         event.data.fd = events[i].data.fd;
-                        event.events = EPOLLOUT;
+                        event.events = EPOLLIN | EPOLLOUT;
                         epoll_ctl(epollFd, EPOLL_CTL_MOD, events[i].data.fd, &event);
                     }
+                }
+                if (events[i].events & EPOLLOUT)
+                {
+                    std::cout << "----------------------- NEW REPONSE: " << events[i].data.fd << " -----------------------" << std::endl;
+                    response = getUserResponse(userRequest, this->_configFile);
+
+                    ssize_t bytesSent = write(events[i].data.fd, response.c_str(), response.length());
+                    std::cout << "response sent " << response.substr(0, 10) << std::endl;
+
+                    // event.data.fd = events[i].data.fd;
+                    // event.events = EPOLLIN;
+                    // epoll_ctl(epollFd, EPOLL_CTL_MOD, events[i].data.fd, &event);
+
+                    std::cout << "\033[31m" << "Client disconnected: " << clientSocket << "\033[0m" << std::endl;
+                    epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
+                    close(events[i].data.fd);
                 }
             }
         }
@@ -169,7 +143,7 @@ int Server::startServer()
     const char *host = hostStr.c_str();
     const char *port = portStr.c_str();
 
-    struct addrinfo hints, *result, *rp;
+    addrinfo hints, *result, *rp;
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;

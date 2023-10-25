@@ -38,14 +38,15 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 	if (DEBUG_VERBOSE) std::cout << userRequest.root << std::endl;
 	std::string response, fileName, contentType, status;
 
+	status = "200";
 	fileName = userRequest.root;
 	contentType = getContentType(fileName);
 
 	if (contentType == "text/html" || contentType == "image/png")
 		fileName = configFile.getFileRoute(fileName, status);
 
-	if (status == "404" && contentType == "text/html")
-		fileName = configFile.getErrorPages(status);
+	// if (status == "404" && contentType == "text/html")
+	// 	fileName = configFile.getErrorPages(status);
 
 	fileName = "www" + fileName;
 	std::cout << "file: " << fileName << " status: " << status << std::endl;
@@ -58,6 +59,7 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 		std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
 		response = "HTTP/1.1 " + status + " OK\r\n";
+		response += "Connection: keep-alive\r\n";
 		response += "Content-Type: " + contentType + "\r\n";
 		response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
 		response += htmlContent;
@@ -68,6 +70,7 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 		std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
 		response = "HTTP/1.1 " + status + " Not Found\r\n";
+		response += "Connection: keep-alive\r\n";
 		response += "Content-Type: " + contentType + "\r\n";
 		response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
 		response += htmlContent;
@@ -78,6 +81,7 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 		std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
 		response = "HTTP/1.1 " + status + " Not Found\r\n";
+		response += "Connection: keep-alive\r\n";
 		response += "Content-Type: " + contentType + "\r\n";
 		response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
 		response += htmlContent;
@@ -85,6 +89,7 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 	else
 	{
 		response = "HTTP/1.1 404 Not Found\r\n\r\n";
+		response += "Connection: keep-alive\r\n";
 		if (DEBUG_VERBOSE) std::cout << "404 NOT FOUND: " << fileName << std::endl;
 	}
 

@@ -1,3 +1,4 @@
+// script.js -----
 function changeLink(link) {
 	window.location.href = link;
 }
