@@ -48,6 +48,7 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 		fileName = configFile.getErrorPages(status);
 
 	fileName = "www" + fileName;
+	std::cout << "file: " << fileName << " status: " << status << std::endl;
 
 	std::ifstream file(fileName.c_str());
 
