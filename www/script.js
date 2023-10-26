@@ -1,11 +1,10 @@
-// function changeLink(link) {
-// 	window.location.href = link;
-// }
+// script.js -----
+function changeLink(link) {
+	window.location.href = link;
+}
 
-// const exit_button = document.getElementById("exit-button");
+const button = document.getElementById("404_button");
 
-// exit_button.addEventListener("click", () => {
-// 	changeLink("/exit");
-// });
-
-console.log("salut");
+button.addEventListener("click", () => {
+	changeLink("/404");
+});

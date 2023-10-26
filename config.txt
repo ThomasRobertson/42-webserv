@@ -2,25 +2,28 @@ server {
 	host 127.0.0.1;
 	port 4243;
 	maxClientBodySize 1000;
-	error_page 404 www/srcs/errors/errors/404.html;
-	error_page 500 www/srcs/errors/errors/500.html;
-	location /styles/favicon.png {
-		index www/styles/favicon.png;
-		methods GET POST;
-	}
+	error_page 404 /srcs/errors/404.html;
+	error_page 500 /srcs/errors/500.html;
+	cgi .php php-cgi_ubuntu;
+	cgi .js js-cgi_ubuntu;
 
 	location / {
-		index www/srcs/index.html;
+		index /srcs/index.html;
 		methods GET;
 	}
 
-	location /test {
-		index www/srcs/test.html;
+	location /404 {
+		index /srcs/errors/404.html;
 		methods GET;
 	}
 
 	location /lol {
-		index www/srcs/lol.html;
+		index /srcs/errors/500.html;
+		methods GET;
+	}
+
+	location /test {
+		index /srcs/errors/500.html;
 		methods GET;
 	}
 }

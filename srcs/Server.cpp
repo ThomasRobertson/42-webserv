@@ -1,4 +1,6 @@
 #include "Server.hpp"
+#include <vector>
+#include "Client.hpp"
 
 Server::Server(ConfigFile configFile) : _configFile(configFile)
 {
@@ -10,114 +12,135 @@ Server::~Server()
     return ;
 }
 
-// void Server::listenClientRequest(int serverSocket)
-// {
-//     std::string response;
-
-//     while (true)
-//     {
-//         sockaddr_in clientAddress;
-//         socklen_t clientAddressSize = sizeof(clientAddress);
-    
-//         int clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressSize);
-//         if (clientSocket == -1)
-//         {
-//             std::cerr << "Error accepting connection" << std::endl;
-//             continue;
-//         }
-        
-//         char buffer[1024];
-//         ssize_t bytesRead;
-
-//         bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-//         if (bytesRead == -1)
-//         {
-//             std::cerr << "Error receiving data from client" << std::endl;
-//             close(clientSocket);
-//             continue;
-//         }
-
-//         std::string requestData(buffer, bytesRead);
-
-//         UserRequest userRequest = getUserRequest(requestData);
-
-//         response = manageUserResponse(userRequest, this->_configFile);
-
-//         send(clientSocket, response.c_str(), response.size(), 0);
-//         close(clientSocket);
-//     }
-// }
-
-// int Server::startServer()
-// {
-//     struct addrinfo hints, *serverInfo, *p;
-//     ConfigFile configFile = this->_configFile;
-
-//     std::string host = configFile.getHost();
-//     std::string port = configFile.getPort();
-
-//     memset(&hints, 0, sizeof(hints));
-//     hints.ai_family = AF_UNSPEC;
-//     hints.ai_socktype = SOCK_STREAM;
-
-//     if (getaddrinfo(host.c_str(), port.c_str(), &hints, &serverInfo) != 0)
-//     {
-//         std::cerr << "Error retrieving host information" << std::endl;
-//         return 0;
-//     }
-
-//     int serverSocket;
-
-//     for (p = serverInfo; p != NULL; p = p->ai_next)
-//     {
-//         serverSocket = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-//         if (serverSocket == -1)
-//             continue;
-
-//         int iSetOption = 1;
-//         setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption, sizeof(iSetOption));
-
-//         if (bind(serverSocket, p->ai_addr, p->ai_addrlen) == -1)
-//         {
-//             close(serverSocket);
-//             continue;
-//         }
-
-//         break;
-//     }
-
-//     freeaddrinfo(serverInfo);
-
-//     if (p == NULL)
-//     {
-//         std::cerr << "Socket binding error" << std::endl;
-//         return 0;
-//     }
-
-//     if (listen(serverSocket, 5) == -1)
-//     {
-//         std::cerr << "Socket listening error" << std::endl;
-//         close(serverSocket);
-//         return 0;
-//     }
-
-//     std::cout << "Server listening on port " << port << "..." << std::endl << std::endl;
-//     listenClientRequest(serverSocket);
-
-//     close(serverSocket);
-//     std::cout << "SERVER CLOSED\n";
-//     return 1;
-// }
-
-
-
-
-int Server::testServer(std::string hostStr, std::string portStr)
+void setNonBlocking(int sock)
 {
+    int opts;
+    opts = fcntl(sock, F_GETFL);
+    if (opts < 0) {
+        perror("fcntl(F_GETFL)");
+        exit(1);
+    }
+    opts = (opts | O_NONBLOCK);
+    if (fcntl(sock, F_SETFL, opts) < 0) {
+        perror("fcntl(F_SETFL)");
+        exit(1);
+    }
+}
+
+int isConnectedAddress(std::vector<Client> connectedAddress, Client newClient)
+{
+    std::vector<Client>::iterator it = connectedAddress.begin();
+
+    while (it != connectedAddress.end())
+    {
+        if (*it == newClient)
+            return 1;
+        it++;
+    }
+    return 0;
+}
+
+int Server::listenClientRequest(int serverSocket, int epollFd)
+{
+    struct epoll_event event;
+    event.events = EPOLLIN;
+    event.data.fd = serverSocket;
+
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, serverSocket, &event) == -1)
+    {
+        std::cerr << "Error adding server socket to epoll" << std::endl;
+        close(serverSocket);
+        close(epollFd);
+        return 0;
+    }
+
+    UserRequest userRequest; 
+    epoll_event events[100];
+    sockaddr clientAddr;
+    socklen_t clientAddrLen = sizeof(clientAddr);
+    std::string response;
+    int clientSocket;
+    std::vector<Client> connectedAddress;
+
+    while (true)
+    {
+        int numEvents = epoll_wait(epollFd, events, 100, -1);
+        for (int i = 0; i < numEvents; i++)
+        {
+            std::cout << "EVENT NBR: " << i << std::endl;
+            if (events[i].data.fd == serverSocket)
+            {
+                clientSocket = accept(serverSocket, &clientAddr, &clientAddrLen);
+                setNonBlocking(clientSocket);
+
+                Client currentClient(&clientAddr);
+                // if (isConnectedAddress(connectedAddress, currentClient))
+                // {
+                    // std::cout << "\033[31m" << "Client already connected, disconnected: " << clientSocket << "\033[0m" << std::endl;
+                    // epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, NULL);
+                    // close(clientSocket);
+                    // i--;
+                // }
+                // else
+                // {
+
+                    event.data.fd = clientSocket;
+                    event.events = EPOLLIN;
+                    epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event);
+                    std::cout << "\033[32m" << "New client with ip: " << currentClient.getIpAddress() << "\033[0m" << std::endl;
+                    connectedAddress.push_back(currentClient);
+                // }
+            }
+            else
+            {
+                if (events[i].events & EPOLLIN)
+                {
+                    std::cout << "----------------------- NEW REQUEST: " << events[i].data.fd << " -----------------------" << std::endl;
+                    char buffer[1024];
+                    ssize_t bytesRead = read(events[i].data.fd, buffer, 1024);
+                    if (bytesRead <= 0)
+                    {
+                        epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, &event);
+                        close(events[i].data.fd);
+                        std::cout << "\033[31m" << "Client disconnected from error: " << clientSocket << "\033[0m" << std::endl;
+                    }
+                    else
+                    {
+                        std::string requestData(buffer, bytesRead);
+                        userRequest = getUserRequest(requestData);
+                        std::cout << "Received HTTP request:\n" << requestData << std::endl;
+
+                        event.data.fd = events[i].data.fd;
+                        event.events = EPOLLIN | EPOLLOUT;
+                        epoll_ctl(epollFd, EPOLL_CTL_MOD, events[i].data.fd, &event);
+                    }
+                }
+                if (events[i].events & EPOLLOUT)
+                {
+                    std::cout << "----------------------- NEW REPONSE: " << events[i].data.fd << " -----------------------" << std::endl;
+                    response = getUserResponse(userRequest, this->_configFile);
+
+                    ssize_t bytesSent = write(events[i].data.fd, response.c_str(), response.length());
+                    std::cout << "response sent " << response.substr(0, 10) << std::endl;
+
+                    event.data.fd = events[i].data.fd;
+                    event.events = EPOLLIN;
+                    epoll_ctl(epollFd, EPOLL_CTL_MOD, events[i].data.fd, &event);
+                }
+            }
+        }
+    }
+}
+
+int Server::startServer()
+{
+    std::string hostStr = this->_configFile.getHost();
+    std::string portStr = this->_configFile.getPort();
+
     const char *host = hostStr.c_str();
     const char *port = portStr.c_str();
 
-    struct addrinfo hints, *result, *rp;
+    addrinfo hints, *result, *rp;
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
@@ -169,103 +192,10 @@ int Server::testServer(std::string hostStr, std::string portStr)
         return 0;
     }
 
-    if (!testListenClientRequest(serverSocket, epollFd))
+    if (!listenClientRequest(serverSocket, epollFd))
         return 0;
     
     close(epollFd);
     close(serverSocket);
     return 1;
-}
-
-int Server::testListenClientRequest(int serverSocket, int epollFd)
-{
-    struct epoll_event event;
-    event.events = EPOLLIN | EPOLLET;
-    event.data.fd = serverSocket;
-    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, serverSocket, &event) == -1) {
-        std::cerr << "Error adding server socket to epoll" << std::endl;
-        close(serverSocket);
-        close(epollFd);
-        return 0;
-    }
-
-    UserRequest userRequest; 
-    std::string response;
-    while (true)
-    {
-        struct epoll_event events[10];
-        int numEvents = epoll_wait(epollFd, events, 10, -1);
-
-        for (int i = 0; i < numEvents; i++)
-        {
-            if (events[i].data.fd == serverSocket)
-            {
-                sockaddr_in clientAddr;
-                socklen_t clientAddrSize = sizeof(clientAddr);
-
-                int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
-                if (clientSocket == -1)
-                {
-                    std::cerr << "Error accepting connection" << std::endl;
-                    continue;
-                }
-
-                int flags = fcntl(clientSocket, F_GETFL, 0);
-                fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK);
-
-                event.events = EPOLLIN | EPOLLOUT | EPOLLET;
-                event.data.fd = clientSocket;
-
-
-                if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) == -1)
-                {
-                    std::cerr << "Error adding client socket to epoll" << std::endl;
-                    close(clientSocket);
-                    continue;
-                }
-            }
-            else
-            {
-                int clientSocket = events[i].data.fd;
-
-                if (events[i].events & EPOLLIN)
-                {
-                    char buffer[1024];
-                    ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-                    if (bytesRead <= 0)
-                    {
-                        close(clientSocket);
-                    }
-                    else
-                    {
-                        std::string requestData(buffer, bytesRead);
-                        userRequest = getUserRequest(requestData);
-                        std::cout << "Received HTTP request:\n" << requestData << std::endl;
-                    }
-                }
-
-                if (events[i].events & EPOLLOUT)
-                {
-                    response = manageUserResponse(userRequest, this->_configFile);
-                    ssize_t bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
-                    if (bytesSent == -1)
-                    {
-                        std::cerr << "Error sending response" << std::endl;
-                        close(clientSocket);
-                    }
-                    else
-                    {
-                        close(clientSocket);
-                    }
-                }
-            }
-        }
-    }
-    return 1;
-}
-
-
-void epollOut()
-{
-    
 }

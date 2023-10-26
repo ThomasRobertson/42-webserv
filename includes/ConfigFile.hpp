@@ -24,6 +24,7 @@ class ConfigFile
 		std::string root;
         std::map<std::string, page> htmlPage;
         std::map<std::string, std::string> errorsMap;
+        std::map<std::string, std::string> cgiMap;
 		int maxClientBodySize;
 
     public:
@@ -35,12 +36,15 @@ class ConfigFile
         void displayValuesConfigFile();
 		std::string valuesFromMap(std::string index);
 		int convertStrToInt(std::string str);
-        void splitStr(std::string input, char delimiter, std::vector<std::string> &tokens);
+        void splitStrInVector(std::string input, char delimiter, std::vector<std::string> &result);
+        int splitStrInMap(std::string input, char delimiter, std::map<std::string, std::string> &result);
+
 
         std::string getHost();
         std::string getPort();
-        std::string getHtmlPage(std::string location);
         std::string getErrorPages(std::string errorCode);
+        std::string getCgiPages(std::string cgiName);
+        std::string getFileRoute(std::string location, std::string &status);
 
 };
 

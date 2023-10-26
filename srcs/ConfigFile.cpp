@@ -20,13 +20,28 @@ std::string ConfigFile::getPort()
 	return this->port;
 }
 
-std::string ConfigFile::getHtmlPage(std::string location)
+std::string ConfigFile::getFileRoute(std::string location, std::string &status)
 {
-	return this->htmlPage[location].index;
+    std::map<std::string, page>::iterator it = this->htmlPage.find(location);
+    status = "200";
+
+    if (it == this->htmlPage.end())
+    {
+        status = "404";
+        return this->htmlPage["/404"].index;
+    }
+
+    return this->htmlPage[location].index;
 }
+
 std::string ConfigFile::getErrorPages(std::string errorCode)
 {
 	return this->errorsMap[errorCode];
+}
+
+std::string ConfigFile::getCgiPages(std::string cgiName)
+{
+	return this->cgiMap[cgiName];
 }
 
 bool hasSingleTabLocation(const std::string &line)
@@ -50,6 +65,8 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 	std::string locationMethodStr;
 	std::string errorCodeStr;
 	std::string errorPathStr;
+	std::string cgiNameStr;
+	std::string cgiPathStr;
 
 	size_t positionSpace;
 	size_t positionSemicolon;
@@ -61,6 +78,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 	size_t positionIndex;
 	size_t positionMethods;
 	size_t positionErrors;
+	size_t positionCgi;
 	page myPage;
 
 	std::ifstream file(filename.c_str());
@@ -83,6 +101,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 		positionLeftBracket = line.find('{');
 		positionLocation = line.find("	location");
 		positionErrors = line.find("	error_page");
+		positionCgi = line.find("	cgi");
 
 		if (positionLocation != std::string::npos && line[1] != '	' && line[9] == ' ' && line[10] != ' ')
 		{
@@ -111,7 +130,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 						return 0;
 					locationMethodStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
 					std::vector<std::string> methodsVector;
-					splitStr(locationMethodStr, ' ', methodsVector);
+					splitStrInVector(locationMethodStr, ' ', methodsVector);
 
 					myPage.methods = methodsVector;
 				}
@@ -138,6 +157,14 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				errorCodeStr = line.substr(positionSpace + 1, (positionSpace + 4) - (positionSpace + 1));
 				errorPathStr = line.substr(positionSpace + 5, (positionSemicolon) - (positionSpace + 5));
 				this->errorsMap[errorCodeStr] = errorPathStr;
+			}
+			else if (positionCgi != std::string::npos && line[1] != '	')
+			{
+				if (positionSemicolon == std::string::npos)
+					return 0;
+				cgiNameStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+				if (!splitStrInMap(cgiNameStr, ' ', this->cgiMap))
+					return 0;
 			}
 			else
 			{
@@ -187,12 +214,14 @@ void ConfigFile::displayValuesConfigFile()
 	}
 	std::map<std::string, std::string>::iterator it2;
 	for (it2 = errorsMap.begin(); it2 != errorsMap.end(); ++it2)
-	{
-		// std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method 1: " << it->second.methods[0] << " Method 2: " << it->second.methods[1] << std::endl;
 		std::cout << "Code: " << it2->first << " Path: " << it2->second << std::endl;
-	}
+
+	std::map<std::string, std::string>::iterator it3;
+	for (it3 = cgiMap.begin(); it3 != cgiMap.end(); ++it3)
+		std::cout << "Name: " << it3->first << " Path: " << it3->second << std::endl;
 
 	std::cout << getErrorPages("404") << std::endl;
+	std::cout << getCgiPages(".php") << std::endl;
 }
 
 int ConfigFile::convertStrToInt(std::string str)
@@ -204,7 +233,7 @@ int ConfigFile::convertStrToInt(std::string str)
 }
 
 
-void ConfigFile::splitStr(std::string input, char delimiter, std::vector<std::string> &tokens)
+void ConfigFile::splitStrInVector(std::string input, char delimiter, std::vector<std::string> &result)
 {
 	std::string token;
 	for (size_t i = 0; i < input.length(); ++i)
@@ -213,9 +242,38 @@ void ConfigFile::splitStr(std::string input, char delimiter, std::vector<std::st
 			token += input[i];
 		else
 		{
-			tokens.push_back(token);
+			result.push_back(token);
 			token.clear();
 		}
 	}
-	tokens.push_back(token);
+	result.push_back(token);
+}
+
+int ConfigFile::splitStrInMap(std::string input, char delimiter, std::map<std::string, std::string> &result)
+{
+    std::string token;
+    int tokenCount = 0;
+
+    for (size_t i = 0; i < input.length(); ++i)
+	{
+        if (input[i] != delimiter)
+            token += input[i];
+		else
+		{
+            if (tokenCount == 0)
+                result[token] = ""; 
+            else
+                return 0;
+
+            token.clear();
+            tokenCount++;
+        }
+    }
+
+	if (tokenCount == 1)
+    	result[result.begin()->first] = token;
+    if (tokenCount != 1)
+		return 0;
+
+	return 1;
 }
