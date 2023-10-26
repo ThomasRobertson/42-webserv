@@ -15,6 +15,11 @@ class StartServers
     private:
         ConfigFile _configFile;
 	    std::vector<Server>	_serversVec;
+        
+        int _epollFd;
+        struct epoll_event _events[10];
+
+
 
     public:
         StartServers(ConfigFile configFile);
@@ -23,8 +28,7 @@ class StartServers
 		void createServers();
         void initServers();
 
-        int startServers();
-        int listenClientRequest(int serverSocket, int epollFd);
+        int listenClientRequest();
 
 };
 

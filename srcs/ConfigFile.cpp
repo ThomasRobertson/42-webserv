@@ -230,7 +230,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 void ConfigFile::setValuesConfigFile(int serverIndex)
 {
 	this->serverNumber = serverIndex;
-	displayValuesConfigFile(serverIndex);
+	// displayValuesConfigFile(serverIndex);
 }
 
 void ConfigFile::displayValuesConfigFile(int serverIndex)

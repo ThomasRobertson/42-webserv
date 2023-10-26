@@ -29,31 +29,31 @@ server {
 }
 
 server {
-	host a;
-	port b c;
-	maxClientBodySize 55;
-	error_page ee e;
-	error_page ff f;
-	cgi g g;
-	cgi h h;
+	host 127.0.0.1;
+	port 8080;
+	maxClientBodySize 1000;
+	error_page 404 www/srcs/errors/errors/404.html;
+	error_page 500 www/srcs/errors/errors/500.html;
+	cgi .php php-cgi_ubuntu;
+	cgi .js js-cgi_ubuntu;
 
-	location /i {
-		index j;
-		methods hhh;
+	location / {
+		index /srcs/index.html;
+		methods GET;
 	}
 
-	location /i {
-		index j;
-		methods kkk;
+	location /404 {
+		index /srcs/errors/404.html;
+		methods GET;
 	}
 
-	location /l {
-		index /m;
-		methods nnn;
+	location /lol {
+		index /srcs/errors/500.html;
+		methods GET;
 	}
 
-	location /o {
-		index p;
-		methods qqq;
+	location /test {
+		index /srcs/errors/500.html;
+		methods GET;
 	}
 }

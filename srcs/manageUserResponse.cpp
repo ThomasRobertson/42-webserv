@@ -32,7 +32,7 @@ std::string getContentType(std::string fileName)
     return type;
 }
 
-std::string Server::getUserResponse(UserRequest userRequest, ConfigFile configFile)
+std::string Server::getUserResponse(UserRequest userRequest)
 {
 	if (DEBUG_VERBOSE) std::cout << "---------------------- REQUEST ----------------------" << std::endl;
 	if (DEBUG_VERBOSE) std::cout << userRequest.root << std::endl;

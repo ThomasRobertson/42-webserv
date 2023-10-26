@@ -31,12 +31,17 @@ class Server
         struct addrinfo _hints;
         struct addrinfo *_result;
         struct addrinfo *_rp;
-        UserRequest _userRequest;
-        std::string _response;
+
+        struct epoll_event _event;
+
         int _clientAddr;
         int _clientSocket;
-        struct epoll_event _events[10];
         socklen_t _clientAddrLen;
+        std::vector<int> _clientsVec;
+
+        std::string _response;
+        UserRequest _userRequest;
+
 
     public:
         Server(ConfigFile configFile, int serverIndex);
@@ -51,11 +56,19 @@ class Server
         std::string getCgiPage(std::string cgiName);
         std::string getFileRoute(std::string location, std::string &status);
 
-        std::string getUserResponse(UserRequest userRequest, ConfigFile configFile);
+        std::string getUserResponse(UserRequest userRequest);
         UserRequest getUserRequest(std::string requestStr);
+
+        int getClient(int index);
+        int getClientsVecSize();
 
         void setServerValues();
 
+        int startServers();
+        int addSocketToEpoll(int epollFd);
+        int getServerSocket();
+        void acceptNewClient(int epollFd);
+        void newResponseAndRequest(int epollFd, epoll_event &events, int clientIndex);
 
 
 };
