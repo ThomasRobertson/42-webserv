@@ -27,20 +27,18 @@ class Server
         std::map<std::string, std::string> _errorsMap;
         std::map<std::string, std::string> _cgiMap;
 
-        int _serverSocket;
+        std::vector<int> _serverSocketVec;
         struct addrinfo _hints;
         struct addrinfo *_result;
         struct addrinfo *_rp;
 
-        struct epoll_event _event;
+        epoll_event _event;
 
         int _clientAddr;
         int _clientSocket;
         socklen_t _clientAddrLen;
-        std::vector<int> _clientsVec;
 
-        std::string _response;
-        UserRequest _userRequest;
+
 
 
     public:
@@ -56,19 +54,18 @@ class Server
         std::string getCgiPage(std::string cgiName);
         std::string getFileRoute(std::string location, std::string &status);
 
-        std::string getUserResponse(UserRequest userRequest);
-        UserRequest getUserRequest(std::string requestStr);
+
 
         int getClient(int index);
         int getClientsVecSize();
 
         void setServerValues();
 
-        int startServers();
-        int addSocketToEpoll(int epollFd);
-        int getServerSocket();
-        void acceptNewClient(int epollFd);
-        void newResponseAndRequest(int epollFd, epoll_event &events, int clientIndex);
+        void startServers(int epollFd);
+        int addSocketToEpoll(int epollFd, int i);
+        int getServerSocket(int i);
+        int getServerSocketSize();
+        void acceptNewClient(int epollFd, int y);
 
 
 };

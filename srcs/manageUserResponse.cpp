@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "ConfigFile.hpp"
+#include "StartServers.hpp"
 #include <sstream>
 
 bool DEBUG_VERBOSE = false;
@@ -32,20 +33,21 @@ std::string getContentType(std::string fileName)
     return type;
 }
 
-std::string Server::getUserResponse(UserRequest userRequest)
+std::string StartServers::getUserResponse(Client client)
 {
 	if (DEBUG_VERBOSE) std::cout << "---------------------- REQUEST ----------------------" << std::endl;
-	if (DEBUG_VERBOSE) std::cout << userRequest.root << std::endl;
+	if (DEBUG_VERBOSE) std::cout << client.request.root << std::endl;
 	std::string response, fileName, contentType, status;
+	Server currentServer = this->_serversVec[client.serverIndex];
 
-	fileName = userRequest.root;
+	fileName = client.request.root;
 	contentType = getContentType(fileName);
 
 	if (contentType == "text/html" || contentType == "image/png")
-		fileName = this->getFileRoute(fileName, status);
+		fileName = currentServer.getFileRoute(fileName, status);
 
 	if (status == "404" && contentType == "text/html")
-		fileName = this->getErrorPage(status);
+		fileName = currentServer.getErrorPage(status);
 
 	fileName = "www" + fileName;
 
@@ -90,7 +92,7 @@ std::string Server::getUserResponse(UserRequest userRequest)
 	return response;
 }
 
-UserRequest Server::getUserRequest(std::string requestStr)
+UserRequest StartServers::getUserRequest(std::string requestStr)
 {
     UserRequest data;
 
