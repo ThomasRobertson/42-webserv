@@ -26,6 +26,8 @@ class StartServers
         // int _epollFd;
 
         std::vector<int> _clientsVec;
+        std::map<int, Client> _clientList;
+
 
 
 

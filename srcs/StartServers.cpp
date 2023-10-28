@@ -94,7 +94,8 @@ void Server::startServers(int epollFd)
             close(_serverSocketVec[i]);
             return ;
         }
-descriptor
+
+        std::cout << "_serverSocketVec[i]" << _serverSocketVec[i] << std::endl;
         std::cout << "Server listening on port " << port << "..." << std::endl;
 
         int flags = fcntl(_serverSocketVec[i], F_GETFL, 0);
@@ -113,7 +114,6 @@ int StartServers::listenClientRequest(int epollFd)
     std::string response;
     UserRequest userRequest;
     Client currentClient;
-    std::map<int, Client> clientList;
 
     while (true)
     {
@@ -127,54 +127,71 @@ int StartServers::listenClientRequest(int epollFd)
                 {
                     if (events[i].data.fd == (*it).getServerSocket(y))
                     {
-                        currentClient.fd = events[i].data.fd;
-                        currentClient.serverIndex = serverIndex;
-                        (*it).acceptNewClient(epollFd, y);
-                        clientList[currentClient.fd] = currentClient;
+                        Client newClient;
+                        (*it).acceptNewClient(epollFd, y, newClient);
+                        newClient.serverIndex = serverIndex;
+                        _clientList[newClient.fd] = newClient;
                         std::cout << "ServerSocketSize: " << (*it).getServerSocketSize() << "" << std::endl;
+                        std::cout << "test: " <<  events[i].data.fd << newClient.fd << std::endl;
 
                     }
                 }
                 serverIndex++;
             }
+            // currentClient = _clientList[events[i].data.fd];
 
-
-            if (events[i].events & EPOLLOUT)
+            int clientIndex = -1;
+            for (it = this->_serversVec.begin() ; it != this->_serversVec.end() ; it++)
             {
-                currentClient = clientList[events[i].data.fd];
-                std::cout << "----------------------- NEW REPONSE: " << events[i].data.fd << " -----------------------" << std::endl;
-                response = getUserResponse(currentClient);
-            
-                ssize_t bytesSent = write(events[i].data.fd, response.c_str(), response.length());
-                std::cout << "response sent" << response.substr(0, 200) << std::endl;
-            
-                epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
-                close(events[i].data.fd);
+	            for (int j = 0; j < this->_clientList.size(); j++)
+	            	if (this->_clientList[j].fd == events[i].data.fd)
+	            		clientIndex = j;
             }
-            else if (events[i].events & EPOLLIN)
+
+            if (clientIndex != -1)
             {
-                currentClient = clientList[events[i].data.fd];
-                std::cout << "----------------------- NEW REQUEST: " << events[i].data.fd << " -----------------------" << std::endl;
-                char buffer[1024];
-                ssize_t bytesRead = read(events[i].data.fd, buffer, 1024);
-                if (bytesRead <= 0)
+                if (events[i].events & EPOLLOUT)
                 {
-                    epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
+                    // currentClient = _clientList[events[i].data.fd];
+                    std::cout << "----------------------- NEW REPONSE: " << events[i].data.fd << " -----------------------" << std::endl;
+                    response = getUserResponse(_clientList[events[i].data.fd]);
+                
+                    ssize_t bytesSent = write(events[i].data.fd, response.c_str(), response.length());
+                    std::cout << "response sent: " << response.substr(0, 200) << std::endl;
+                
+                    epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, &event);
                     close(events[i].data.fd);
-	        	    clientList.erase(currentClient.fd);
-                    std::cout << "Client disconnected: " << events[i].data.fd << std::endl;
                 }
-                else
+                else if (events[i].events & EPOLLIN)
                 {
-                    std::string requestData(buffer, bytesRead);
-                    currentClient.request = getUserRequest(requestData);
-                    std::cout << "Received HTTP request:\n" << requestData << std::endl;
-            
-                    event.data.fd = events[i].data.fd;
-                    event.events = EPOLLOUT;
-                    epoll_ctl(epollFd, EPOLL_CTL_MOD, events[i].data.fd, &event);
+                    // currentClient = _clientList[events[i].data.fd];
+                    std::cout << "----------------------- NEW REQUEST: " << events[i].data.fd << " -----------------------" << std::endl;
+                    char buffer[1024];
+                    ssize_t bytesRead = read(events[i].data.fd, buffer, 1024);
+                    if (bytesRead <= 0)
+                    {
+                        epoll_ctl(epollFd, EPOLL_CTL_DEL, events[i].data.fd, &event);
+                        close(events[i].data.fd);
+                        _clientList.erase(_clientList[events[i].data.fd].fd);
+                        std::cout << "Client disconnected: " << events[i].data.fd << std::endl;
+                    }
+                    else
+                    {
+                        std::string requestData(buffer, bytesRead);
+                        _clientList[events[i].data.fd].request = getUserRequest(requestData);
+                        std::cout << "urrentClient.fd" << _clientList[events[i].data.fd].fd << std::endl;
+                        std::cout << "urrentClient.requestmethod" << _clientList[events[i].data.fd].request.method << std::endl;
+                        std::cout << "urrentClient.requestroot" << _clientList[events[i].data.fd].request.root << std::endl;
+                        std::cout << "Received HTTP request:\n" << requestData << std::endl;
+                
+                        event.data.fd = events[i].data.fd;
+                        event.events = EPOLLOUT;
+                        epoll_ctl(epollFd, EPOLL_CTL_MOD, events[i].data.fd, &event);
+                    }
                 }
+
             }
+
         }
     }
 

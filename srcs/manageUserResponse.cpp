@@ -35,8 +35,10 @@ std::string getContentType(std::string fileName)
 
 std::string StartServers::getUserResponse(Client client)
 {
-	if (DEBUG_VERBOSE) std::cout << "---------------------- REQUEST ----------------------" << std::endl;
-	if (DEBUG_VERBOSE) std::cout << client.request.root << std::endl;
+	std::cout << "---------------------- REQUEST ----------------------" << std::endl;
+	std::cout << client.fd << std::endl;
+	std::cout << client.request.root << std::endl;
+	std::cout << client.serverIndex << std::endl;
 	std::string response, fileName, contentType, status;
 	Server currentServer = this->_serversVec[client.serverIndex];
 

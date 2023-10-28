@@ -121,7 +121,7 @@ void setNonBlocking(int sock)
     }
 }
 
-void Server::acceptNewClient(int epollFd, int y)
+void Server::acceptNewClient(int epollFd, int y, Client &newClient)
 {
     epoll_event event;
 
@@ -133,5 +133,7 @@ void Server::acceptNewClient(int epollFd, int y)
     event.events = EPOLLIN;
     epoll_ctl(epollFd, EPOLL_CTL_ADD, _clientSocket, &event);
     // _clientsVec.push_back(_clientSocket);
+    newClient.fd = _clientSocket;
+
     std::cout << "New client connected: " << _clientSocket << std::endl;
 }

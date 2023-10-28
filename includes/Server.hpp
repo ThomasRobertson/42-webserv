@@ -14,6 +14,8 @@ struct UserRequest {
     std::string root;
 };
 
+struct Client;
+
 class Server
 {
     private:
@@ -65,7 +67,7 @@ class Server
         int addSocketToEpoll(int epollFd, int i);
         int getServerSocket(int i);
         int getServerSocketSize();
-        void acceptNewClient(int epollFd, int y);
+        void acceptNewClient(int epollFd, int y, Client &newClient);
 
 
 };
