@@ -40,10 +40,13 @@ class ConfigFile
         int splitStrInMap(std::string input, char delimiter, std::map<std::string, std::string> &result);
 
 
-        std::string getHost();
-        std::string getPort();
-        std::string getErrorPages(std::string errorCode);
-        std::string getCgiPages(std::string cgiName);
+        std::string getHost() const {return host;}
+        std::string getPort() const {return port;}
+		std::string getServerName() const {return server_name;}
+		std::string getRoot() const {return root;}
+        std::string getErrorPages(std::string errorCode) const {return errorsMap.at(errorCode);}
+        std::string getCgiPages(std::string cgiName) const {return cgiMap.at(cgiName);}
+
         std::string getFileRoute(std::string location, std::string &status);
 
 };

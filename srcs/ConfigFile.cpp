@@ -10,16 +10,6 @@ ConfigFile::~ConfigFile()
 	return ;
 }
 
-std::string ConfigFile::getHost()
-{
-	return this->host;
-}
-
-std::string ConfigFile::getPort()
-{
-	return this->port;
-}
-
 std::string ConfigFile::getFileRoute(std::string location, std::string &status)
 {
     std::map<std::string, page>::iterator it = this->htmlPage.find(location);
@@ -34,15 +24,6 @@ std::string ConfigFile::getFileRoute(std::string location, std::string &status)
     return this->htmlPage[location].index;
 }
 
-std::string ConfigFile::getErrorPages(std::string errorCode)
-{
-	return this->errorsMap[errorCode];
-}
-
-std::string ConfigFile::getCgiPages(std::string cgiName)
-{
-	return this->cgiMap[cgiName];
-}
 
 bool hasSingleTabLocation(const std::string &line)
 {
