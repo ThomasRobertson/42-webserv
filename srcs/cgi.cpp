@@ -5,21 +5,21 @@ void CgiHandler::build_args_env()
 	// --- SERVER ENVIRON ---
 
 	_environ["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
-	_environ["SERVER_NAME"] = _config_file.getServerName(); //TODO : not in ConfigFile
+	_environ["SERVER_NAME"] = _config_file.getServerName();
 	_environ["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
-	_environ["DOCUMENT_ROOT"] = _config_file.getRootDir(); //TODO : not in ConfigFile
+	_environ["DOCUMENT_ROOT"] = _config_file.getRoot();
 
 	// --- REQUEST ENVIRON ---
 
 	_environ["SERVER_PROTOCOL"] = SERVER_PROTOCOL; //? Is it HTTP or does it change ?
 	_environ["SERVER_PORT"] = _config_file.getPort(); //?From request or server ?
-	// _environ["REQUEST_METHOD"] = "" //TODO: Get request method
+	_environ["REQUEST_METHOD"] = "GET"; //TODO: Get request method
 	_environ["PATH_INFO"] = _file_path;
 	_environ["PATH_TRANSLATED"] = _file_path;
 	_environ["SCRIPT_NAME"] = _cgi_path;
-	// _environ["QUERY_STRING"] =""; //Todo
+	_environ["QUERY_STRING"] =""; //Todo, parsing string query
 	_environ["REMOTE_HOST"] = ""; //? Can we leave it empty ?
-	// _environ["REMOTE_ADDR"] = ""; //TODO : IP adress of client
+	_environ["REMOTE_ADDR"] = "127.0.0.1"; //TODO : IP adress of client
 	// _environ["AUTH_TYPE"] = AUTH_TYPE;
 	// _environ["REMOTE_USER"] = "";
 	// _environ["REMOTE_IDENT"] = ""; //? AUTH TYPE, REMOTE USER AND IDENT just if renable by server, implementation needed ?
