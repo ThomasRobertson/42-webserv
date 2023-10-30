@@ -111,6 +111,7 @@ static std::map<std::string, std::string> constructMapStatus()
 		std::make_pair("200", "OK"), //!required
 		std::make_pair("201", "Created"),
 		std::make_pair("206", "Partial Content"),
+		//? 300 needed ?
 		std::make_pair("301", "Moved Permanently"),
 		std::make_pair("400", "Bad Request"), //!required
 		std::make_pair("401", "Unauthorized"),

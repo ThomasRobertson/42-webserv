@@ -34,8 +34,8 @@ void ClientResponse::generateResponse()
 	_reponse += statusCode.second;
 	_reponse += newLineDelimiter;
 
-	_reponse += "Connection: keep-alive";
-	_reponse += newLineDelimiter;
+	// _reponse += "Connection: keep-alive";
+	// _reponse += newLineDelimiter;
 
 	_reponse += "Server: ";
 	_reponse += _serverSoftware;
@@ -53,8 +53,8 @@ void ClientResponse::generateResponse()
 	_reponse += _contentLength;
 	_reponse += newLineDelimiter;
 
-	_reponse += "Accept-Ranges: bytes";
-	_reponse += newLineDelimiter;
+	// _reponse += "Accept-Ranges: bytes";
+	// _reponse += newLineDelimiter;
 
 	_reponse += newLineDelimiter;
 	_reponse += _contentBody;

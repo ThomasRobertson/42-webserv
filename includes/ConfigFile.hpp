@@ -47,8 +47,8 @@ class ConfigFile
         std::string getPort() const {return port;}
 		std::string getServerName() const {return server_name;}
 		std::string getRoot() const {return root;}
-        std::string getErrorPages(std::string errorCode) const {return errorsMap.at(errorCode);}
-        std::string getCgiPages(std::string cgiName) const {return cgiMap.at(cgiName);}
+        std::string getErrorPages(std::string errorCode) const {return errorsMap.at(errorCode);} //!don't forget to catch
+        std::string getCgiPages(std::string cgiName) const {return cgiMap.at(cgiName);} //!don't forget to catch
 
         std::string getFileRoute(std::string fileName, std::string &status, std::string method);
 		std::string getErrorPageRoute(std::string errorCode);
