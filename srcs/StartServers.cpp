@@ -121,6 +121,7 @@ int StartServers::listenClientRequest(int epollFd)
         for (int i = 0; i < numEvents; i++)
         {
             int serverIndex = 0;
+            int isNewClient = 0;
 	        for (it = this->_serversVec.begin() ; it != this->_serversVec.end() ; it++)
             {
                 for (int y = 0; y < (*it).getServerSocketSize(); y++)
@@ -133,22 +134,22 @@ int StartServers::listenClientRequest(int epollFd)
                         _clientList[newClient.fd] = newClient;
                         std::cout << "ServerSocketSize: " << (*it).getServerSocketSize() << "" << std::endl;
                         std::cout << "test: " <<  events[i].data.fd << newClient.fd << std::endl;
-
+                        isNewClient = 1;
                     }
                 }
                 serverIndex++;
             }
             // currentClient = _clientList[events[i].data.fd];
 
-            int clientIndex = -1;
-            for (it = this->_serversVec.begin() ; it != this->_serversVec.end() ; it++)
-            {
-	            for (int j = 0; j < this->_clientList.size(); j++)
-	            	if (this->_clientList[j].fd == events[i].data.fd)
-	            		clientIndex = j;
-            }
+            // int clientIndex = -1;
+            // for (it = this->_serversVec.begin() ; it != this->_serversVec.end() ; it++)
+            // {
+	        //     for (int j = 0; j < this->_clientList.size(); j++)
+	        //     	if (this->_clientList[j].fd == events[i].data.fd)
+	        //     		clientIndex = j;
+            // }
 
-            if (clientIndex != -1)
+            if (isNewClient != 1)
             {
                 if (events[i].events & EPOLLOUT)
                 {
