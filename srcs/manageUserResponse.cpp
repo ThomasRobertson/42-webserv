@@ -2,36 +2,9 @@
 #include "ConfigFile.hpp"
 #include "StartServers.hpp"
 #include <sstream>
+#include "ClientResponse.hpp"
 
 bool DEBUG_VERBOSE = false;
-
-std::string sizeToString(size_t value) {
-    std::ostringstream oss;
-
-    oss << value;
-    return oss.str();
-}
-
-std::string getContentType(std::string fileName)
-{
-	std::string type;
-
-	size_t dotPos = fileName.find_last_of(".");
-    if (dotPos != std::string::npos)
-	{
-		if (fileName.substr(dotPos + 1) == "html")
-			type = "text/html";
-		if (fileName.substr(dotPos + 1) == "css")
-			type = "text/css";
-		if (fileName.substr(dotPos + 1) == "js")
-			type = "text/javascript";
-		if (fileName.substr(dotPos + 1) == "png")
-			type = "image/png";
-    }
-	else
-		type = "text/html";
-    return type;
-}
 
 std::string StartServers::getUserResponse(Client client)
 {
@@ -39,7 +12,7 @@ std::string StartServers::getUserResponse(Client client)
 	std::cout << client.fd << std::endl;
 	std::cout << client.request.root << std::endl;
 	std::cout << client.serverIndex << std::endl;
-	std::string response, fileName, contentType, status;
+
 	Server currentServer = this->_serversVec[client.serverIndex];
 
 	std::string response, fileLocation, contentType, status;

@@ -9,6 +9,8 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 
+#include "Settings.hpp"
+
 struct UserRequest {
     std::string method;
     std::string root;
@@ -52,9 +54,10 @@ class Server
         int getMaxClientBodySize();
         int getServerIndex();
 
-        std::string getErrorPage(std::string errorCode);
+        //std::string getErrorPage(std::string errorCode);
         std::string getCgiPage(std::string cgiName);
-        std::string getFileRoute(std::string location, std::string &status);
+        std::string getFileRoute(std::string fileName, std::string &status, std::string method);
+		std::string getErrorPageRoute(std::string errorCode);
 
 
 
