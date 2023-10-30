@@ -46,23 +46,55 @@ int Server::getServerIndex()
     return this->_serverIndex;
 }
 
-std::string Server::getFileRoute(std::string location, std::string &status)
+std::string Server::getErrorPageRoute(std::string errorCode)
 {
-    std::map<std::string, page>::iterator it = this->_htmlPageMap.find(location);
-    status = "200";
+	std::string fileLocation;
 
-    if (it == this->_htmlPageMap.end())
-    {
-        status = "404";
-        return this->_htmlPageMap["/404"].index;
-    }
+	if (_errorsMap.find(errorCode) == _errorsMap.end())
+	{
+		std::cerr << "NOT IMPLEMENTED : No error file " << errorCode << "(" << fileLocation << ")" << std::endl;
+		throw std::runtime_error("No valid page found, cannot continue execution.");
+	}
+	fileLocation = HTML_DIR + _errorsMap[errorCode];
+	if (access(fileLocation.c_str(), R_OK) != 0)
+	{
+		std::cerr << "NOT IMPLEMENTED : Cannot access error file " << errorCode << "(" << fileLocation << ")" <<  std::endl;
+		throw std::runtime_error("No valid error page found, cannot continue execution.");
+	}
 
-    return this->_htmlPageMap[location].index;
+	return fileLocation;
 }
 
-std::string Server::getErrorPage(std::string errorCode)
+std::string Server::getFileRoute(std::string fileName, std::string &status, std::string method)
 {
-	return this->_errorsMap[errorCode];
+	std::string fileLocation;
+
+	if (_htmlPageMap.find(fileName) != _htmlPageMap.end()) // fileLocation is not a file but a parent directory
+		fileName = _htmlPageMap[fileName].index;
+	fileLocation = HTML_DIR; //* tmp, waiting to parse root
+	// fileLocation += root; //! must by without trailing '/'
+	fileLocation += fileName;
+	// std::cout << "fileadress: " <<fileAddress << std::endl;
+	int accessMode;
+	if (method == "GET")
+		accessMode = R_OK;
+	else if (method == "POST" || method == "DELETE")
+		accessMode = W_OK;
+	else
+	{
+		accessMode = F_OK;
+		#ifdef DEBUG
+		throw std::runtime_error("Unknow method !");
+		#endif // DEBUG
+	}
+	if (access(fileLocation.c_str(), accessMode) == 0)
+		status = "200";
+	else
+	{
+		status = "404";
+		fileLocation = getErrorPageRoute(status);
+	}
+	return fileLocation;
 }
 
 std::string Server::getCgiPage(std::string cgiName)

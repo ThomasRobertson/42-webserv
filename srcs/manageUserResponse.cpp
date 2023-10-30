@@ -2,36 +2,9 @@
 #include "ConfigFile.hpp"
 #include "StartServers.hpp"
 #include <sstream>
+#include "ClientResponse.hpp"
 
 bool DEBUG_VERBOSE = false;
-
-std::string sizeToString(size_t value) {
-    std::ostringstream oss;
-
-    oss << value;
-    return oss.str();
-}
-
-std::string getContentType(std::string fileName)
-{
-	std::string type;
-
-	size_t dotPos = fileName.find_last_of(".");
-    if (dotPos != std::string::npos)
-	{
-		if (fileName.substr(dotPos + 1) == "html")
-			type = "text/html";
-		if (fileName.substr(dotPos + 1) == "css")
-			type = "text/css";
-		if (fileName.substr(dotPos + 1) == "js")
-			type = "text/javascript";
-		if (fileName.substr(dotPos + 1) == "png")
-			type = "image/png";
-    }
-	else
-		type = "text/html";
-    return type;
-}
 
 std::string StartServers::getUserResponse(Client client)
 {
@@ -39,62 +12,74 @@ std::string StartServers::getUserResponse(Client client)
 	std::cout << client.fd << std::endl;
 	std::cout << client.request.root << std::endl;
 	std::cout << client.serverIndex << std::endl;
-	std::string response, fileName, contentType, status;
+
 	Server currentServer = this->_serversVec[client.serverIndex];
 
-	fileName = client.request.root;
-	contentType = getContentType(fileName);
+	std::string response, fileLocation, contentType, status;
 
-	if (contentType == "text/html" || contentType == "image/png")
-		fileName = currentServer.getFileRoute(fileName, status);
+	fileLocation = currentServer.getFileRoute(client.request.root, status, client.request.method);
 
-	if (status == "404" && contentType == "text/html")
-		fileName = currentServer.getErrorPage(status);
+	contentType = getContentType(fileLocation);
 
-	fileName = "www" + fileName;
-	std::cout << "file: " << fileName << " status: " << status << std::endl;
-
-	std::ifstream file(fileName.c_str());
-
-	if (status == "200" && file.is_open())
+	std::ifstream file(fileLocation.c_str());
+	if (!file.is_open())
 	{
-		if (DEBUG_VERBOSE) std::cout << "case 1 file: " << fileName << std::endl;
-		std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		fileLocation = currentServer.getErrorPageRoute("500");
+	}
 
-		response = "HTTP/1.1 " + status + " OK\r\n";
-		response += "Connection: keep-alive\r\n";
-		response += "Content-Type: " + contentType + "\r\n";
-		response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
-		response += htmlContent;
-	}
-	else if ((contentType == "text/css" || contentType == "text/javascript") && file.is_open())
-	{
-		if (DEBUG_VERBOSE) std::cout << "case 2 file: " << fileName << std::endl;
-		std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-		response = "HTTP/1.1 " + status + " Not Found\r\n";
-		response += "Connection: keep-alive\r\n";
-		response += "Content-Type: " + contentType + "\r\n";
-		response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
-		response += htmlContent;
-	}
-	else if (status == "404" && contentType == "text/html" && file.is_open())
-	{
-		if (DEBUG_VERBOSE) std::cout << "case 3 file: " << fileName << std::endl;
-		std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	ClientResponse clientReponse(status, contentType, htmlContent);
+	response = clientReponse.getReponse();
 
-		response = "HTTP/1.1 " + status + " Not Found\r\n";
-		response += "Connection: keep-alive\r\n";
-		response += "Content-Type: " + contentType + "\r\n";
-		response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
-		response += htmlContent;
-	}
-	else
-	{
-		response = "HTTP/1.1 404 Not Found\r\n\r\n";
-		response += "Connection: keep-alive\r\n";
-		if (DEBUG_VERBOSE) std::cout << "404 NOT FOUND: " << fileName << std::endl;
-	}
+	// if (status == "200" && file.is_open())
+	// {
+	// 	if (DEBUG_VERBOSE) std::cout << "case 1 file: " << fileLocation << std::endl;
+	// 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+	// 	ClientResponse clientReponse(status, contentType, htmlContent);
+	// 	response = clientReponse.getReponse();
+
+	// 	response = "HTTP/1.1 " + status + " OK\r\n";
+	// 	response += "Connection: keep-alive\r\n";
+	// 	response += "Content-Type: " + contentType + "\r\n";
+	// 	response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
+	// 	response += htmlContent;
+	// }
+	// else if ((contentType == "text/css" || contentType == "text/javascript") && file.is_open())
+	// {
+	// 	if (DEBUG_VERBOSE) std::cout << "case 2 file: " << fileLocation << std::endl;
+	// 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+	// 	// ClientResponse clientReponse(status, contentType, htmlContent);
+	// 	// response = clientReponse.getReponse();
+
+	// 	response = "HTTP/1.1 " + status + " Not Found\r\n";
+	// 	response += "Connection: keep-alive\r\n";
+	// 	response += "Content-Type: " + contentType + "\r\n";
+	// 	response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
+	// 	response += htmlContent;
+	// }
+	// else if (status == "404" && contentType == "text/html" && file.is_open())
+	// {
+	// 	if (DEBUG_VERBOSE) std::cout << "case 3 file: " << fileLocation << std::endl;
+	// 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+	// 	// ClientResponse clientReponse(status, contentType, htmlContent);
+	// 	// response = clientReponse.getReponse();
+
+	// 	response = "HTTP/1.1 " + status + " Not Found\r\n";
+	// 	response += "Connection: keep-alive\r\n";
+	// 	response += "Content-Type: " + contentType + "\r\n";
+	// 	response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
+	// 	response += htmlContent;
+	// }
+	// else
+	// {
+	// 	response = "HTTP/1.1 404 Not Found\r\n\r\n";
+	// 	response += "Connection: keep-alive\r\n";
+	// 	if (DEBUG_VERBOSE) std::cout << "404 NOT FOUND: " << fileLocation << std::endl;
+	// }
 
 	return response;
 }

@@ -7,6 +7,9 @@
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
+#include <unistd.h>
+
+#include "Settings.hpp"
 
 struct page {
     std::string index;
@@ -40,7 +43,6 @@ class ConfigFile
         void splitStrInVector(std::string input, char delimiter, std::vector<std::string> &result);
         int splitStrInMap(std::string input, char delimiter, std::map<std::string, std::string> &result);
 
-
         std::string getHost(int serverIndex);
         std::vector<std::string> getPort(int serverIndex);
         int getMaxClientBodySize(int serverIndex);
@@ -50,6 +52,8 @@ class ConfigFile
         int getServerNumber();
 
 
+        std::string getFileRoute(std::string fileName, std::string &status, std::string method);
+		std::string getErrorPageRoute(std::string errorCode);
 };
 
 #endif

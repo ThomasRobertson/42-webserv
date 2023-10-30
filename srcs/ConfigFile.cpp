@@ -230,7 +230,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 void ConfigFile::setValuesConfigFile(int serverIndex)
 {
 	this->serverNumber = serverIndex;
-	// displayValuesConfigFile(serverIndex);
+	displayValuesConfigFile(serverIndex);
 }
 
 void ConfigFile::displayValuesConfigFile(int serverIndex)
@@ -282,24 +282,24 @@ void ConfigFile::splitStrInVector(std::string input, char delimiter, std::vector
 
 int ConfigFile::splitStrInMap(std::string input, char delimiter, std::map<std::string, std::string> &result)
 {
-    std::string token;
-    int tokenCount = 0;
+	std::string token;
+	int tokenCount = 0;
 
-    for (size_t i = 0; i < input.length(); ++i)
+	for (size_t i = 0; i < input.length(); ++i)
 	{
-        if (input[i] != delimiter)
-            token += input[i];
+		if (input[i] != delimiter)
+			token += input[i];
 		else
 		{
-            if (tokenCount == 0)
-                result[token] = ""; 
-            else
-                return 0;
+			if (tokenCount == 0)
+				result[token] = ""; 
+			else
+				return 0;
 
-            token.clear();
-            tokenCount++;
-        }
-    }
+			token.clear();
+			tokenCount++;
+		}
+	}
 
 	if (tokenCount == 1)
 	{
