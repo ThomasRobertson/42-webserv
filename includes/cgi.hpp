@@ -8,6 +8,7 @@
 #include <iostream>
 #include <map>
 
+#include "Settings.hpp"
 #include "utils.hpp"
 #include "ConfigFile.hpp"
 
@@ -16,19 +17,11 @@
 
 #define CGI_BUFFER_SIZE 1024
 #define GATEWAY_INTERFACE "CGI/1.1" //?Can we change that ?
-#define SERVER_SOFTWARE "Webserv/42.1"
-#define SERVER_PROTOCOL "HTTP/1.1"
-#define AUTH_TYPE "Basic"
+
 
 class CgiHandler
 {
 	public:
-		struct cgi_env
-		{
-			int i;
-		};
-		
-
 		CgiHandler(std::string file_path, const ConfigFile &config_file) : _file_path(file_path), _config_file(config_file) {}
 		~CgiHandler() {};
 		std::string execute();
