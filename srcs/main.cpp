@@ -1,8 +1,8 @@
 
 #include "ConfigFile.hpp"
 #include "Server.hpp"
+#include "StartServers.hpp"
 
-// int	main(int argc, char **argv, char **env)
 int	main(int argc, char **argv)
 {
 
@@ -20,9 +20,9 @@ int	main(int argc, char **argv)
         return 0;
     }
 
-    Server serv(configFile);
-    serv.startServer();
-    // serv.testServer(configFile.getHost(), configFile.getPort());
+    StartServers servs(configFile);
+    servs.createServers();
+    servs.initServers();
 
     return 0;
 }
