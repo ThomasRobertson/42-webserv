@@ -13,19 +13,18 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 {
 	if (DEBUG_VERBOSE) std::cout << "---------------------- REQUEST ----------------------" << std::endl;
 	if (DEBUG_VERBOSE) std::cout << userRequest.root << std::endl;
-	std::string response, fileName, contentType, status;
+	std::string response, fileLocation, contentType, status;
 
-	fileName = userRequest.root;
-	configFile.getFileRoute(fileName, status, userRequest.method);
+	fileLocation = configFile.getFileRoute(userRequest.root, status, userRequest.method);
 
-	contentType = getContentType(fileName);
+	contentType = getContentType(fileLocation);
 
-	std::cout << "file: " << fileName << " status: " << status << "content_type: " << contentType << std::endl;
+	std::cout << "file: " << fileLocation << " status: " << status << "content_type: " << contentType << std::endl;
 
-	std::ifstream file(fileName.c_str());
+	std::ifstream file(fileLocation.c_str());
 	if (!file.is_open())
 	{
-		fileName = configFile.getErrorPageRoute("500");
+		fileLocation = configFile.getErrorPageRoute("500");
 	}
 
 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -35,7 +34,7 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 
 	// if (status == "200" && file.is_open())
 	// {
-	// 	if (DEBUG_VERBOSE) std::cout << "case 1 file: " << fileName << std::endl;
+	// 	if (DEBUG_VERBOSE) std::cout << "case 1 file: " << fileLocation << std::endl;
 	// 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
 	// 	ClientResponse clientReponse(status, contentType, htmlContent);
@@ -49,7 +48,7 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 	// }
 	// else if ((contentType == "text/css" || contentType == "text/javascript") && file.is_open())
 	// {
-	// 	if (DEBUG_VERBOSE) std::cout << "case 2 file: " << fileName << std::endl;
+	// 	if (DEBUG_VERBOSE) std::cout << "case 2 file: " << fileLocation << std::endl;
 	// 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
 	// 	// ClientResponse clientReponse(status, contentType, htmlContent);
@@ -63,7 +62,7 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 	// }
 	// else if (status == "404" && contentType == "text/html" && file.is_open())
 	// {
-	// 	if (DEBUG_VERBOSE) std::cout << "case 3 file: " << fileName << std::endl;
+	// 	if (DEBUG_VERBOSE) std::cout << "case 3 file: " << fileLocation << std::endl;
 	// 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
 	// 	// ClientResponse clientReponse(status, contentType, htmlContent);
@@ -79,7 +78,7 @@ std::string getUserResponse(UserRequest userRequest, ConfigFile configFile)
 	// {
 	// 	response = "HTTP/1.1 404 Not Found\r\n\r\n";
 	// 	response += "Connection: keep-alive\r\n";
-	// 	if (DEBUG_VERBOSE) std::cout << "404 NOT FOUND: " << fileName << std::endl;
+	// 	if (DEBUG_VERBOSE) std::cout << "404 NOT FOUND: " << fileLocation << std::endl;
 	// }
 
 	return response;

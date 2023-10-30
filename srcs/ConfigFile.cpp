@@ -19,7 +19,7 @@ std::string ConfigFile::getErrorPageRoute(std::string errorCode)
 		std::cerr << "NOT IMPLEMENTED : No error file " << errorCode << "(" << fileLocation << ")" << std::endl;
 		throw std::runtime_error("No valid page found, cannot continue execution.");
 	}
-    fileLocation = HTML_DIR + errorsMap[errorCode];
+	fileLocation = HTML_DIR + errorsMap[errorCode];
 	if (access(fileLocation.c_str(), R_OK) != 0)
 	{
 		std::cerr << "NOT IMPLEMENTED : Cannot access error file " << errorCode << "(" << fileLocation << ")" <<  std::endl;
@@ -29,17 +29,15 @@ std::string ConfigFile::getErrorPageRoute(std::string errorCode)
 	return fileLocation;
 }
 
-void ConfigFile::getFileRoute(std::string &fileLocation, std::string &status, std::string method)
+std::string ConfigFile::getFileRoute(std::string fileName, std::string &status, std::string method)
 {
-    if (htmlPage.find(fileLocation) != htmlPage.end()) // fileLocation is not a file but a parent directory
-    {
-        status = "200";
-        fileLocation = htmlPage[fileLocation].index;
-    }
-	std::string fileLocationTemp = HTML_DIR;
-	fileLocationTemp += root;
-	fileLocationTemp += fileLocation;
-	fileLocation = fileLocationTemp;
+	std::string fileLocation;
+
+	if (htmlPage.find(fileName) != htmlPage.end()) // fileLocation is not a file but a parent directory
+		fileName = htmlPage[fileName].index;
+	fileLocation = HTML_DIR;
+	fileLocation += root; //! must by without trailing '/'
+	fileLocation += fileName;
 	// std::cout << "fileadress: " <<fileAddress << std::endl;
 	int accessMode;
 	if (method == "GET")
@@ -53,16 +51,14 @@ void ConfigFile::getFileRoute(std::string &fileLocation, std::string &status, st
 		throw std::runtime_error("Unknow method !");
 		#endif // DEBUG
 	}
-	if (access(fileLocationTemp.c_str(), accessMode) == 0)
-	{
+	if (access(fileLocation.c_str(), accessMode) == 0)
 		status = "200";
-		return ;
-	}
 	else
 	{
 		status = "404";
 		fileLocation = getErrorPageRoute(status);
 	}
+	return fileLocation;
 }
 
 
@@ -273,28 +269,28 @@ void ConfigFile::splitStrInVector(std::string input, char delimiter, std::vector
 
 int ConfigFile::splitStrInMap(std::string input, char delimiter, std::map<std::string, std::string> &result)
 {
-    std::string token;
-    int tokenCount = 0;
+	std::string token;
+	int tokenCount = 0;
 
-    for (size_t i = 0; i < input.length(); ++i)
+	for (size_t i = 0; i < input.length(); ++i)
 	{
-        if (input[i] != delimiter)
-            token += input[i];
+		if (input[i] != delimiter)
+			token += input[i];
 		else
 		{
-            if (tokenCount == 0)
-                result[token] = ""; 
-            else
-                return 0;
+			if (tokenCount == 0)
+				result[token] = ""; 
+			else
+				return 0;
 
-            token.clear();
-            tokenCount++;
-        }
-    }
+			token.clear();
+			tokenCount++;
+		}
+	}
 
 	if (tokenCount == 1)
-    	result[result.begin()->first] = token;
-    if (tokenCount != 1)
+		result[result.begin()->first] = token;
+	if (tokenCount != 1)
 		return 0;
 
 	return 1;

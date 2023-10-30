@@ -50,7 +50,7 @@ class ConfigFile
         std::string getErrorPages(std::string errorCode) const {return errorsMap.at(errorCode);}
         std::string getCgiPages(std::string cgiName) const {return cgiMap.at(cgiName);}
 
-        void getFileRoute(std::string &fileLocation, std::string &status, std::string method);
+        std::string getFileRoute(std::string fileName, std::string &status, std::string method);
 		std::string getErrorPageRoute(std::string errorCode);
 };
 
