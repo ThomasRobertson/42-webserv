@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <sstream>
 
 #define nullptr NULL
 #define DELIMITER "="
@@ -49,3 +50,7 @@ class ContainerToStringArray
 		return vec_char;
 	}
 };
+
+std::string getContentType(std::string fileName);
+std::pair<std::string, std::string> getStatus(std::string statusCode);
+std::string sizeToString(size_t value);
