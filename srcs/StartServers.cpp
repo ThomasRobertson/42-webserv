@@ -95,7 +95,6 @@ void Server::startServers(int epollFd)
             return ;
         }
 
-        std::cout << "_serverSocketVec[i]" << _serverSocketVec[i] << std::endl;
         std::cout << "Server listening on port " << port << "..." << std::endl;
 
         int flags = fcntl(_serverSocketVec[i], F_GETFL, 0);
@@ -132,28 +131,16 @@ int StartServers::listenClientRequest(int epollFd)
                         (*it).acceptNewClient(epollFd, y, newClient);
                         newClient.serverIndex = serverIndex;
                         _clientList[newClient.fd] = newClient;
-                        std::cout << "ServerSocketSize: " << (*it).getServerSocketSize() << "" << std::endl;
-                        std::cout << "test: " <<  events[i].data.fd << newClient.fd << std::endl;
                         isNewClient = 1;
                     }
                 }
                 serverIndex++;
             }
-            // currentClient = _clientList[events[i].data.fd];
-
-            // int clientIndex = -1;
-            // for (it = this->_serversVec.begin() ; it != this->_serversVec.end() ; it++)
-            // {
-	        //     for (int j = 0; j < this->_clientList.size(); j++)
-	        //     	if (this->_clientList[j].fd == events[i].data.fd)
-	        //     		clientIndex = j;
-            // }
 
             if (isNewClient != 1)
             {
                 if (events[i].events & EPOLLOUT)
                 {
-                    // currentClient = _clientList[events[i].data.fd];
                     std::cout << "----------------------- NEW REPONSE: " << events[i].data.fd << " -----------------------" << std::endl;
                     response = getUserResponse(_clientList[events[i].data.fd]);
                 
@@ -165,7 +152,6 @@ int StartServers::listenClientRequest(int epollFd)
                 }
                 else if (events[i].events & EPOLLIN)
                 {
-                    // currentClient = _clientList[events[i].data.fd];
                     std::cout << "----------------------- NEW REQUEST: " << events[i].data.fd << " -----------------------" << std::endl;
                     char buffer[1024];
                     ssize_t bytesRead = read(events[i].data.fd, buffer, 1024);
@@ -180,10 +166,6 @@ int StartServers::listenClientRequest(int epollFd)
                     {
                         std::string requestData(buffer, bytesRead);
                         _clientList[events[i].data.fd].request = getUserRequest(requestData);
-                        std::cout << "urrentClient.fd" << _clientList[events[i].data.fd].fd << std::endl;
-                        std::cout << "urrentClient.requestmethod" << _clientList[events[i].data.fd].request.method << std::endl;
-                        std::cout << "urrentClient.requestroot" << _clientList[events[i].data.fd].request.root << std::endl;
-                        std::cout << "Received HTTP request:\n" << requestData << std::endl;
                 
                         event.data.fd = events[i].data.fd;
                         event.events = EPOLLOUT;

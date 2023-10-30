@@ -80,16 +80,6 @@ int Server::getServerSocketSize()
     return this->_serverSocketVec.size();
 }
 
-// int Server::getClient(int index)
-// {
-//     return this->_clientsVec[index];
-// }
-
-// int Server::getClientsVecSize()
-// {
-//     return this->_clientsVec.size();
-// }
-
 int Server::addSocketToEpoll(int epollFd, int i)
 {
 
@@ -132,7 +122,6 @@ void Server::acceptNewClient(int epollFd, int y, Client &newClient)
     event.data.fd = _clientSocket;
     event.events = EPOLLIN;
     epoll_ctl(epollFd, EPOLL_CTL_ADD, _clientSocket, &event);
-    // _clientsVec.push_back(_clientSocket);
     newClient.fd = _clientSocket;
 
     std::cout << "New client connected: " << _clientSocket << std::endl;
