@@ -7,6 +7,9 @@
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
+#include <unistd.h>
+
+#include "Settings.hpp"
 
 struct page {
     std::string index;
@@ -47,8 +50,8 @@ class ConfigFile
         std::string getErrorPages(std::string errorCode) const {return errorsMap.at(errorCode);}
         std::string getCgiPages(std::string cgiName) const {return cgiMap.at(cgiName);}
 
-        std::string getFileRoute(std::string location, std::string &status);
-
+        void getFileRoute(std::string &fileLocation, std::string &status, std::string method);
+		std::string getErrorPageRoute(std::string errorCode);
 };
 
 #endif

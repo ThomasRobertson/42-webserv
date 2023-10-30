@@ -10,18 +10,59 @@ ConfigFile::~ConfigFile()
 	return ;
 }
 
-std::string ConfigFile::getFileRoute(std::string location, std::string &status)
+std::string ConfigFile::getErrorPageRoute(std::string errorCode)
 {
-    std::map<std::string, page>::iterator it = this->htmlPage.find(location);
-    status = "200";
+	std::string fileLocation;
 
-    if (it == this->htmlPage.end())
+	if (errorsMap.find(errorCode) == errorsMap.end())
+	{
+		std::cerr << "NOT IMPLEMENTED : No error file " << errorCode << "(" << fileLocation << ")" << std::endl;
+		throw std::runtime_error("No valid page found, cannot continue execution.");
+	}
+    fileLocation = HTML_DIR + errorsMap[errorCode];
+	if (access(fileLocation.c_str(), R_OK) != 0)
+	{
+		std::cerr << "NOT IMPLEMENTED : Cannot access error file " << errorCode << "(" << fileLocation << ")" <<  std::endl;
+		throw std::runtime_error("No valid error page found, cannot continue execution.");
+	}
+
+	return fileLocation;
+}
+
+void ConfigFile::getFileRoute(std::string &fileLocation, std::string &status, std::string method)
+{
+    if (htmlPage.find(fileLocation) != htmlPage.end()) // fileLocation is not a file but a parent directory
     {
-        status = "404";
-        return this->htmlPage["/404"].index;
+        status = "200";
+        fileLocation = htmlPage[fileLocation].index;
     }
-
-    return this->htmlPage[location].index;
+	std::string fileLocationTemp = HTML_DIR;
+	fileLocationTemp += root;
+	fileLocationTemp += fileLocation;
+	fileLocation = fileLocationTemp;
+	// std::cout << "fileadress: " <<fileAddress << std::endl;
+	int accessMode;
+	if (method == "GET")
+		accessMode = R_OK;
+	else if (method == "POST" || method == "DELETE")
+		accessMode = W_OK;
+	else
+	{
+		accessMode = F_OK;
+		#ifdef DEBUG
+		throw std::runtime_error("Unknow method !");
+		#endif // DEBUG
+	}
+	if (access(fileLocationTemp.c_str(), accessMode) == 0)
+	{
+		status = "200";
+		return ;
+	}
+	else
+	{
+		status = "404";
+		fileLocation = getErrorPageRoute(status);
+	}
 }
 
 
