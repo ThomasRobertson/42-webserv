@@ -5,6 +5,7 @@
 #include <map>
 #include <algorithm>
 #include <sstream>
+#include "Settings.hpp"
 
 #define nullptr NULL
 #define DELIMITER "="
