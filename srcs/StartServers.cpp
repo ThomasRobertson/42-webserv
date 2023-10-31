@@ -117,6 +117,8 @@ int StartServers::listenClientRequest(int epollFd)
     while (true)
     {
         int numEvents = epoll_wait(epollFd, events, 10, -1);
+        if (EXIT_G == true)
+            break;
         for (int i = 0; i < numEvents; i++)
         {
             int serverIndex = 0;

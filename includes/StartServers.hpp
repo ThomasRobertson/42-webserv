@@ -10,6 +10,8 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 
+extern bool EXIT_G;
+
 struct Client
 {
     int fd;
