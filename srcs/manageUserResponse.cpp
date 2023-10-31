@@ -81,6 +81,7 @@ std::string StartServers::getUserResponse(Client client)
 	// 	if (DEBUG_VERBOSE) std::cout << "404 NOT FOUND: " << fileLocation << std::endl;
 	// }
 
+
 	return response;
 }
 
