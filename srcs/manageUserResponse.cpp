@@ -8,14 +8,25 @@ bool DEBUG_VERBOSE = false;
 
 std::string StartServers::getUserResponse(Client client)
 {
-	// std::cout << "---------------------- REQUEST ----------------------" << std::endl;
-	// std::cout << client.fd << std::endl;
-	// std::cout << client.request.root << std::endl;
-	// std::cout << client.serverIndex << std::endl;
+	std::string response, fileLocation, contentType, status;
 
 	Server currentServer = this->_serversVec[client.serverIndex];
 
-	std::string response, fileLocation, contentType, status;
+	if (client.request.method == "POST")
+	{
+		std::string httpResponse = "HTTP/1.1 200 OK\r\n";
+    	httpResponse += "Content-Type: application/json\r\n\r\n";
+    	httpResponse += "{\"status\": \"success\", \"message\": \"The POST request was processed successfully.\", \"data\": {\"key1\": \"value10\", \"key2\": \"value2\"}}";
+		return httpResponse;
+	}
+
+	if (client.request.method == "DELETE")
+	{
+		std::string httpResponse = "HTTP/1.1 200 OK\r\n";
+    	httpResponse += "Content-Type: application/json\r\n\r\n";
+    	httpResponse += "{\"status\": \"success\", \"message\": \"The DELETE request was processed successfully.\"}";
+		return httpResponse;
+	}
 
 	fileLocation = currentServer.getFileRoute(client.request.root, status, client.request.method);
 
@@ -27,9 +38,9 @@ std::string StartServers::getUserResponse(Client client)
 		fileLocation = currentServer.getErrorPageRoute("500");
 	}
 
-	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-	ClientResponse clientReponse(status, contentType, htmlContent);
+	ClientResponse clientReponse(status, contentType, content);
 	response = clientReponse.getReponse();
 
 	// if (status == "200" && file.is_open())

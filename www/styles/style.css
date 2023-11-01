@@ -10,7 +10,6 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	margin: 0;
 	background-color: black;
 	max-width: 100vw;
 	max-height: 100vh;
@@ -23,23 +22,51 @@ body {
 	color: white;
 }
 
-.main-header {
+.main-container {
+	border: 1px solid red;
+	width: 90vw;
 	display: flex;
+	justify-content: space-around;
 	align-items: center;
-	justify-content: center;
 }
 
 .buttons-container {
+	border: 1px solid red;
+	width: 40vw;
+	height: 100%;
 	display: grid;
-	padding-left: 10vw;
-	padding-right: 10vw;
 	grid-template-columns: 1fr; /* Two equal-width columns */
     grid-gap: 3vh; /* Adjust the gap between items as needed */
 }
 
+.buttons {
+	cursor: pointer;
+	border-radius: 10px;
+	font-size: 2vh;
+	text-transform: uppercase;
+	color: white;
+	border: 0.4vh solid white;
+	background-color: black;
+	width: 100%;
+	height: 5vh;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* CSS */
-.button-85 {
+/* .button-85 {
 	padding: 0.6em 2em;
 	border: none;
 	outline: none;
@@ -108,7 +135,7 @@ body {
 
   /* ----------------------------------------------------------------------------- */
 
-  @import url("https://fonts.googleapis.com/css?family=Raleway");
+ /*  @import url("https://fonts.googleapis.com/css?family=Raleway");
 
 :root {
   --glow-color: white;
@@ -124,15 +151,12 @@ body {
 	width: 30vw;
 	padding-left: 8vw;
 	padding-right: 1vw;
-  /* position: relative; */
 	color: var(--glow-color);
 	cursor: pointer;
-	/* padding: 0.35em 1em; */
 	border: 0.15em solid var(--glow-color);
 	border-radius: 0.45em;
 	background: none;
 	perspective: 2em;
-	/* font-family: "Raleway", sans-serif; */
 	font-size: 2em;
 	font-weight: 900;
 	letter-spacing: 0.2em;
@@ -162,20 +186,6 @@ body {
   animation: faulty-flicker 2s linear infinite;
 }
 
-/* .glowing-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  opacity: 0.7;
-  filter: blur(1em);
-  transform: translateY(120%) rotateX(95deg) scale(1, 0.35);
-  background: var(--glow-color);
-  pointer-events: none;
-} */
-
 .glowing-btn::after {
   content: "";
   position: absolute;
@@ -189,31 +199,6 @@ body {
   box-shadow: 0 0 2em 0.2em var(--glow-color);
   transition: opacity 100ms linear;
 }
-
-/* .glowing-btn:hover {
-  color: white;
-  text-shadow: none;
-  animation: none;
-} */
-
-/* .glowing-btn:hover .glowing-txt {
-  animation: none;
-}
-
-.glowing-btn:hover .faulty-letter {
-  animation: none;
-  text-shadow: none;
-  opacity: 1;
-} */
-
-/* .glowing-btn:hover:before {
-  filter: blur(1.5em);
-  opacity: 1;
-}
-
-.glowing-btn:hover:after {
-  opacity: 1;
-} */
 
 @keyframes faulty-flicker {
   0% {
@@ -316,190 +301,4 @@ body {
   100% {
     opacity: 1;
   }
-}
-
-/* @media only screen and (max-width: 600px) {
-  .glowing-btn{
-    font-size: 1em;
-  } */
-/* } */
-
-/* ----------------------------------------------------------- */
-  
-  /* .wrapper {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-  }
-  .wrapper h1.glitch {
-	color: white;
-	font-family: sans-serif;
-	font-weight: 800;
-	position: relative;
-	font-size: 100px;
-	padding: 30px;
-  }
-  .wrapper h1.glitch::before, .wrapper h1.glitch::after {
-	padding: 30px;
-	color: white;
-	content: "WEBSERV 42";
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	background: black;
-	overflow: hidden;
-	top: 0;
-  }
-  .wrapper h1.glitch::before {
-	left: 3px;
-	text-shadow: -2px 0 red;
-	animation-name: glitch-animation-1;
-	animation-duration: 2s;
-	animation-timing-function: linear;
-	animation-delay: 0s;
-	animation-iteration-count: infinite;
-	animation-direction: reverse-alternate;
-  }
-  .wrapper h1.glitch::after {
-	left: -3px;
-	text-shadow: -2px 0 blue;
-	animation-name: glitch-animation-2;
-	animation-duration: 2s;
-	animation-timing-function: linear;
-	animation-delay: 0s;
-	animation-iteration-count: infinite;
-	animation-direction: reverse-alternate;
-  }
-  
-  @keyframes glitch-animation-1 {
-	0% {
-	  clip: rect(121px, 350px, 127px, 30px);
-	}
-	5% {
-	  clip: rect(96px, 350px, 69px, 30px);
-	}
-	10% {
-	  clip: rect(47px, 350px, 54px, 30px);
-	}
-	15% {
-	  clip: rect(22px, 350px, 23px, 30px);
-	}
-	20% {
-	  clip: rect(128px, 350px, 33px, 30px);
-	}
-	25% {
-	  clip: rect(27px, 350px, 4px, 30px);
-	}
-	30% {
-	  clip: rect(77px, 350px, 33px, 30px);
-	}
-	35% {
-	  clip: rect(88px, 350px, 1px, 30px);
-	}
-	40% {
-	  clip: rect(57px, 350px, 112px, 30px);
-	}
-	45% {
-	  clip: rect(62px, 350px, 148px, 30px);
-	}
-	50% {
-	  clip: rect(142px, 350px, 60px, 30px);
-	}
-	55% {
-	  clip: rect(57px, 350px, 75px, 30px);
-	}
-	60% {
-	  clip: rect(67px, 350px, 131px, 30px);
-	}
-	65% {
-	  clip: rect(132px, 350px, 111px, 30px);
-	}
-	70% {
-	  clip: rect(66px, 350px, 36px, 30px);
-	}
-	75% {
-	  clip: rect(120px, 350px, 100px, 30px);
-	}
-	80% {
-	  clip: rect(101px, 350px, 134px, 30px);
-	}
-	85% {
-	  clip: rect(26px, 350px, 57px, 30px);
-	}
-	90% {
-	  clip: rect(26px, 350px, 65px, 30px);
-	}
-	95% {
-	  clip: rect(59px, 350px, 66px, 30px);
-	}
-	100% {
-	  clip: rect(122px, 350px, 48px, 30px);
-	}
-  }
-  @keyframes glitch-animation-2 {
-	0% {
-	  clip: rect(115px, 350px, 5px, 30px);
-	}
-	5% {
-	  clip: rect(3px, 350px, 47px, 30px);
-	}
-	10% {
-	  clip: rect(37px, 350px, 123px, 30px);
-	}
-	15% {
-	  clip: rect(104px, 350px, 52px, 30px);
-	}
-	20% {
-	  clip: rect(129px, 350px, 114px, 30px);
-	}
-	25% {
-	  clip: rect(43px, 350px, 107px, 30px);
-	}
-	30% {
-	  clip: rect(131px, 350px, 54px, 30px);
-	}
-	35% {
-	  clip: rect(26px, 350px, 96px, 30px);
-	}
-	40% {
-	  clip: rect(44px, 350px, 35px, 30px);
-	}
-	45% {
-	  clip: rect(143px, 350px, 149px, 30px);
-	}
-	50% {
-	  clip: rect(64px, 350px, 119px, 30px);
-	}
-	55% {
-	  clip: rect(37px, 350px, 113px, 30px);
-	}
-	60% {
-	  clip: rect(125px, 350px, 35px, 30px);
-	}
-	65% {
-	  clip: rect(62px, 350px, 123px, 30px);
-	}
-	70% {
-	  clip: rect(101px, 350px, 73px, 30px);
-	}
-	75% {
-	  clip: rect(130px, 350px, 127px, 30px);
-	}
-	80% {
-	  clip: rect(90px, 350px, 19px, 30px);
-	}
-	85% {
-	  clip: rect(150px, 350px, 68px, 30px);
-	}
-	90% {
-	  clip: rect(4px, 350px, 149px, 30px);
-	}
-	95% {
-	  clip: rect(114px, 350px, 147px, 30px);
-	}
-	100% {
-	  clip: rect(21px, 350px, 80px, 30px);
-	}
-  } */
+} */
