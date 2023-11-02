@@ -33,3 +33,5 @@
 
 .vscode
 webserv
+.cache
+compile_commands.json
