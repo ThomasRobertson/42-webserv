@@ -3,6 +3,7 @@
 
 #include "ConfigFile.hpp"
 #include "Server.hpp"
+#include "Settings.hpp"
 #include "getMethod.hpp"
 
 #include <cstring>
@@ -10,6 +11,12 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <csignal>
+#include <sstream>
+#include <sys/stat.h>
+#include <dirent.h>
+
+extern bool EXIT_G;
 
 struct Client
 {
@@ -24,13 +31,10 @@ class StartServers
         ConfigFile _configFile;
 	    std::vector<Server>	_serversVec;
         
-        // int _epollFd;
-
         std::vector<int> _clientsVec;
         std::map<int, Client> _clientList;
 
-
-
+        int _epollFd;
 
     public:
         StartServers(ConfigFile configFile);
@@ -39,8 +43,12 @@ class StartServers
 		void createServers();
         void initServers();
 
-        int listenClientRequest(int epollFd);
-        void newResponseAndRequest(int epollFd, epoll_event &events, int clientIndex);
+        bool getNewConnexion(epoll_event currentEvent);
+        void receiveRequest(epoll_event currentEvent);
+        void sendResponse(epoll_event currentEvent);
+        void closeServers();
+
+        void listenClientRequest();
 
         std::string getUserResponse(Client client);
         UserRequest getUserRequest(std::string requestStr);

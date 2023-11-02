@@ -4,12 +4,12 @@ ClientResponse::ClientResponse(std::string status, std::string contentType, std:
 {
 	#ifdef DEBUG
 
-	assert(!_status.empty());
-	if (_status == "200")
-	{
-		assert(!_contentType.empty());
-		assert(!_contentBody.empty());
-	}
+	// assert(!_status.empty());
+	// if (_status == "200")
+	// {
+	// 	assert(!_contentType.empty());
+	// 	assert(!_contentBody.empty());
+	// }
 
 	#endif // DEBUG
 	std::stringstream _dateStream;

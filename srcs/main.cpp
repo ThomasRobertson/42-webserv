@@ -3,6 +3,15 @@
 #include "Server.hpp"
 #include "StartServers.hpp"
 
+bool EXIT_G = false;
+
+void signalHandler(int signum)
+{
+    (void)signum;
+    std::cout << " [i] Server shutted down." << std::endl;
+    EXIT_G = true;
+}
+
 int	main(int argc, char **argv)
 {
 
@@ -20,9 +29,11 @@ int	main(int argc, char **argv)
         return 0;
     }
 
-    StartServers servs(configFile);
-    servs.createServers();
-    servs.initServers();
+    signal(SIGINT, signalHandler);
+
+    StartServers servers(configFile);
+    servers.createServers();
+    servers.initServers();
 
     return 0;
 }

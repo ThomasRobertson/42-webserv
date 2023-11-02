@@ -10,10 +10,7 @@ bool DEBUG_VERBOSE = false;
 
 std::string StartServers::getUserResponse(Client client)
 {
-	std::cout << "---------------------- REQUEST ----------------------" << std::endl;
-	std::cout << client.fd << std::endl;
-	std::cout << client.request.root << std::endl;
-	std::cout << client.serverIndex << std::endl;
+	std::string response, fileLocation, contentType, status;
 
 	Server currentServer = this->_serversVec[client.serverIndex];
 	std::string method = client.request.method;

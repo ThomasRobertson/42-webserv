@@ -14,6 +14,7 @@
 struct page {
     std::string index;
     std::vector<std::string> methods;
+    bool listing;
 };
 
 class ConfigFile
@@ -50,6 +51,8 @@ class ConfigFile
         std::map<std::string, std::string> getCgiPages(int serverIndex);
         std::map<std::string, page> getFileRoutes(int serverIndex);
         int getServerNumber();
+        std::string getServerName(int serverIndex);
+        std::string getRoot(int serverIndex);
 
 
         std::string getFileRoute(std::string fileName, std::string &status, std::string method);

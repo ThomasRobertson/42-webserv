@@ -5,6 +5,7 @@
 #include <map>
 #include <algorithm>
 #include <sstream>
+#include "Settings.hpp"
 
 #define nullptr NULL
 #define DELIMITER "="
@@ -32,10 +33,10 @@ class ContainerToStringArray
 	char* const* getArray() const {return const_cast<char* const*>(_vec_char.data());}
 
 	private:
-	char **_array;
-	std::vector<std::string> _vec_str;
-	std::vector<const char*> _vec_char;
-	const char *_delimiter;
+	// char **_array;
+		std::vector<std::string> _vec_str;
+		std::vector<const char*> _vec_char;
+		const char *_delimiter;
 
 	static std::vector<const char*> convert_to_vec_char_ptr(std::vector<std::string> vec_str)
 	{
