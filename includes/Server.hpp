@@ -27,6 +27,8 @@ class Server
         std::vector<std::string> _port;
         int _maxClientBodySize;
         int _serverIndex;
+        std::string _root;
+        std::string _server_name;
 
         std::map<std::string, page> _htmlPageMap;
         std::map<std::string, std::string> _errorsMap;
@@ -41,6 +43,10 @@ class Server
         std::string getHost();
         std::vector<std::string> getPort();
         int getMaxClientBodySize();
+        std::string getServerName();
+        std::string getRoot();
+        bool getListing(std::string fileLocation);
+
 
         int getServerSocket(int i);
         int getServerSocketSize();

@@ -11,6 +11,9 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include <csignal>
+#include <sstream>
+#include <sys/stat.h>
+#include <dirent.h>
 
 extern bool EXIT_G;
 

@@ -83,8 +83,8 @@ void StartServers::sendResponse(epoll_event currentEvent)
     std::string response;
 
     std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
-    response = getUserResponse(_clientList[currentEvent.data.fd]);
 
+    response = getUserResponse(_clientList[currentEvent.data.fd]);
     write(currentEvent.data.fd, response.c_str(), response.length());
     std::cout << "response sent: " << response.substr(0, 200) << std::endl;
 
