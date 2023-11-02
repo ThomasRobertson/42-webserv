@@ -54,3 +54,4 @@ class ContainerToStringArray
 std::string getContentType(std::string fileName);
 std::pair<std::string, std::string> getStatus(std::string statusCode);
 std::string sizeToString(size_t value);
+std::string generateErrorPage(std::string errorCode = "500");

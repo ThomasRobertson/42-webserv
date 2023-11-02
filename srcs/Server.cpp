@@ -46,19 +46,43 @@ int Server::getServerIndex()
     return this->_serverIndex;
 }
 
+std::string generateErrorPage(std::string errorCode)
+{
+	if (errorCode.empty())
+		errorCode = "500";
+	
+	std::pair<std::string, std::string> status = getStatus(errorCode);
+
+	std::string bodyReponse;
+	bodyReponse = "<!doctype html>\n";
+	bodyReponse += "<html>\n";
+	bodyReponse += "  <head>\n";
+	bodyReponse += "    <title>";
+	bodyReponse += status.first;
+	bodyReponse += "</title>\n";
+	bodyReponse += "  </head>\n";
+	bodyReponse += "  <body>\n";
+	bodyReponse += "    <h1>";
+	bodyReponse += status.first;
+	bodyReponse += "</h1>\n";
+	bodyReponse += "    <p>";
+	bodyReponse += status.second;
+	bodyReponse += "</p>\n";
+	bodyReponse += "  </body>\n";
+	bodyReponse += "</html>\n";
+}
+
 std::string Server::getErrorPageRoute(std::string errorCode)
 {
 	std::string fileLocation;
 
 	if (_errorsMap.find(errorCode) == _errorsMap.end())
 	{
-		std::cerr << "NOT IMPLEMENTED : No error file " << errorCode << "(" << fileLocation << ")" << std::endl;
 		throw std::runtime_error("No valid page found, cannot continue execution.");
 	}
 	fileLocation = HTML_DIR + _errorsMap[errorCode];
 	if (access(fileLocation.c_str(), R_OK) != 0)
 	{
-		std::cerr << "NOT IMPLEMENTED : Cannot access error file " << errorCode << "(" << fileLocation << ")" <<  std::endl;
 		throw std::runtime_error("No valid error page found, cannot continue execution.");
 	}
 
@@ -75,6 +99,11 @@ std::string Server::getFileRoute(std::string fileName, std::string &status, std:
 	// fileLocation += root; //! must by without trailing '/'
 	fileLocation += fileName;
 	// std::cout << "fileadress: " <<fileAddress << std::endl;
+	if (access(fileLocation.c_str(), F_OK) != 0)
+	{
+		status = "404";
+		return "";
+	}
 	int accessMode;
 	if (method == "GET")
 		accessMode = R_OK;
@@ -82,7 +111,7 @@ std::string Server::getFileRoute(std::string fileName, std::string &status, std:
 		accessMode = W_OK;
 	else
 	{
-		accessMode = F_OK;
+		accessMode = R_OK | W_OK;
 		#ifdef DEBUG
 		throw std::runtime_error("Unknow method !");
 		#endif // DEBUG
@@ -91,8 +120,8 @@ std::string Server::getFileRoute(std::string fileName, std::string &status, std:
 		status = "200";
 	else
 	{
-		status = "404";
-		fileLocation = getErrorPageRoute(status);
+		status = "403";
+		return "";
 	}
 	return fileLocation;
 }

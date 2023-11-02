@@ -3,6 +3,7 @@
 
 #include "ConfigFile.hpp"
 #include "Server.hpp"
+#include "getMethod.hpp"
 
 #include <cstring>
 #include <unistd.h>

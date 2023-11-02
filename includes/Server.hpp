@@ -10,6 +10,7 @@
 #include <sys/epoll.h>
 
 #include "Settings.hpp"
+#include "utils.hpp"
 
 struct UserRequest {
     std::string method;
