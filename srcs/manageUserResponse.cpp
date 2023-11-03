@@ -40,7 +40,6 @@ std::string StartServers::getUserResponse(Client client)
 				std::stringstream directoryListing;
 				directoryListing << "<html><head><title>Webserv Listing</title><link rel=\"stylesheet\" type=\"text/css\" href=\"styles/styleListing.css\"></head><body><h1 class=\"listing-title\">" << fileLocation << "</h1>";
 
-
 				DIR *dir = opendir(fileLocation.c_str());
 				if (dir != NULL)
 				{
@@ -54,7 +53,6 @@ std::string StartServers::getUserResponse(Client client)
 				}
 		
 				directoryListing << "</div></body></html>";
-
 
 				status = "200 OK";
 				contentType = "text/html";
@@ -152,12 +150,12 @@ std::string StartServers::getUserResponse(Client client)
 
 UserRequest StartServers::getUserRequest(std::string requestStr)
 {
-    UserRequest data;
+    UserRequest request;
 
     size_t spaceSepPos = requestStr.find(' '); // first space char after "GET /scripts/script.js HTTP/1.1"
-    data.method = requestStr.substr(0, spaceSepPos);
+    request.method = requestStr.substr(0, spaceSepPos);
     requestStr.erase(0, spaceSepPos + 1);
     spaceSepPos = requestStr.find(' '); // first space char after "GET /scripts/script.js HTTP/1.1"
-    data.root = requestStr.substr(0, spaceSepPos);
-    return data;
+    request.root = requestStr.substr(0, spaceSepPos);
+    return request;
 }

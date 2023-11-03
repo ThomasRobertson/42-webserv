@@ -17,6 +17,13 @@
 
 extern bool EXIT_G;
 
+struct UserRequest {
+    std::string method;
+    std::string root;
+    int length;
+    bool isComplete;
+};
+
 struct Client
 {
     int fd;

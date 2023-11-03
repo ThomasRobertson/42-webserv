@@ -12,11 +12,6 @@
 
 #include "Settings.hpp"
 
-struct UserRequest {
-    std::string method;
-    std::string root;
-};
-
 struct Client;
 
 class Server
