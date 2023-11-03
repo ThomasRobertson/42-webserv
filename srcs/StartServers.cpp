@@ -49,6 +49,33 @@ bool StartServers::getNewConnexion(epoll_event currentEvent)
     return false;
 }
 
+void test(std::string request)
+{
+    std::cout << "UN POOOOOOOOOOOOOOOOOOOOOOOOOSTE" << std::endl;   
+    // std::cout << request << std::endl;
+    // std::cout << "----------------------------------------------------------------------------------------------------------------" << std::endl;
+
+    // int boundaryStartPos = request.find("boundary=") + 9;    
+    // int boundaryEndPos = request.find("\n", boundaryStartPos);
+    // std::string boundary = "--" + request.substr(boundaryStartPos, boundaryEndPos - boundaryStartPos);
+    // int bodyStartingPos = request.find(boundary);
+    // std::string body = request.substr(bodyStartingPos);
+    // int sep = body.find("\r\n\r\n") + 4;
+    // std::string content = body.substr(sep);
+
+    // std::ofstream outputFile("./test.png", std::ios::binary);
+    // if (outputFile.is_open())
+    // {
+    //     std::cout << content.size() << std::endl;
+    //     outputFile.write(content.c_str(), content.size());
+    //     outputFile.close();
+    //     std::cout << "Binary data has been written to " << std::endl;
+    // }
+    // else
+    //     std::cerr << "Failed to open the file for writing." << std::endl;
+    // std::cout << content << std::endl;
+}
+
 void StartServers::receiveRequest(epoll_event currentEvent)
 {
     char buffer[1024];
@@ -69,18 +96,21 @@ void StartServers::receiveRequest(epoll_event currentEvent)
     {
         std::string requestData(buffer, bytesRead);
         _clientList[currentEvent.data.fd].request = getUserRequest(requestData);
-        std::cout << requestData << std::endl;
+        if (_clientList[currentEvent.data.fd].request.method == "POST")
+            test(requestData);
+        else
+            std::cout << requestData << std::endl;
 
         event.data.fd = currentEvent.data.fd;
         event.events = EPOLLOUT;
         epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
     }
-
 }
 
 void StartServers::sendResponse(epoll_event currentEvent)
 {
     std::string response;
+    struct epoll_event event;
 
     std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
     response = getUserResponse(_clientList[currentEvent.data.fd]);
@@ -88,6 +118,9 @@ void StartServers::sendResponse(epoll_event currentEvent)
     write(currentEvent.data.fd, response.c_str(), response.length());
     std::cout << "response sent: " << response.substr(0, 200) << std::endl;
 
+    // event.data.fd = currentEvent.data.fd;
+    // event.events = EPOLLIN;
+    // epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);
     close(currentEvent.data.fd);
     std::cout << RED << "[i] Client disconnected: " << currentEvent.data.fd << DEFAULT << std::endl;
