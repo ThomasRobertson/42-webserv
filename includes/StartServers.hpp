@@ -20,8 +20,10 @@ extern bool EXIT_G;
 struct UserRequest {
     std::string method;
     std::string root;
+    std::string body;
+
+    int finalLength;
     int length;
-    bool isComplete;
 };
 
 struct Client
@@ -29,6 +31,7 @@ struct Client
     int fd;
     int serverIndex;
     UserRequest request;
+    bool toComplete;
 };
 
 class StartServers
@@ -56,6 +59,7 @@ class StartServers
 
         void listenClientRequest();
 
+        void getRequestNextChunk(int userFd, std::string requestStr);
         std::string getUserResponse(Client client);
         UserRequest getUserRequest(std::string requestStr);
 };

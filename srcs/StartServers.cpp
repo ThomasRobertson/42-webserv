@@ -39,6 +39,7 @@ bool StartServers::getNewConnexion(epoll_event currentEvent)
             {
                 it->acceptNewClient(_epollFd, portIndex, newClient);
                 newClient.serverIndex = serverIndex;
+                newClient.toComplete = false;
                 _clientList[newClient.fd] = newClient;
                 return true;
             } 
@@ -46,34 +47,6 @@ bool StartServers::getNewConnexion(epoll_event currentEvent)
         serverIndex++;
     }
     return false;
-}
-
-void test(std::string request)
-{
-    std::cout << "UN POOOOOOOOOOOOOOOOOOOOOOOOOSTE" << std::endl;   
-    // std::cout << request << std::endl;
-    // std::cout << "----------------------------------------------------------------------------------------------------------------" << std::endl;
-
-    // int boundaryStartPos = request.find("boundary=") + 9;    
-    // int boundaryEndPos = request.find("\n", boundaryStartPos);
-    // std::string boundary = "--" + request.substr(boundaryStartPos, boundaryEndPos - boundaryStartPos);
-    // int bodyStartingPos = request.find(boundary);
-    // std::st    git push --set-upstream origin chunked
-    // std::string body = request.substr(bodyStartingPos);
-    // int sep = body.find("\r\n\r\n") + 4;
-    // std::string content = body.substr(sep);
-
-    // std::ofstream outputFile("./test.png", std::ios::binary);
-    // if (outputFile.is_open())
-    // {
-    //     std::cout << content.size() << std::endl;
-    //     outputFile.write(content.c_str(), content.size());
-    //     outputFile.close();
-    //     std::cout << "Binary data has been written to " << std::endl;
-    // }
-    // else
-    //     std::cerr << "Failed to open the file for writing." << std::endl;
-    // std::cout << content << std::endl;
 }
 
 void StartServers::receiveRequest(epoll_event currentEvent)
@@ -89,17 +62,18 @@ void StartServers::receiveRequest(epoll_event currentEvent)
     {
         epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, &event);
         close(currentEvent.data.fd);
-        _clientList.erase(_clientList[currentEvent.data.fd].fd);
+        _clientList.erase(currentEvent.data.fd);
         std::cout << "Client disconnected from error: " << currentEvent.data.fd << std::endl;
     }
     else
     {
         std::string requestData(buffer, bytesRead);
-        _clientList[currentEvent.data.fd].request = getUserRequest(requestData);
-        if (_clientList[currentEvent.data.fd].request.method == "POST")
-            test(requestData);
+
+        std::cout << requestData << std::endl;
+        if (_clientList[currentEvent.data.fd].toComplete)
+            getRequestNextChunk(currentEvent.data.fd, requestData);
         else
-            std::cout << requestData << std::endl;
+            _clientList[currentEvent.data.fd].request = getUserRequest(requestData);
 
         event.data.fd = currentEvent.data.fd;
         event.events = EPOLLOUT;
@@ -113,6 +87,15 @@ void StartServers::sendResponse(epoll_event currentEvent)
     struct epoll_event event;
 
     std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
+    if (_clientList[currentEvent.data.fd].request.length != _clientList[currentEvent.data.fd].request.finalLength)
+    {
+        std::cout << "RESPONSE NOT SENT BECAUSE IS NOT COMPLETE" << std::endl;
+        _clientList[currentEvent.data.fd].toComplete = true;
+        event.data.fd = currentEvent.data.fd;
+        event.events = EPOLLIN;
+        epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
+        return;
+    }
     response = getUserResponse(_clientList[currentEvent.data.fd]);
 
     write(currentEvent.data.fd, response.c_str(), response.length());
@@ -121,6 +104,7 @@ void StartServers::sendResponse(epoll_event currentEvent)
     // event.data.fd = currentEvent.data.fd;
     // event.events = EPOLLIN;
     // epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
+    _clientList.erase(currentEvent.data.fd);
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);
     close(currentEvent.data.fd);
     std::cout << RED << "[i] Client disconnected: " << currentEvent.data.fd << DEFAULT << std::endl;

@@ -148,14 +148,79 @@ std::string StartServers::getUserResponse(Client client)
 	return response;
 }
 
+std::string getPostBody(std::string request)
+{
+    // std::cout << "UN POOOOOOOOOOOOOOOOOOOOOOOOOSTE" << std::endl;   
+    std::cout << request << std::endl;
+    // std::cout << "----------------------------------------------------------------------------------------------------------------" << std::endl;
+
+    int boundaryStartPos = request.find("boundary=");
+    int boundaryEndPos = request.find("\n", boundaryStartPos);
+    std::string boundary = "--" + request.substr(boundaryStartPos, boundaryEndPos - boundaryStartPos);
+    // std::string endBoundary = boundary + "--";
+
+    int bodyStartPos = request.find(boundary);
+    // int bodyEndPos = request.find(endBoundary);
+	// if (bodyEndPos == std::string::npos)
+	std::string body = request.substr(bodyStartPos);
+
+	return body;
+    // std::cout << "content-length: " << body.size() << std::endl;
+    // std::string content = body.substr(sep);
+
+    // std::ofstream outputFile("./test.png", std::ios::binary);
+    // if (outputFile.is_open())
+    // {
+    //     std::cout << content.size() << std::endl;
+    //     outputFile.write(content.c_str(), content.size());
+    //     outputFile.close();
+    //     std::cout << "Binary data has been written to " << std::endl;
+    // }
+    // else
+    //     std::cerr << "Failed to open the file for writing." << std::endl;
+    // std::cout << content << std::endl;
+}
+
+int getContentLength(std::string requestStr)
+{
+		int contentLengthStartPos = requestStr.find("Content-Length:") + 16; // 16 being the length of "Content-Length: "
+		int contentLengthEndPos = requestStr.find("\r", contentLengthStartPos);
+		std::string contentLength = requestStr.substr(contentLengthStartPos, contentLengthEndPos - contentLengthStartPos);
+		return atoi(contentLength.c_str());
+}
+
 UserRequest StartServers::getUserRequest(std::string requestStr)
 {
     UserRequest request;
 
-    size_t spaceSepPos = requestStr.find(' '); // first space char after "GET /scripts/script.js HTTP/1.1"
+	std::cout << YELLOW << "IS A NEW REQUEST" << DEFAULT << std::endl;
+    size_t spaceSepPos = requestStr.find(" "); // first space char after "GET /scripts/script.js HTTP/1.1"
     request.method = requestStr.substr(0, spaceSepPos);
     requestStr.erase(0, spaceSepPos + 1);
     spaceSepPos = requestStr.find(' '); // first space char after "GET /scripts/script.js HTTP/1.1"
     request.root = requestStr.substr(0, spaceSepPos);
+
+	if (request.method == "POST")
+	{
+		request.finalLength = getContentLength(requestStr);
+		// request.body = getPostBody(requestStr);
+		// request.length = request.body.size();
+		request.length = 0;
+		// std::cout << YELLOW << request.body << DEFAULT << std::endl;
+	}
+	else
+	{
+		request.finalLength = 0;
+		request.length = 0;
+	}
+
     return request;
+}
+
+void StartServers::getRequestNextChunk(int userFd, std::string requestStr)
+{
+	std::cout << YELLOW << "IS UNCOMPLETE REQUEST" << DEFAULT << std::endl;
+	_clientList[userFd].request.root += requestStr;
+	_clientList[userFd].toComplete = true;
+	// _clientList[userFd].request.length += requestStr.size();
 }
