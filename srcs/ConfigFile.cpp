@@ -125,7 +125,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 		positionLocation = line.find("	location");
 		positionErrors = line.find("	error_page");
 		positionCgi = line.find("	cgi");
-		positionPorts = line.find("	port");
+		positionPorts = line.find("	listen");
 
 		if (line == "server {\r")
 		{
@@ -142,7 +142,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				positionRightBracket = line.find("	}");
 				positionIndex = line.find("		index");
 				positionMethods = line.find("		methods");
-				positionListing = line.find("		listing");
+				positionListing = line.find("		autoindex");
 				if (positionRightBracket != std::string::npos && line[1] != '	')
 				{
 					break;

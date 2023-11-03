@@ -15,6 +15,7 @@
 struct UserRequest {
     std::string method;
     std::string root;
+    std::string fullRequest;
 };
 
 struct Client;
@@ -46,7 +47,7 @@ class Server
         std::string getServerName();
         std::string getRoot();
         bool getListing(std::string fileLocation);
-
+        std::string getFileName(std::string fileName);
 
         int getServerSocket(int i);
         int getServerSocketSize();

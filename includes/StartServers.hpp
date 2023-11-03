@@ -48,9 +48,13 @@ class StartServers
         void closeServers();
 
         void listenClientRequest();
+        bool isValidRequest(UserRequest requestData);
+        std::string listingDirectory(Client client);
+
 
         std::string getUserResponse(Client client);
         UserRequest getUserRequest(std::string requestStr);
+        std::string getErrorPageResponse(Client client, std::string errorCode);
 };
 
 #endif

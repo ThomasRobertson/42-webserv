@@ -1,2 +1,2 @@
-INVALID /test HTTP/1.1
+PUT /test HTTP/1.1
 Host: 127.0.0.1:4243

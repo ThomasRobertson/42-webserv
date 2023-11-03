@@ -28,9 +28,6 @@ void Server::setServerValues()
 
 std::string Server::getHost()
 {
-        std::map<std::string, page> _htmlPageMap;
-        std::map<std::string, std::string> _errorsMap;
-        std::map<std::string, std::string> _cgiMap;
     return this->_host;
 }
 
@@ -108,6 +105,11 @@ std::string Server::getFileRoute(std::string fileName, std::string &status, std:
 bool Server::getListing(std::string fileLocation)
 {
     return _htmlPageMap[fileLocation].listing;
+}
+
+std::string Server::getFileName(std::string fileName)
+{
+    return _htmlPageMap[fileName].index;
 }
 
 std::string Server::getCgiPage(std::string cgiName)
