@@ -21,6 +21,9 @@ void Server::setServerValues()
     this->_errorsMap = this->_configFile.getErrorPages(_serverIndex);
     this->_cgiMap = this->_configFile.getCgiPages(_serverIndex);
     this->_htmlPageMap = this->_configFile.getFileRoutes(_serverIndex);
+    this->_root = this->_configFile.getRoot(_serverIndex);
+    this->_server_name = this->_configFile.getServerName(_serverIndex);
+
 }
 
 std::string Server::getHost()
@@ -34,6 +37,16 @@ std::string Server::getHost()
 std::vector<std::string> Server::getPort()
 {
     return this->_port;
+}
+
+std::string Server::getRoot()
+{
+    return this->_root;
+}
+
+std::string Server::getServerName()
+{
+    return this->_server_name;
 }
 
 int Server::getMaxClientBodySize()
@@ -50,7 +63,7 @@ std::string Server::getErrorPageRoute(std::string errorCode)
 		std::cerr << "NOT IMPLEMENTED : No error file " << errorCode << "(" << fileLocation << ")" << std::endl;
 		throw std::runtime_error("No valid page found, cannot continue execution.");
 	}
-	fileLocation = HTML_DIR + _errorsMap[errorCode];
+	fileLocation = getRoot() + _errorsMap[errorCode];
 	if (access(fileLocation.c_str(), R_OK) != 0)
 	{
 		std::cerr << "NOT IMPLEMENTED : Cannot access error file " << errorCode << "(" << fileLocation << ")" <<  std::endl;
@@ -66,7 +79,7 @@ std::string Server::getFileRoute(std::string fileName, std::string &status, std:
 
 	if (_htmlPageMap.find(fileName) != _htmlPageMap.end()) // fileLocation is not a file but a parent directory
 		fileName = _htmlPageMap[fileName].index;
-	fileLocation = HTML_DIR; //* tmp, waiting to parse root
+	fileLocation = getRoot(); //* tmp, waiting to parse root
 	// fileLocation += root; //! must by without trailing '/'
 	fileLocation += fileName;
 	// std::cout << "fileadress: " <<fileAddress << std::endl;
@@ -90,6 +103,11 @@ std::string Server::getFileRoute(std::string fileName, std::string &status, std:
 		fileLocation = getErrorPageRoute(status);
 	}
 	return fileLocation;
+}
+
+bool Server::getListing(std::string fileLocation)
+{
+    return _htmlPageMap[fileLocation].listing;
 }
 
 std::string Server::getCgiPage(std::string cgiName)

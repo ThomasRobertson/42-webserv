@@ -45,6 +45,15 @@ int ConfigFile::getServerNumber()
 	return serverNumber;
 }
 
+std::string ConfigFile::getServerName(int serverIndex)
+{
+	return this->_configVecOfMap[serverIndex]["server_name"];
+}
+
+std::string ConfigFile::getRoot(int serverIndex)
+{
+	return this->_configVecOfMap[serverIndex]["root"];
+}
 
 bool hasSingleTabLocation(const std::string &line)
 {
@@ -65,11 +74,13 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 	std::string locationStr;
 	std::string locationIndexStr;
 	std::string locationMethodStr;
+	std::string locationListingStr;
 	std::string errorCodeStr;
 	std::string errorPathStr;
 	std::string cgiNameStr;
 	std::string cgiPathStr;
 	std::string portsStr;
+	
 
 	size_t positionSpace;
 	size_t positionSemicolon;
@@ -82,6 +93,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 	size_t positionErrors;
 	size_t positionCgi;
 	size_t positionPorts;
+	size_t positionListing;
 
 	int serverIndex = 0;
 
@@ -130,6 +142,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				positionRightBracket = line.find("	}");
 				positionIndex = line.find("		index");
 				positionMethods = line.find("		methods");
+				positionListing = line.find("		listing");
 				if (positionRightBracket != std::string::npos && line[1] != '	')
 				{
 					break;
@@ -150,6 +163,20 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 					splitStrInVector(locationMethodStr, ' ', methodsVector);
 
 					newPage.methods = methodsVector;
+				}
+				else if (positionListing != std::string::npos && line[2] != '	')
+				{
+					bool listingBool = false;
+					if (positionSemicolon == std::string::npos)
+						return 0;
+					locationListingStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+					if (locationListingStr == "on")
+						listingBool = true;
+					else if (locationListingStr == "off")
+						listingBool = false;
+					else
+						return 0;
+					newPage.listing = listingBool;
 				}
 				else
 				{
