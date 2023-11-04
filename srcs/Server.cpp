@@ -1,4 +1,5 @@
 #include "StartServers.hpp"
+#include <stdexcept>
 
 Server::Server(ConfigFile configFile, int serverIndex)
 {
@@ -71,21 +72,11 @@ std::string Server::getErrorPageRoute(std::string errorCode)
 	return fileLocation;
 }
 
-std::string Server::getFileRoute(std::string fileName, std::string &status, std::string method)
+std::string Server::testAccessPath(std::string location, std::string method)
 {
-	std::string fileLocation;
+	if (access(location.c_str(), F_OK) != 0)
+		return "404";
 
-	if (_htmlPageMap.find(fileName) != _htmlPageMap.end()) // fileLocation is not a file but a parent directory
-		fileName = _htmlPageMap[fileName].index;
-	fileLocation = getRoot(); //* tmp, waiting to parse root
-	// fileLocation += root; //! must by without trailing '/'
-	fileLocation += fileName;
-	// std::cout << "fileadress: " <<fileAddress << std::endl;
-	if (access(fileLocation.c_str(), F_OK) != 0)
-	{
-		status = "404";
-		return "";
-	}
 	int accessMode;
 	if (method == "GET")
 		accessMode = R_OK;
@@ -98,13 +89,70 @@ std::string Server::getFileRoute(std::string fileName, std::string &status, std:
 		throw std::runtime_error("Unknow method !");
 		#endif // DEBUG
 	}
-	if (access(fileLocation.c_str(), accessMode) == 0)
-		status = "200";
+
+	if (access(location.c_str(), accessMode) == 0)
+		return "200";
 	else
+		return "403";
+}
+
+std::pair<std::string, page> Server::getRootDir(std::string url)
+{
+	while (_htmlPageMap.find(url) == _htmlPageMap.end())
 	{
-		status = "403";
+		if (url.length() <= 1)
+			throw std::invalid_argument("Root is not present in config.");
+		std::size_t found = url.find_last_of("/\\");
+		url = url.substr(0,found);
+	}
+	return *(_htmlPageMap.find(url));
+}
+
+std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method)
+{
+	std::string fileLocation;
+	std::pair<std::string, page> location = getRootDir(fileName);
+
+	if (std::find(location.second.methods.begin(), location.second.methods.end(), method) == location.second.methods.end())
+	{
+		status = "405";
 		return "";
 	}
+
+	std::string locationAfterRoot = fileName.substr(location.second.rootDir.size(), std::string::npos);
+	fileLocation = location.first + locationAfterRoot;
+
+	if (*(fileLocation.rbegin()) == '/') //check if index.html present
+	{
+		status = testAccessPath(fileLocation + "index.html", method);
+		if (status != "404")
+		{
+			return std::string(fileName + "index.html");
+		}
+	}
+
+	if (fileName == location.first) //if rootDir, check for index config file
+	{
+		status = testAccessPath(location.second.index, method);
+		return (fileName);
+	}
+
+	if (*(fileLocation.rbegin()) == '/') //check for listing directory
+	{
+		struct stat path_stat;
+		if (stat(fileLocation.c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
+		{
+			status = "200";
+			return fileLocation;
+		}
+		else
+		{
+			status = "403";
+			return "";
+		}
+	}
+
+	status = testAccessPath(fileLocation, method);
 	return fileLocation;
 }
 

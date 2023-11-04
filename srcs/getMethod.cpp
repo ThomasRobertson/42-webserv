@@ -11,6 +11,12 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 		return server.getErrorPageRoute(status);
 	}
 
+	if (*(fileLocation.rbegin()) == '/')
+	{
+		// do dir listing
+		(void)status;
+	}
+
 	contentType = getContentType(fileLocation);
 
 	std::ifstream file(fileLocation.c_str());

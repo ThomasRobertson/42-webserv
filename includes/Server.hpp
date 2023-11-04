@@ -9,6 +9,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <algorithm>
 
 #include "Settings.hpp"
 #include "utils.hpp"
@@ -54,8 +55,10 @@ class Server
 
         //std::string getErrorPage(std::string errorCode);
         std::string getCgiPage(std::string cgiName);
+		std::pair<std::string, page> getRootDir(std::string url);
         std::string getFileRoute(std::string fileName, std::string &status, std::string method);
 		std::string getErrorPageRoute(std::string errorCode);
+		std::string testAccessPath(std::string location, std::string method);
 
         void setServerValues();
 

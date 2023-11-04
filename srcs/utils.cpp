@@ -115,9 +115,9 @@ static std::map<std::string, std::string> constructMapStatus()
 		std::make_pair("301", "Moved Permanently"),
 		std::make_pair("400", "Bad Request"), //!required
 		std::make_pair("401", "Unauthorized"),
-		std::make_pair("403", "Forbidden"),
-		std::make_pair("404", "Not Found"),
-		std::make_pair("405", "Method Not Allowed"),
+		std::make_pair("403", "Forbidden"), //!required
+		std::make_pair("404", "Not Found"), //!required
+		std::make_pair("405", "Method Not Allowed"), //!required
 		std::make_pair("406", "Not Acceptable"),
 		std::make_pair("411", "Length Required"),
 		std::make_pair("416", "Range Not Satisfiable"),

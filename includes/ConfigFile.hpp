@@ -14,6 +14,7 @@
 struct page {
     std::string index;
     std::vector<std::string> methods;
+	std::string rootDir;
     bool listing;
 };
 
