@@ -30,16 +30,7 @@
 				const image_input = document.querySelector('input[type="file"]')
 				const form_data = new FormData(form);
 				
-				form_data.append('file', image_input.files[0])
-
 				e.preventDefault();
-	
-				// const postData = {
-				// 	key1: 'value1',
-				// 	key2: 'value2',
-				// };
-	
-				// const jsonData = JSON.stringify(postData);
 	
 				fetch("http://127.0.0.1:4243", {
 					method: 'POST',

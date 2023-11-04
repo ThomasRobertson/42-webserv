@@ -69,11 +69,18 @@ void StartServers::receiveRequest(epoll_event currentEvent)
     {
         std::string requestData(buffer, bytesRead);
 
-        std::cout << requestData << std::endl;
+        // std::cout << CYAN << requestData << DEFAULT << std::endl;
         if (_clientList[currentEvent.data.fd].toComplete)
             getRequestNextChunk(currentEvent.data.fd, requestData);
         else
             _clientList[currentEvent.data.fd].request = getUserRequest(requestData);
+
+        if (_clientList[currentEvent.data.fd].request.length != _clientList[currentEvent.data.fd].request.finalLength) // not opening EPOLLOUT if request is not complete
+        {
+            std::cout << "REQUEST UNCOMPLETE YET" << std::endl;
+            _clientList[currentEvent.data.fd].toComplete = true;
+            return;
+        }
 
         event.data.fd = currentEvent.data.fd;
         event.events = EPOLLOUT;
@@ -87,15 +94,8 @@ void StartServers::sendResponse(epoll_event currentEvent)
     struct epoll_event event;
 
     std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
-    if (_clientList[currentEvent.data.fd].request.length != _clientList[currentEvent.data.fd].request.finalLength)
-    {
-        std::cout << "RESPONSE NOT SENT BECAUSE IS NOT COMPLETE" << std::endl;
-        _clientList[currentEvent.data.fd].toComplete = true;
-        event.data.fd = currentEvent.data.fd;
-        event.events = EPOLLIN;
-        epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
-        return;
-    }
+    if (_clientList[currentEvent.data.fd].request.method == "POST")
+        std::cout << _clientList[currentEvent.data.fd].request.body << std::endl;
     response = getUserResponse(_clientList[currentEvent.data.fd]);
 
     write(currentEvent.data.fd, response.c_str(), response.length());
