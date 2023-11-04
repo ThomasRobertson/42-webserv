@@ -60,7 +60,7 @@ class Server
         void setServerValues();
 
         void startServers(int epollFd);
-        int addSocketToEpoll(int epollFd, int i);
+        void addSocketToEpoll(int epollFd, int i);
         void acceptNewClient(int epollFd, int y, Client &newClient);
 
 
