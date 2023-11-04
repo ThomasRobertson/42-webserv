@@ -29,9 +29,6 @@ void Server::setServerValues()
 
 std::string Server::getHost()
 {
-        std::map<std::string, page> _htmlPageMap;
-        std::map<std::string, std::string> _errorsMap;
-        std::map<std::string, std::string> _cgiMap;
     return this->_host;
 }
 
@@ -161,6 +158,11 @@ bool Server::getListing(std::string fileLocation)
     return _htmlPageMap[fileLocation].listing;
 }
 
+std::string Server::getFileName(std::string fileName)
+{
+    return _htmlPageMap[fileName].index;
+}
+
 std::string Server::getCgiPage(std::string cgiName)
 {
 	return this->_cgiMap[cgiName];
@@ -176,7 +178,7 @@ int Server::getServerSocketSize()
     return this->_serverSocketVec.size();
 }
 
-int Server::addSocketToEpoll(int epollFd, int i)
+void Server::addSocketToEpoll(int epollFd, int i)
 {
     epoll_event event;
 
@@ -188,23 +190,24 @@ int Server::addSocketToEpoll(int epollFd, int i)
         std::cerr << "Error adding server socket to epoll " << std::endl;
         close(_serverSocketVec[i]);
         close(epollFd);
-        return 0;
+        throw (Problem());
     }
-    return 1;
 }
 
 void setNonBlocking(int sock)
 {
     int opts;
     opts = fcntl(sock, F_GETFL);
-    if (opts < 0) {
+    if (opts < 0)
+    {
         perror("fcntl(F_GETFL)");
-        exit(1);
+        exit(1); //Problem here
     }
     opts = (opts | O_NONBLOCK);
-    if (fcntl(sock, F_SETFL, opts) < 0) {
+    if (fcntl(sock, F_SETFL, opts) < 0)
+    {
         perror("fcntl(F_SETFL)");
-        exit(1);
+        exit(1); //Problem here
     }
 }
 

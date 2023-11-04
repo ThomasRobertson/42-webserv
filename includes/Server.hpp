@@ -17,6 +17,7 @@
 struct UserRequest {
     std::string method;
     std::string root;
+    std::string fullRequest;
 };
 
 struct Client;
@@ -48,7 +49,7 @@ class Server
         std::string getServerName();
         std::string getRoot();
         bool getListing(std::string fileLocation);
-
+        std::string getFileName(std::string fileName);
 
         int getServerSocket(int i);
         int getServerSocketSize();
@@ -63,7 +64,7 @@ class Server
         void setServerValues();
 
         void startServers(int epollFd);
-        int addSocketToEpoll(int epollFd, int i);
+        void addSocketToEpoll(int epollFd, int i);
         void acceptNewClient(int epollFd, int y, Client &newClient);
 
 

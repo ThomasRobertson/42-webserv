@@ -49,6 +49,75 @@ bool StartServers::getNewConnexion(epoll_event currentEvent)
     return false;
 }
 
+bool StartServers::isValidRequest(UserRequest requestData)
+{
+    std::cout << "requestData: fullRequest: " << requestData.fullRequest << "END" << std::endl;
+
+    std::string httpRequest = requestData.fullRequest;
+
+    std::size_t pos = 0;
+    std::string line;
+    bool validRequest = true;
+    int count = 0;
+    std::string method, uri, version;
+
+    if ((pos = httpRequest.find("\r\n")) != std::string::npos)
+    {
+        line = httpRequest.substr(0, pos);
+        httpRequest.erase(0, pos + 2);
+
+        std::istringstream lineStream(line);
+        lineStream >> method >> uri >> version;
+
+        if (method != "GET" && method != "POST" && method != "DELETE")
+            validRequest = false;
+        if (version != "HTTP/1.1")
+            validRequest = false;
+        if (uri.find('/') != 0)
+            validRequest = false;
+    }
+
+    if (method == "POST")
+    {
+        while ((pos = httpRequest.find("\r\n")) != std::string::npos)
+        {
+            line = httpRequest.substr(0, pos);
+            httpRequest.erase(0, pos + 2);
+
+            if (line.empty())
+                break;
+            else if (line.find("Host:") == 0 || line.find("host:") == 0)
+                count++;
+            else if (line.find("Content-Length:") == 0 || line.find("content-length:") == 0)
+                count++;
+            else if (line.find("Content-Type:") == 0 || line.find("content-type:") == 0)
+                count++;
+        }
+    }
+    else
+    {
+        while ((pos = httpRequest.find("\r\n")) != std::string::npos)
+        {
+            line = httpRequest.substr(0, pos);
+            httpRequest.erase(0, pos + 2);
+
+            if (line.empty())
+                break;
+            else if (line.find("Host:") == 0 || line.find("host:") == 0)
+                count++;
+        }
+    }
+
+    if (count == 1 && validRequest && (method == "GET" || method == "DELETE"))
+        validRequest = true;
+    else if (count == 3 && validRequest && method == "POST")
+        validRequest = true;
+    else 
+        validRequest = false;
+
+    return validRequest;
+}
+
 void StartServers::receiveRequest(epoll_event currentEvent)
 {
     char buffer[1024];
@@ -69,7 +138,8 @@ void StartServers::receiveRequest(epoll_event currentEvent)
     {
         std::string requestData(buffer, bytesRead);
         _clientList[currentEvent.data.fd].request = getUserRequest(requestData);
-        std::cout << requestData << std::endl;
+        std::cout << "requestData: " << requestData << std::endl;
+
 
         event.data.fd = currentEvent.data.fd;
         event.events = EPOLLOUT;
@@ -83,8 +153,10 @@ void StartServers::sendResponse(epoll_event currentEvent)
     std::string response;
 
     std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
-
-    response = getUserResponse(_clientList[currentEvent.data.fd]);
+    if (isValidRequest(_clientList[currentEvent.data.fd].request))
+        response = getUserResponse(_clientList[currentEvent.data.fd]);
+    else
+        response = getErrorPageResponse(_clientList[currentEvent.data.fd], "400");
     write(currentEvent.data.fd, response.c_str(), response.length());
     std::cout << "response sent: " << response.substr(0, 200) << std::endl;
 
@@ -93,6 +165,8 @@ void StartServers::sendResponse(epoll_event currentEvent)
     std::cout << RED << "[i] Client disconnected: " << currentEvent.data.fd << DEFAULT << std::endl;
 
 }
+
+
 
 void StartServers::closeServers()
 {
@@ -140,4 +214,3 @@ void StartServers::listenClientRequest()
     }
     closeServers();
 }
-

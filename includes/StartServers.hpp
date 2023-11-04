@@ -49,9 +49,27 @@ class StartServers
         void closeServers();
 
         void listenClientRequest();
+        bool isValidRequest(UserRequest requestData);
+        std::string listingDirectory(Client client);
+        void listingOn(std::string &response, std::string &fileLocation, std::string &fileName);
+        void listingOff(std::string &response, std::string &fileLocation, Server currentServer);
+        void fileIsNotDirectory(std::string &response, std::string &fileLocation, std::string &contentType, std::string &status, Server currentServer);
+
+
 
         std::string getUserResponse(Client client);
         UserRequest getUserRequest(std::string requestStr);
+        std::string getErrorPageResponse(Client client, std::string errorCode);
+};
+
+
+class Problem : public std::exception
+{
+	public:
+		virtual const char *what() const throw()
+		{
+			return ("Problem");
+		}
 };
 
 #endif
