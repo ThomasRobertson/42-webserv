@@ -1,4 +1,4 @@
-#include "getMethod.hpp"
+#include "GenerateMethod.hpp"
 #include <ostream>
 
 std::string GenerateMethod::GETMethod(Client client, Server server)

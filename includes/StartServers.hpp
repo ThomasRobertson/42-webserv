@@ -4,7 +4,7 @@
 #include "ConfigFile.hpp"
 #include "Server.hpp"
 #include "Settings.hpp"
-#include "getMethod.hpp"
+#include "GenerateMethod.hpp"
 
 #include <cstring>
 #include <unistd.h>
