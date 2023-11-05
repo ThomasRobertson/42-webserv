@@ -137,6 +137,7 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	if (fileName == location.first && !location.second.index.empty()) //if rootDir, check for index config file
 	{
 		std::string rootIndex = location.second.rootDir + location.second.index;
+		std::cout << "Testing index file : " << rootIndex << std::endl;
 		status = testAccessPath(rootIndex, method);
 		return (rootIndex);
 	}

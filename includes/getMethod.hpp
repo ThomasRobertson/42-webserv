@@ -16,4 +16,5 @@ class GenerateMethod
 
 	static std::string GETMethod(Client client, Server server);
 	static std::string getErrorPageResponse(Client client, Server server, std::string errorCode);
+	static std::string listingDirectory(const std::string &fileLocation, std::string &fileName);
 };

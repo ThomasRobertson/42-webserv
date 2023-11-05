@@ -1,4 +1,5 @@
 #include "getMethod.hpp"
+#include <ostream>
 
 std::string GenerateMethod::GETMethod(Client client, Server server)
 {
@@ -8,14 +9,15 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 
 	if (status != "200")
 	{
+		std::cout << "Error while looking for the file, error : " << status << std::endl;
 		contentType = getContentType(".html");
 		return getErrorPageResponse(client, server, status);
 	}
 
 	if (*(fileLocation.rbegin()) == '/')
 	{
-		// do dir listing
-		(void)status;
+		std::cout << "Listing Directory." << std::endl;
+		return listingDirectory(fileLocation, client.request.root);
 	}
 
 	contentType = getContentType(fileLocation);
@@ -23,12 +25,14 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 	std::ifstream file(fileLocation.c_str());
 	if (!file.is_open())
 	{
+		std::cout << "Could not open file." << std::endl;
 		contentType = getContentType(".html");
 		return getErrorPageResponse(client, server, "500");
 	}
 
 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
+	std::cout << "Content generated for " << fileLocation << "." << std::endl;
 	ClientResponse clientReponse(status, contentType, htmlContent);
 	response = clientReponse.getReponse();
 
@@ -61,4 +65,41 @@ std::string GenerateMethod::getErrorPageResponse(Client client, Server server, s
 
 	response = clientReponse.getReponse();
 	return response;
+}
+
+std::string GenerateMethod::listingDirectory(const std::string &fileLocation, std::string &fileName)
+{
+	std::string contentType, status, content;
+
+	std::stringstream directoryListing;
+	directoryListing << "<html><head><title>Webserv Listing</title><link rel=\"stylesheet\" type=\"text/css\" href=\"styles/styleListing.css\"></head><body><h1 class=\"listing-title\">" << fileLocation << "</h1>";
+
+	DIR *dir = opendir(fileLocation.c_str());
+	if (dir != NULL)
+	{
+		struct dirent *entry;
+		while ((entry = readdir(dir)))
+		{
+			std::string entryName = entry->d_name;
+			if (entryName != "." && entryName != ".." && entryName.substr(entryName.find_last_of(".") + 1) == "html")
+				directoryListing << "<div class=\"listing-buttons-container\"><button class=\"listing-buttons\" onclick='location.href=\"" << fileName << "/" << entryName << "\";'>" << entryName.substr(0, entryName.length() - 5) << "</button><br>";        	    }
+		closedir(dir);
+	}
+	else
+	{
+		status = "500";
+		content = generateErrorPage(status);
+		contentType = "text/html";
+		ClientResponse clientReponse(status, contentType, content);
+		return clientReponse.getReponse();
+	}
+	
+	directoryListing << "</div></body></html>";
+
+	status = "200";
+	contentType = "text/html";
+	content = directoryListing.str();
+	ClientResponse clientReponse(status, contentType, content);
+
+	return clientReponse.getReponse();
 }

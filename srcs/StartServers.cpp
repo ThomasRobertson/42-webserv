@@ -168,8 +168,6 @@ void StartServers::sendResponse(epoll_event currentEvent)
 
 }
 
-
-
 void StartServers::closeServers()
 {
     std::vector<Server>::iterator serverIt;
