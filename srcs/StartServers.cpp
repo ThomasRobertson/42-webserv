@@ -151,12 +151,14 @@ void StartServers::receiveRequest(epoll_event currentEvent)
 void StartServers::sendResponse(epoll_event currentEvent)
 {
     std::string response;
+	Client client = _clientList[currentEvent.data.fd];
+	Server server = _serversVec[client.serverIndex];
 
     std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
-    if (isValidRequest(_clientList[currentEvent.data.fd].request))
-        response = getUserResponse(_clientList[currentEvent.data.fd]);
+    if (isValidRequest(client.request))
+        response = getUserResponse(client);
     else
-        response = getErrorPageResponse(_clientList[currentEvent.data.fd], "400");
+        response = GenerateMethod::getErrorPageResponse(client, server, "400");
     write(currentEvent.data.fd, response.c_str(), response.length());
     std::cout << "response sent: " << response.substr(0, 200) << std::endl;
 
