@@ -156,3 +156,31 @@ std::string sizeToString(size_t value) {
     oss << value;
     return oss.str();
 }
+
+std::string generateErrorPage(std::string errorCode)
+{
+	if (errorCode.empty())
+		errorCode = "500";
+
+	std::pair<std::string, std::string> status = getStatus(errorCode);
+
+	std::string bodyReponse;
+	bodyReponse = "<!doctype html>\n";
+	bodyReponse += "<html>\n";
+	bodyReponse += "  <head>\n";
+	bodyReponse += "    <title>";
+	bodyReponse += status.first;
+	bodyReponse += "</title>\n";
+	bodyReponse += "  </head>\n";
+	bodyReponse += "  <body>\n";
+	bodyReponse += "    <h1>";
+	bodyReponse += status.first;
+	bodyReponse += "</h1>\n";
+	bodyReponse += "    <p>";
+	bodyReponse += status.second;
+	bodyReponse += "</p>\n";
+	bodyReponse += "  </body>\n";
+	bodyReponse += "</html>\n";
+
+	return bodyReponse;
+}

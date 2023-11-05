@@ -1,4 +1,5 @@
 #include "StartServers.hpp"
+#include <ostream>
 #include <stdexcept>
 
 Server::Server(ConfigFile configFile, int serverIndex)
@@ -97,10 +98,12 @@ std::pair<std::string, page> Server::getRootDir(std::string url)
 {
 	while (_htmlPageMap.find(url) == _htmlPageMap.end())
 	{
-		if (url.length() <= 1)
+		if (url.length() == 0)
 			throw std::invalid_argument("Root is not present in config.");
 		std::size_t found = url.find_last_of("/\\");
 		url = url.substr(0,found);
+		if (url.empty())
+			url = "/";
 	}
 	return *(_htmlPageMap.find(url));
 }
@@ -108,7 +111,17 @@ std::pair<std::string, page> Server::getRootDir(std::string url)
 std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method)
 {
 	std::string fileLocation;
-	std::pair<std::string, page> location = getRootDir(fileName);
+	std::pair<std::string, page> location;
+
+	try
+	{
+		location = getRootDir(fileName);
+	}
+	catch (const std::exception&)
+	{
+		status = "404";
+		return "";
+	}
 
 	if (std::find(location.second.methods.begin(), location.second.methods.end(), method) == location.second.methods.end())
 	{
@@ -116,22 +129,30 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		return "";
 	}
 
-	std::string locationAfterRoot = fileName.substr(location.second.rootDir.size(), std::string::npos);
-	fileLocation = location.first + locationAfterRoot;
+	if (location.second.rootDir.empty())
+		location.second.rootDir = _root;
+
+	std::cout << "root : " << _root << " filename: " << fileName << " loc: " << location.first << std::endl;
+
+	if (fileName == location.first && !location.second.index.empty()) //if rootDir, check for index config file
+	{
+		std::string rootIndex = location.second.rootDir + location.second.index;
+		status = testAccessPath(rootIndex, method);
+		return (rootIndex);
+	}
+
+	std::string locationAfterRoot = fileName.substr(location.first.size(), std::string::npos);
+	if (*(locationAfterRoot.begin()) != '/')
+		locationAfterRoot = "/" + locationAfterRoot;
+	fileLocation = location.second.rootDir + locationAfterRoot;
 
 	if (*(fileLocation.rbegin()) == '/') //check if index.html present
 	{
 		status = testAccessPath(fileLocation + "index.html", method);
 		if (status != "404")
 		{
-			return std::string(fileName + "index.html");
+			return std::string(fileLocation + "index.html");
 		}
-	}
-
-	if (fileName == location.first) //if rootDir, check for index config file
-	{
-		status = testAccessPath(location.second.index, method);
-		return (fileName);
 	}
 
 	if (*(fileLocation.rbegin()) == '/') //check for listing directory

@@ -1,10 +1,12 @@
 #include "Server.hpp"
 #include "ConfigFile.hpp"
 #include "StartServers.hpp"
+#include <exception>
 #include <map>
 #include <sstream>
 #include <stdexcept>
 #include "ClientResponse.hpp"
+#include "utils.hpp"
 
 bool DEBUG_VERBOSE = false;
 
@@ -27,28 +29,6 @@ std::string StartServers::getUserResponse(Client client)
 		throw std::invalid_argument("Unknown method.");
 	#endif // DEBUG
 
-	return response;
-}
-
-std::string StartServers::getErrorPageResponse(Client client, std::string errorCode)
-{
-    std::string response, fileLocation, contentType, status;
-	Server currentServer = this->_serversVec[client.serverIndex];
-	
-	status = "400 OK";
-	contentType = "text/html";
-    
-    fileLocation = currentServer.getErrorPageRoute(errorCode);
-	std::ifstream file(fileLocation.c_str());
-	if (!file.is_open())
-	{
-		fileLocation = currentServer.getErrorPageRoute("500");
-	}
-	std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-	ClientResponse clientReponse(status, contentType, content);
-
-	response = clientReponse.getReponse();
 	return response;
 }
 
