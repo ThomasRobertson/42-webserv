@@ -15,4 +15,5 @@ class GenerateMethod
 	~GenerateMethod() {}
 
 	static std::string GETMethod(Client client, Server server);
+	static std::string getErrorPageResponse(Client client, Server server, std::string errorCode);
 };

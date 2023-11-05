@@ -4,11 +4,12 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 {
 	std::string response, fileLocation, contentType, status;
 	fileLocation = server.getFileRoute(client.request.root, status, client.request.method);
+	std::cout << "File location : " << fileLocation << std::endl;
 
 	if (status != "200")
 	{
 		contentType = getContentType(".html");
-		return server.getErrorPageRoute(status);
+		return getErrorPageResponse(client, server, status);
 	}
 
 	if (*(fileLocation.rbegin()) == '/')
@@ -23,7 +24,7 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 	if (!file.is_open())
 	{
 		contentType = getContentType(".html");
-		return server.getErrorPageRoute("500");
+		return getErrorPageResponse(client, server, "500");
 	}
 
 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -31,5 +32,33 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 	ClientResponse clientReponse(status, contentType, htmlContent);
 	response = clientReponse.getReponse();
 
+	return response;
+}
+
+std::string GenerateMethod::getErrorPageResponse(Client client, Server server, std::string errorCode)
+{
+    std::string response, fileLocation, contentType, content;
+	
+	contentType = "text/html";
+    
+	try
+	{
+		fileLocation = server.getErrorPageRoute(errorCode);
+		std::ifstream file(fileLocation.c_str());
+		if (!file.is_open())
+		{
+			errorCode = "500";
+			content = getErrorPageResponse(client, server, errorCode);
+		}
+		content = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	}
+	catch (const std::exception&)
+	{
+		content = generateErrorPage(errorCode);
+	}
+
+	ClientResponse clientReponse(errorCode, contentType, content);
+
+	response = clientReponse.getReponse();
 	return response;
 }
