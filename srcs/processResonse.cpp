@@ -190,6 +190,32 @@ void createFile(UserRequest request) // check if file already exists with same n
         std::cerr << "Failed to open the file for writing." << std::endl;
 }
 
+int deleteFiles()
+{
+	const char* folderPath = "./POST"; // Specify the folder path you want to list files from
+
+    DIR* dir;
+    struct dirent* entry;
+
+    // Open the directory
+    dir = opendir(folderPath);
+
+    if (!dir)
+	{
+        std::cerr << "Error opening directory." << std::endl;
+        return 1;
+    }
+
+    while ((entry = readdir(dir)) != NULL)
+	{
+        if (entry->d_type == DT_REG) // Check if it's a regular file
+            std::cout << entry->d_name << std::endl; // Print the file name
+    }
+
+    closedir(dir);
+	return 0;
+}
+
 void StartServers::processResponse(epoll_event currentEvent)
 {
     std::string response;
@@ -204,8 +230,8 @@ void StartServers::processResponse(epoll_event currentEvent)
 	}
     if (currentClient.request.method == "DELETE")
 	{
-        // std::cout << currentClient.request.body << std::endl;
-		createFile(currentClient.request);
+		std::cout << "DELETE METH" << std::endl;
+		deleteFiles();
 	}
     response = getUserResponse(currentClient);
 

@@ -24,18 +24,17 @@
         <script>
 			const form = document.getElementById("form");
 			
-			// const delete_btn = document.getElementById("delete-button");
 			
 			form.addEventListener("submit", function (e) {
 				const image_input = document.querySelector('input[type="file"]')
 				const form_data = new FormData(form);
 				
 				e.preventDefault();
-	
+				
 				fetch("http://127.0.0.1:4243", {
 					method: 'POST',
 					// headers: {
-					// 	'Content-Type': 'application/json',
+						// 	'Content-Type': 'application/json',
 					// },
 					body: form_data,
 				})
@@ -53,30 +52,31 @@
 					console.error('There was a problem with the fetch operation:', error);
 				});
 			})
+			
+			const delete_btn = document.getElementById("delete-button");
 
-			// delete_btn.addEventListener("click", function (e) {
-			// 	// e.preventDefault();
-			// 	console.log("DELETED")
-			// 	fetch("http://127.0.0.1:4243", {
-			// 		method: 'DELETE',
-			// 		headers: {
-			// 			'Content-Type': 'application/json',
-			// 		}
-			// 	})
-			// 	.then(response => {
-			// 		if (response.ok) {
-			// 			return response.json(); // Process the response data as needed
-			// 		} else {
-			// 			throw new Error('Network response was not ok');
-			// 		}
-			// 	})
-			// 	.then(data => {
-			// 		console.log(data); // Handle the response data
-			// 	})
-			// 	.catch(error => {
-			// 		console.error('There was a problem with the fetch operation:', error);
-			// 	});
-			// })
+			delete_btn.addEventListener("click", function (e) {
+				// e.preventDefault();
+				fetch("http://127.0.0.1:4243", {
+					method: 'DELETE',
+					headers: {
+						'Content-Type': 'application/json',
+					}
+				})
+				.then(response => {
+					if (response.ok) {
+						return response.json(); // Process the response data as needed
+					} else {
+						throw new Error('Network response was not ok');
+					}
+				})
+				.then(data => {
+					console.log(data); // Handle the response data
+				})
+				.catch(error => {
+					console.error('There was a problem with the fetch operation:', error);
+				});
+			})
 		</script>
 	</body>
 </html>
