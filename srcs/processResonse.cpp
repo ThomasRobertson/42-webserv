@@ -8,7 +8,7 @@ bool DEBUG_VERBOSE = false;
 
 std::string StartServers::getUserResponse(Client client)
 {
-	std::string response, fileLocation, contentType, status;
+	std::string response;
 
 	Server currentServer = this->_serversVec[client.serverIndex];
 
@@ -19,17 +19,21 @@ std::string StartServers::getUserResponse(Client client)
     	httpResponse += "{\"status\": \"success\", \"message\": \"The POST request was processed successfully.\", \"data\": {\"key1\": \"value10\", \"key2\": \"value2\"}}";
 		return httpResponse;
 	}
-
-	if (client.request.method == "DELETE")
+	else if (client.request.method == "DELETE")
 	{
 		std::string httpResponse = "HTTP/1.1 200 OK\r\n";
     	httpResponse += "Content-Type: application/json\r\n\r\n";
     	httpResponse += "{\"status\": \"success\", \"message\": \"The DELETE request was processed successfully.\"}";
 		return httpResponse;
 	}
-
-	if (client.request.method == "GET")
+	else if (client.request.method == "GET")
 		return GenerateMethod::GETMethod(client, currentServer);
+
+	#ifdef DEBUG
+	else
+		throw std::invalid_argument("Unknown method.");
+	#endif // DEBUG
+
 	return response;
 }
 
