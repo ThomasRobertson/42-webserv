@@ -12,33 +12,30 @@
     <body>
         <div class="main-container">
 			<h1 class="main-title">Form</h1>
-			<form id="form">
-				<input id="input-file" type="file" name="file" accept=".jpg, .png">
-            	<button id="submit-button" type="submit">Upload File</button>
-			</form>
-			<button id="delete-button" type="button">Delete File</button>
+			<div>
+				<form id="form"  method="post" enctype="multipart/form-data">
+					<input id="input-file" type="file" name="file" accept=".jpg, .png, .txt"/>
+					<!-- <label for="file">File</label> -->
+					<button id="submit-button" type="submit">Upload File</button>
+				</form>
+				<button id="delete-button" type="button">Delete File</button>
+			</div>
         </div>
         <script>
 			const form = document.getElementById("form");
-			const delete_btn = document.getElementById("delete-button");
-
+			
 			form.addEventListener("submit", function (e) {
+				const image_input = document.querySelector('input[type="file"]')
+				const form_data = new FormData(form);
+				
 				e.preventDefault();
-				const url = 'http://127.0.0.1:4243'; // Replace with your local server's URL
-	
-				const postData = {
-					key1: 'value1',
-					key2: 'value2',
-				};
-	
-				const jsonData = JSON.stringify(postData);
-	
-				fetch(url, {
+				
+				fetch("http://127.0.0.1:4243", {
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: jsonData,
+					// headers: {
+						// 	'Content-Type': 'application/json',
+					// },
+					body: form_data,
 				})
 				.then(response => {
 					if (response.ok) {
@@ -54,10 +51,11 @@
 					console.error('There was a problem with the fetch operation:', error);
 				});
 			})
+			
+			const delete_btn = document.getElementById("delete-button");
 
 			delete_btn.addEventListener("click", function (e) {
 				// e.preventDefault();
-				console.log("DELETED")
 				fetch("http://127.0.0.1:4243", {
 					method: 'DELETE',
 					headers: {

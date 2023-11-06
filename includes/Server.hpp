@@ -14,12 +14,6 @@
 #include "Settings.hpp"
 #include "utils.hpp"
 
-struct UserRequest {
-    std::string method;
-    std::string root;
-    std::string fullRequest;
-};
-
 struct Client;
 
 class Server
