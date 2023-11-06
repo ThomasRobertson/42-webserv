@@ -14,6 +14,10 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <fstream>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 
 extern bool EXIT_G;
 
@@ -53,8 +57,8 @@ class StartServers
         void initServers();
 
         bool getNewConnexion(epoll_event currentEvent);
-        void receiveRequest(epoll_event currentEvent);
-        void sendResponse(epoll_event currentEvent);
+        void processRequest(epoll_event currentEvent);
+        void processResponse(epoll_event currentEvent);
         void closeServers();
 
         void listenClientRequest();

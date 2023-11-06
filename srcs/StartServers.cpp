@@ -49,68 +49,6 @@ bool StartServers::getNewConnexion(epoll_event currentEvent)
     return false;
 }
 
-void StartServers::receiveRequest(epoll_event currentEvent)
-{
-    char buffer[1024];
-    ssize_t bytesRead;
-    struct epoll_event event;
-
-    std::cout << "----------------------- NEW REQUEST: " << currentEvent.data.fd << " -----------------------" << std::endl;
-    bytesRead = read(currentEvent.data.fd, buffer, 1024);
-
-    if (bytesRead <= 0)
-    {
-        epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, &event);
-        close(currentEvent.data.fd);
-        _clientList.erase(currentEvent.data.fd);
-        std::cout << "Client disconnected from error: " << currentEvent.data.fd << std::endl;
-    }
-    else
-    {
-        std::string requestData(buffer, bytesRead);
-
-        // std::cout << CYAN << requestData << DEFAULT << std::endl;
-        if (_clientList[currentEvent.data.fd].toComplete)
-            getRequestNextChunk(currentEvent.data.fd, requestData);
-        else
-            _clientList[currentEvent.data.fd].request = getUserRequest(requestData);
-
-        if (_clientList[currentEvent.data.fd].request.length != _clientList[currentEvent.data.fd].request.finalLength) // not opening EPOLLOUT if request is not complete
-        {
-            std::cout << "REQUEST UNCOMPLETE YET" << std::endl;
-            _clientList[currentEvent.data.fd].toComplete = true;
-            return;
-        }
-
-        event.data.fd = currentEvent.data.fd;
-        event.events = EPOLLOUT;
-        epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
-    }
-}
-
-void StartServers::sendResponse(epoll_event currentEvent)
-{
-    std::string response;
-    struct epoll_event event;
-
-    std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
-    if (_clientList[currentEvent.data.fd].request.method == "POST")
-        std::cout << _clientList[currentEvent.data.fd].request.body << std::endl;
-    response = getUserResponse(_clientList[currentEvent.data.fd]);
-
-    write(currentEvent.data.fd, response.c_str(), response.length());
-    std::cout << "response sent: " << response.substr(0, 200) << std::endl;
-
-    // event.data.fd = currentEvent.data.fd;
-    // event.events = EPOLLIN;
-    // epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
-    _clientList.erase(currentEvent.data.fd);
-    epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);
-    close(currentEvent.data.fd);
-    std::cout << RED << "[i] Client disconnected: " << currentEvent.data.fd << DEFAULT << std::endl;
-
-}
-
 void StartServers::closeServers()
 {
     std::vector<Server>::iterator serverIt;
@@ -148,9 +86,9 @@ void StartServers::listenClientRequest()
             {
                 // if (events[i].events & EPOLLERR) check epoll error
                 if (events[i].events & EPOLLIN)
-                    receiveRequest(events[i]);
+                    processRequest(events[i]);
                 if (events[i].events & EPOLLOUT)
-                    sendResponse(events[i]);
+                    processResponse(events[i]);
             }
 
         }

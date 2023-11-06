@@ -48,7 +48,8 @@ std::string StartServers::getUserResponse(Client client)
 					{
 						std::string entryName = entry->d_name;
 						if (entryName != "." && entryName != ".." && entryName.substr(entryName.find_last_of(".") + 1) == "html")
-							directoryListing << "<div class=\"listing-buttons-container\"><button class=\"listing-buttons\" onclick='location.href=\"" << entryName.substr(0, entryName.length() - 5) << "\";'>" << entryName.substr(0, entryName.length() - 5) << "</button><br>";        	    }
+							directoryListing << "<div class=\"listing-buttons-container\"><button class=\"listing-buttons\" onclick='location.href=\"" << entryName.substr(0, entryName.length() - 5) << "\";'>" << entryName.substr(0, entryName.length() - 5) << "</button><br>";
+	        	    }
 					closedir(dir);
 				}
 		
@@ -144,90 +145,80 @@ std::string StartServers::getUserResponse(Client client)
 	// 	if (DEBUG_VERBOSE) std::cout << "404 NOT FOUND: " << fileLocation << std::endl;
 	// }
 
-
 	return response;
 }
 
-std::string getPostBody(std::string request)
+std::string getRequestBody(std::string request)
 {
-	int boundaryStartPos, boundaryEndPos, bodyStartPos;
+	size_t boundaryStartPos, boundaryEndPos, bodyStartPos, bodyEndPos;
 	std::string boundary, body;
 
     boundaryStartPos = request.find("boundary=") + std::strlen("boundary=");
-	if (boundaryStartPos != std::string::npos)
-	{
-		boundaryEndPos = request.find("\r", boundaryStartPos);
-		boundary = "--" + request.substr(boundaryStartPos, boundaryEndPos - boundaryStartPos);
-    	bodyStartPos = request.find(boundary);
-		body = request.substr(bodyStartPos);
-	}
-	else
-		body = request;
+	boundaryEndPos = request.find("\r", boundaryStartPos);
+	boundary = "--" + request.substr(boundaryStartPos, boundaryEndPos - boundaryStartPos);
+
+	bodyStartPos = request.find(boundary) + boundary.size();
+	bodyStartPos = request.find("\r\n\r\n", bodyStartPos) + std::strlen("\r\n\r\n");
+	bodyEndPos = request.find(boundary + "--") - std::strlen("\r\n");
+
+	body = request.substr(bodyStartPos, bodyEndPos - bodyStartPos);
 
 	return body;
-    // std::ofstream outputFile("./test.png", std::ios::binary);
-    // if (outputFile.is_open())
-    // {
-    //     std::cout << content.size() << std::endl;
-    //     outputFile.write(content.c_str(), content.size());
-    //     outputFile.close();
-    //     std::cout << "Binary data has been written to " << std::endl;
-    // }
-    // else
-    //     std::cerr << "Failed to open the file for writing." << std::endl;
-    // std::cout << content << std::endl;
 }
 
-int getBodysize(std::string requestStr)
+std::string getFileName(UserRequest request)
 {
-	int bodyStartPos = requestStr.find("\r\n\r\n") + 4;
-	std::string body = requestStr.substr(bodyStartPos);
-	return body.size();
+	size_t nameStartPos = request.body.find("filename=") + std::strlen("filename=\"");
+	size_t nameEndPos = request.body.find("\"", nameStartPos);
+	
+	return request.body.substr(nameStartPos, nameEndPos - nameStartPos);
 }
 
-int getContentLength(std::string requestStr)
+void createFile(UserRequest request) // check if file already exists with same name
 {
-		int contentLengthStartPos = requestStr.find("Content-Length:") + 16; // 16 being the length of "Content-Length: "
-		int contentLengthEndPos = requestStr.find("\r", contentLengthStartPos);
-		std::string contentLength = requestStr.substr(contentLengthStartPos, contentLengthEndPos - contentLengthStartPos);
-		return atoi(contentLength.c_str());
+	std::string fileName = getFileName(request);
+	std::string body = getRequestBody(request.body);
+
+	std::ofstream outputFile(("POST/" + fileName).c_str(), std::ios::binary);
+    if (outputFile.is_open())
+    {
+        outputFile.write(body.c_str(), body.size());
+        outputFile.close();
+        std::cout << "Binary data has been written to " << std::endl;
+    }
+    else
+        std::cerr << "Failed to open the file for writing." << std::endl;
 }
 
-UserRequest StartServers::getUserRequest(std::string requestStr)
+void StartServers::processResponse(epoll_event currentEvent)
 {
-    UserRequest request;
+    std::string response;
+	Client currentClient = _clientList[currentEvent.data.fd];
+    // struct epoll_event event;
 
-	std::cout << YELLOW << "IS A NEW REQUEST" << DEFAULT << std::endl;
-    size_t spaceSepPos = requestStr.find(" "); // first space char after "GET /scripts/script.js HTTP/1.1"
-    request.method = requestStr.substr(0, spaceSepPos);
-    requestStr.erase(0, spaceSepPos + 1);
-    spaceSepPos = requestStr.find(' '); // first space char after "GET /scripts/script.js HTTP/1.1"
-    request.root = requestStr.substr(0, spaceSepPos);
-
-	if (request.method == "POST")
+    std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
+    if (currentClient.request.method == "POST")
 	{
-		request.finalLength = getContentLength(requestStr);
-		// request.body = getPostBody(requestStr);
-		request.body = requestStr;
-		request.length = getBodysize(request.body);
-		std::cout << RED << request.body << DEFAULT << std::endl;
-		std::cout << CYAN << request.length << DEFAULT << std::endl;
+        // std::cout << currentClient.request.body << std::endl;
+		createFile(currentClient.request);
 	}
-	else
+    if (currentClient.request.method == "DELETE")
 	{
-		request.finalLength = 0;
-		request.length = 0;
+        // std::cout << currentClient.request.body << std::endl;
+		createFile(currentClient.request);
 	}
+    response = getUserResponse(currentClient);
 
-    return request;
-}
+    write(currentEvent.data.fd, response.c_str(), response.length());
+    // std::cout << "response sent: " << response.substr(0, 200) << std::endl;
 
-void StartServers::getRequestNextChunk(int userFd, std::string requestStr)
-{
-	std::cout << YELLOW << "IS UNCOMPLETE REQUEST" << DEFAULT << std::endl;
-	_clientList[userFd].request.body += requestStr;
-	_clientList[userFd].request.length = getBodysize(_clientList[userFd].request.body);
-	std::cout << RED << _clientList[userFd].request.body << DEFAULT << std::endl;
-	std::cout << CYAN << _clientList[userFd].request.length << DEFAULT << std::endl;
-	// _clientList[userFd].toComplete = true;
+    // event.data.fd = currentEvent.data.fd;
+    // event.events = EPOLLIN;
+    // epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
+
+    _clientList.erase(currentEvent.data.fd);
+    epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);
+    close(currentEvent.data.fd);
+
+    std::cout << RED << "[i] Client disconnected: " << currentEvent.data.fd << DEFAULT << std::endl;
 }

@@ -65,3 +65,4 @@ std::string ClientResponse::getReponse()
 	generateResponse();
 	return (_reponse);
 }
+
