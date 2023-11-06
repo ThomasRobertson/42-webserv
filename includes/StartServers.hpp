@@ -26,7 +26,7 @@ struct UserRequest {
     std::string root;
     std::string body;
 
-    int finalLength;
+    int contentLength;
     int length;
 };
 

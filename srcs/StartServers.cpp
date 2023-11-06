@@ -76,6 +76,7 @@ void StartServers::listenClientRequest()
     while (true)
     {
         int numEvents = epoll_wait(_epollFd, events, 10, -1);
+        std::cout << "." << std::endl;
         if (EXIT_G == true)
             break;
         for (int i = 0; i < numEvents; i++)

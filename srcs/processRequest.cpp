@@ -28,7 +28,7 @@ UserRequest StartServers::getUserRequest(std::string requestStr)
 
 	if (request.method == "POST")
 	{
-		request.finalLength = getContentLength(requestStr);
+		request.contentLength = getContentLength(requestStr);
 		request.body = requestStr;
 		request.length = getBodysize(request.body);
 		std::cout << RED << request.body << DEFAULT << std::endl;
@@ -36,7 +36,7 @@ UserRequest StartServers::getUserRequest(std::string requestStr)
 	}
 	else
 	{
-		request.finalLength = 0;
+		request.contentLength = 0;
 		request.length = 0;
 	}
 
@@ -79,9 +79,9 @@ void StartServers::processRequest(epoll_event currentEvent)
         else
             _clientList[currentEvent.data.fd].request = getUserRequest(requestData);
 
-        if (_clientList[currentEvent.data.fd].request.length != _clientList[currentEvent.data.fd].request.finalLength) // not opening EPOLLOUT if request is not complete
+        if (_clientList[currentEvent.data.fd].request.length != _clientList[currentEvent.data.fd].request.contentLength) // not opening EPOLLOUT if request is not complete
         {
-            std::cout << "REQUEST UNCOMPLETE YET: " << _clientList[currentEvent.data.fd].request.length << "/" << _clientList[currentEvent.data.fd].request.finalLength << std::endl;
+            std::cout << "REQUEST UNCOMPLETE YET: " << _clientList[currentEvent.data.fd].request.length << "/" << _clientList[currentEvent.data.fd].request.contentLength << std::endl;
             _clientList[currentEvent.data.fd].toComplete = true;
             return;
         }

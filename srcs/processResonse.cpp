@@ -95,56 +95,6 @@ std::string StartServers::getUserResponse(Client client)
 			response = clientReponse.getReponse();
 		}
 	}
-
-	// if (status == "200" && file.is_open())
-	// {
-	// 	if (DEBUG_VERBOSE) std::cout << "case 1 file: " << fileLocation << std::endl;
-	// 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-	// 	ClientResponse clientReponse(status, contentType, htmlContent);
-	// 	response = clientReponse.getReponse();
-
-	// 	response = "HTTP/1.1 " + status + " OK\r\n";
-	// 	response += "Connection: keep-alive\r\n";
-	// 	response += "Content-Type: " + contentType + "\r\n";
-	// 	response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
-	// 	response += htmlContent;
-	// }
-	// else if ((contentType == "text/css" || contentType == "text/javascript") && file.is_open())
-	// {
-	// 	if (DEBUG_VERBOSE) std::cout << "case 2 file: " << fileLocation << std::endl;
-	// 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-	// 	// ClientResponse clientReponse(status, contentType, htmlContent);
-	// 	// response = clientReponse.getReponse();
-
-	// 	response = "HTTP/1.1 " + status + " Not Found\r\n";
-	// 	response += "Connection: keep-alive\r\n";
-	// 	response += "Content-Type: " + contentType + "\r\n";
-	// 	response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
-	// 	response += htmlContent;
-	// }
-	// else if (status == "404" && contentType == "text/html" && file.is_open())
-	// {
-	// 	if (DEBUG_VERBOSE) std::cout << "case 3 file: " << fileLocation << std::endl;
-	// 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-	// 	// ClientResponse clientReponse(status, contentType, htmlContent);
-	// 	// response = clientReponse.getReponse();
-
-	// 	response = "HTTP/1.1 " + status + " Not Found\r\n";
-	// 	response += "Connection: keep-alive\r\n";
-	// 	response += "Content-Type: " + contentType + "\r\n";
-	// 	response += "Content-Length: " + sizeToString(htmlContent.size()) + "\r\n\r\n";
-	// 	response += htmlContent;
-	// }
-	// else
-	// {
-	// 	response = "HTTP/1.1 404 Not Found\r\n\r\n";
-	// 	response += "Connection: keep-alive\r\n";
-	// 	if (DEBUG_VERBOSE) std::cout << "404 NOT FOUND: " << fileLocation << std::endl;
-	// }
-
 	return response;
 }
 
@@ -225,9 +175,10 @@ void StartServers::processResponse(epoll_event currentEvent)
     std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
     if (currentClient.request.method == "POST")
 	{
-        // std::cout << currentClient.request.body << std::endl;
+        std::cout << currentClient.request.body << std::endl;
 		createFile(currentClient.request);
 	}
+
     if (currentClient.request.method == "DELETE")
 	{
 		std::cout << "DELETE METH" << std::endl;
