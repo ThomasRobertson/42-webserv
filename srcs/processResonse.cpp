@@ -12,29 +12,24 @@ std::string StartServers::getUserResponse(Client client)
 
 	Server currentServer = this->_serversVec[client.serverIndex];
 
-	if (client.request.method == "POST")
-	{
-		std::string httpResponse = "HTTP/1.1 200 OK\r\n";
-    	httpResponse += "Content-Type: application/json\r\n\r\n";
-    	httpResponse += "{\"status\": \"success\", \"message\": \"The POST request was processed successfully.\", \"data\": {\"key1\": \"value10\", \"key2\": \"value2\"}}";
-		return httpResponse;
-	}
-	else if (client.request.method == "DELETE")
-	{
-		std::string httpResponse = "HTTP/1.1 200 OK\r\n";
-    	httpResponse += "Content-Type: application/json\r\n\r\n";
-    	httpResponse += "{\"status\": \"success\", \"message\": \"The DELETE request was processed successfully.\"}";
-		return httpResponse;
-	}
-	else if (client.request.method == "GET")
+	if (client.request.method == "GET")
 		return GenerateMethod::GETMethod(client, currentServer);
 
-	#ifdef DEBUG
-	else
-		throw std::invalid_argument("Unknown method.");
-	#endif // DEBUG
+	if (client.request.method == "POST")
+	{
+		ClientResponse client("200", "application/json", "{\"status\": \"success\", \"message\": \"The POST request was processed successfully.\", \"data\": {\"key1\": \"value10\", \"key2\": \"value2\"}}");
 
-	return response;
+		return client.getReponse();
+	}
+	
+	else if (client.request.method == "DELETE")
+	{
+		ClientResponse client("200", "application/json", "{\"status\": \"success\", \"message\": \"The DELETE request was processed successfully.\"}");
+		return client.getReponse();
+	}
+
+	else
+		return GenerateMethod::getErrorPageResponse(client, currentServer, "405");
 }
 
 std::string getRequestBody(std::string request)
