@@ -10,5 +10,25 @@ button_404.addEventListener("click", () => {
 });
 
 button_form.addEventListener("click", () => {
+	changeLink("/working_form");
+});
+
+alt_form_button.addEventListener("click", () => {
+	changeLink("/working_form/");
+});
+
+invalid_form_button.addEventListener("click", () => {
 	changeLink("/form");
+});
+
+list_dir_button.addEventListener("click", () => {
+	changeLink("/list_dir_test");
+});
+
+alt_list_dir_button.addEventListener("click", () => {
+	changeLink("/list_dir_test/");
+});
+
+invalid_list_dir_button.addEventListener("click", () => {
+	changeLink("/no_list_dir");
 });
