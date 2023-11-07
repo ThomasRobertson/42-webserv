@@ -34,9 +34,9 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 	}
 
 	std::map<std::string, std::string> CGIMaps = server.getCgiPages();
-	if (false && CGIMaps.find(parseFileExtension(fileLocation)) != CGIMaps.end())
+	std::cout << "cgi : " << std::string(parseFileExtension(fileLocation)) << std::endl;
+	if (CGIMaps.find(parseFileExtension(fileLocation)) != CGIMaps.end())
 	{
-
 		CgiHandler CGI(client, server, fileLocation, CGIMaps.find(parseFileExtension(fileLocation))->second);
 		htmlContent = CGI.execute();
 	}
@@ -45,6 +45,7 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 		htmlContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	}
 	std::cout << "Content generated for " << fileLocation << "." << std::endl;
+	std::cout << "Body : \n" << htmlContent << std::endl;
 	ClientResponse clientReponse(status, contentType, htmlContent);
 	response = clientReponse.getReponse();
 

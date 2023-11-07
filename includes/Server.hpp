@@ -49,9 +49,9 @@ class Server
         int getServerSocketSize();
 
         //std::string getErrorPage(std::string errorCode);
-        std::string getCgiPage(std::string cgiName);
+        std::map<std::string, std::string> getCgiPages();
 		std::pair<std::string, page> getRootDir(std::string url);
-        std::string getFileRoute(std::string fileName, std::string &status, std::string method);
+        std::string getFileRoute(std::string fileName, std::string &status, std::string method, bool &is_dir);
 		std::string getErrorPageRoute(std::string errorCode);
 		std::string testAccessPath(std::string location, std::string method);
 
