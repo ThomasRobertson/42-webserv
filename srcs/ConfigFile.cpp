@@ -12,7 +12,7 @@ ConfigFile::~ConfigFile()
 
 std::string ConfigFile::getHost(int serverIndex)
 {
-	return this->_configVecOfMap[serverIndex]["host"];
+	return this->_configVecOfMap[serverIndex]["server_name"];
 }
 
 std::vector<std::string> ConfigFile::getPort(int serverIndex)
@@ -45,10 +45,10 @@ int ConfigFile::getServerNumber()
 	return serverNumber;
 }
 
-std::string ConfigFile::getServerName(int serverIndex)
-{
-	return this->_configVecOfMap[serverIndex]["server_name"];
-}
+// std::string ConfigFile::getServerName(int serverIndex)
+// {
+// 	return this->_configVecOfMap[serverIndex]["server_name"];
+// }
 
 std::string ConfigFile::getRoot(int serverIndex)
 {
@@ -121,8 +121,9 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				size_t positionMethods = line.find("\t\tmethods");
 				size_t positionListing = line.find("\t\tautoindex");
 				size_t positionRoot = line.find("\t\troot");
-
-				if (positionRightBracket != std::string::npos && line[1] != '\t')
+				size_t positionAuthBasic = line.find("\t\tauth_basic");
+				size_t positionAuthBasicUserFile = line.find("\t\tauth_basic_user_file");
+				if (positionRightBracket != std::string::npos && line[1] != '	')
 				{
 					break;
 				}
@@ -165,6 +166,20 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 					if (*locationRootStr.rbegin() == '/')
 						return 0;
 					newPage.rootDir = locationRootStr;
+				}
+				else if (positionAuthBasic != std::string::npos && line[2] != '	')//
+				{
+					if (positionSemicolon == std::string::npos)
+						return 0;
+					std::string locationAuthBasicStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+					newPage.authBasic = locationAuthBasicStr;
+				}
+				else if (positionAuthBasicUserFile != std::string::npos && line[2] != '	')
+				{
+					if (positionSemicolon == std::string::npos)
+						return 0;
+					std::string locationAuthBasicUserFileStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+					newPage.authBasicUserFile = locationAuthBasicUserFileStr;
 				}
 				else
 				{

@@ -24,7 +24,7 @@ void Server::setServerValues()
     this->_cgiMap = this->_configFile.getCgiPages(_serverIndex);
     this->_htmlPageMap = this->_configFile.getFileRoutes(_serverIndex);
     this->_root = this->_configFile.getRoot(_serverIndex);
-    this->_server_name = this->_configFile.getServerName(_serverIndex);
+    // this->_server_name = this->_configFile.getServerName(_serverIndex);
 
 }
 
@@ -43,10 +43,10 @@ std::string Server::getRoot()
     return this->_root;
 }
 
-std::string Server::getServerName()
-{
-    return this->_server_name;
-}
+// std::string Server::getServerName()
+// {
+//     return this->_server_name;
+// }
 
 int Server::getMaxClientBodySize()
 {
@@ -236,13 +236,13 @@ void setNonBlocking(int sock)
     if (opts < 0)
     {
         perror("fcntl(F_GETFL)");
-        exit(1); //Problem here
+        throw(Problem());
     }
     opts = (opts | O_NONBLOCK);
     if (fcntl(sock, F_SETFL, opts) < 0)
     {
         perror("fcntl(F_SETFL)");
-        exit(1); //Problem here
+        throw(Problem());
     }
 }
 
@@ -314,10 +314,10 @@ void Server::startServers(int epollFd)
         if (rp == NULL)
         {
             std::cerr << "Socket binding error" << std::endl;
-            return ;
+            continue ;
         }
 
-        if (listen(serverSocket, 5) == -1)
+        if (listen(serverSocket, 100) == -1)
         {
             std::cerr << "Socket listening error" << std::endl;
             close(serverSocket);

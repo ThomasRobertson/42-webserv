@@ -7,7 +7,7 @@ void CgiHandler::build_args_env()
 	// --- SERVER ENVIRON ---
 
 	_environ["SERVER_SOFTWARE"] = SERVER_SOFTWARE;
-	_environ["SERVER_NAME"] = _server.getServerName();
+	_environ["SERVER_NAME"] = _server.getHost();
 	_environ["GATEWAY_INTERFACE"] = GATEWAY_INTERFACE;
 	_environ["DOCUMENT_ROOT"] = _server.getRoot();
 

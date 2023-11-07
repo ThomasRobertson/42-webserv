@@ -25,7 +25,7 @@ class Server
         int _maxClientBodySize;
         int _serverIndex;
         std::string _root;
-        std::string _server_name;
+        // std::string _server_name;
 
         std::map<std::string, page> _htmlPageMap;
         std::map<std::string, std::string> _errorsMap;

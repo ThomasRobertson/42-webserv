@@ -16,6 +16,9 @@ struct page {
     std::vector<std::string> methods;
 	std::string rootDir;
     bool listing;
+	std::string authBasic;
+	std::string authBasicUserFile;
+
 };
 
 class ConfigFile
