@@ -108,7 +108,7 @@ std::pair<std::string, page> Server::getRootDir(std::string url)
 	return *(_htmlPageMap.find(url));
 }
 
-std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method)
+std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method, bool &is_dir)
 {
 	std::string fileLocation;
 	std::pair<std::string, page> location;
@@ -138,7 +138,8 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 
 	if (!location.second.index.empty() &&
 		(fileName == location.first
-			|| fileName.substr(0, fileName.find_last_of("/")) == location.first))
+			||
+		(*fileName.rbegin() == '/' && fileName.substr(0, fileName.find_last_of("/")) == location.first)))
 	{
 		std::string rootIndex;
 		if (*location.second.index.begin() == '/')
@@ -151,33 +152,36 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	}
 
 	std::string locationAfterRoot = fileName.substr(location.first.size(), std::string::npos);
-	if (*(locationAfterRoot.begin()) != '/')
-		locationAfterRoot = "/" + locationAfterRoot;
+	
 	fileLocation = location.second.rootDir + locationAfterRoot;
+	std::cout << "second file loc : " << fileLocation<< std::endl;
 
-	if (*(fileLocation.rbegin()) == '/') //check for listing directory
+	if (*fileLocation.rbegin() == '/')
 	{
 		status = testAccessPath(fileLocation + "index.html", method);
 		if (status != "404")
 		{
 			return std::string(fileLocation + "index.html");
 		}
-
-		if (location.second.listing)
+	}
+	else
+	{
+		status = testAccessPath(fileLocation + "/" + "index.html", method);
+		if (status != "404")
 		{
-			struct stat path_stat;
-			if (stat(fileLocation.c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
-			{
-				status = "200";
-				return fileLocation;
-			}
-			else
-			{
-				status = "403";
-				return "";
-			}
+			return std::string(fileLocation + "/" + "index.html");
 		}
+	}
 
+	if (location.second.listing)
+	{
+		struct stat path_stat;
+		if (stat(fileLocation.c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
+		{
+			status = "200";
+			is_dir = true;
+			return fileLocation;
+		}
 	}
 
 	status = testAccessPath(fileLocation, method);
@@ -194,9 +198,9 @@ std::string Server::getFileName(std::string fileName)
     return _htmlPageMap[fileName].index;
 }
 
-std::string Server::getCgiPage(std::string cgiName)
+std::map<std::string, std::string> Server::getCgiPages()
 {
-	return this->_cgiMap[cgiName];
+	return this->_cgiMap;
 }
 
 int Server::getServerSocket(int i)

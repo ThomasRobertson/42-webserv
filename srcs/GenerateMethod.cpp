@@ -1,10 +1,13 @@
 #include "GenerateMethod.hpp"
+#include "cgi.hpp"
+#include "utils.hpp"
 #include <ostream>
 
 std::string GenerateMethod::GETMethod(Client client, Server server)
 {
-	std::string response, fileLocation, contentType, status;
-	fileLocation = server.getFileRoute(client.request.root, status, client.request.method);
+	std::string response, fileLocation, contentType, status, htmlContent;
+	bool is_dir = false;
+	fileLocation = server.getFileRoute(client.request.root, status, client.request.method, is_dir);
 	std::cout << "File location : " << fileLocation << std::endl;
 
 	if (status != "200")
@@ -14,7 +17,7 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 		return getErrorPageResponse(client, server, status);
 	}
 
-	if (*(fileLocation.rbegin()) == '/')
+	if (is_dir)
 	{
 		std::cout << "Listing Directory." << std::endl;
 		return listingDirectory(fileLocation, client.request.root);
@@ -30,8 +33,17 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 		return getErrorPageResponse(client, server, "500");
 	}
 
-	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	std::map<std::string, std::string> CGIMaps = server.getCgiPages();
+	if (false && CGIMaps.find(parseFileExtension(fileLocation)) != CGIMaps.end())
+	{
 
+		CgiHandler CGI(client, server, fileLocation, CGIMaps.find(parseFileExtension(fileLocation))->second);
+		htmlContent = CGI.execute();
+	}
+	else
+	{
+		htmlContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	}
 	std::cout << "Content generated for " << fileLocation << "." << std::endl;
 	ClientResponse clientReponse(status, contentType, htmlContent);
 	response = clientReponse.getReponse();
