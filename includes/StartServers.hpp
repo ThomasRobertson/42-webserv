@@ -43,7 +43,6 @@ class StartServers
         ConfigFile _configFile;
 	    std::vector<Server>	_serversVec;
         
-        std::vector<int> _clientsVec;
         std::map<int, Client> _clientList;
 
         int _epollFd;

@@ -54,12 +54,12 @@ void StartServers::getRequestNextChunk(int userFd, std::string requestStr)
 
 void StartServers::processRequest(epoll_event currentEvent)
 {
-    char buffer[1024]; // set to maxBodySize and read
+    char buffer[131072]; // set to maxBodySize and read
     ssize_t bytesRead;
     struct epoll_event event;
 
     std::cout << "----------------------- NEW REQUEST: " << currentEvent.data.fd << " -----------------------" << std::endl;
-    bytesRead = read(currentEvent.data.fd, buffer, 1024);
+    bytesRead = read(currentEvent.data.fd, buffer, 131072);
 
     if (bytesRead <= 0)
     {

@@ -38,7 +38,7 @@ bool StartServers::getNewConnexion(epoll_event currentEvent)
         {
             if (currentEvent.data.fd == it->getServerSocket(portIndex))
             {
-                it->acceptNewClient(_epollFd, portIndex, newClient);
+                newClient.fd = it->acceptNewClient(_epollFd, portIndex);
                 newClient.serverIndex = serverIndex;
                 newClient.toComplete = false;
                 _clientList[newClient.fd] = newClient;

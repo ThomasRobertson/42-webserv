@@ -233,20 +233,22 @@ void setNonBlocking(int sock)
     }
 }
 
-void Server::acceptNewClient(int epollFd, int y, Client &newClient)
+int Server::acceptNewClient(int epollFd, int serverIndex)
 {
     epoll_event event;
     int clientAddr;
     int clientSocket;
     socklen_t clientAddrLen = sizeof(clientAddr);
 
-    clientSocket = accept(_serverSocketVec[y], (struct sockaddr *)&clientAddr, &clientAddrLen);
+    clientSocket = accept(_serverSocketVec[serverIndex], (struct sockaddr *)&clientAddr, &clientAddrLen);
     setNonBlocking(clientSocket);
+
     event.data.fd = clientSocket;
     event.events = EPOLLIN;
     epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event);
-    newClient.fd = clientSocket;
+
     std::cout << GREEN << "New client connected: " << clientSocket << DEFAULT << std::endl;
+    return clientSocket;
 }
 
 void Server::startServers(int epollFd)
