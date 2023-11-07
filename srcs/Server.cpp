@@ -200,17 +200,17 @@ int Server::getServerSocketSize()
     return this->_serverSocketVec.size();
 }
 
-void Server::addSocketToEpoll(int epollFd, int i)
+void Server::addSocketToEpoll(int epollFd, int serverSocket)
 {
     epoll_event event;
 
     event.events = EPOLLIN;
-    event.data.fd = _serverSocketVec[i];
+    event.data.fd = serverSocket;
 
-    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, _serverSocketVec[i], &event) == -1)
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, serverSocket, &event) == -1)
     {
         std::cerr << "Error adding server socket to epoll " << std::endl;
-        close(_serverSocketVec[i]);
+        close(serverSocket);
         close(epollFd);
         throw (Problem());
     }
@@ -255,9 +255,8 @@ void Server::startServers(int epollFd)
 {
     std::vector<std::string> portsVec = this->getPort();
     std::vector<std::string>::iterator portIt;
-    int i;
 
-    for (portIt = portsVec.begin(), i = 0 ; portIt != portsVec.end() ; i++, portIt++)
+    for (portIt = portsVec.begin() ; portIt != portsVec.end() ; portIt++)
     {
         struct addrinfo hints;
         struct addrinfo *result;
@@ -274,27 +273,27 @@ void Server::startServers(int epollFd)
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_flags = AI_PASSIVE;
 
+        int serverSocket = -1;
+
         if (getaddrinfo(host, port, &hints, &result) != 0)
         {
             std::cerr << "Error retrieving host information" << std::endl;
             return ;
         }
 
-        _serverSocketVec.push_back(-1);
-
         for (rp = result; rp != NULL; rp = rp->ai_next)
         {
-            _serverSocketVec[i] = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-            if (_serverSocketVec[i] == -1)
+            serverSocket = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+            if (serverSocket == -1)
                 continue;
 
             int iSetOption = 1;
-            setsockopt(_serverSocketVec[i], SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption, sizeof(iSetOption));
+            setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption, sizeof(iSetOption));
 
-            if (bind(_serverSocketVec[i], rp->ai_addr, rp->ai_addrlen) == 0)
+            if (bind(serverSocket, rp->ai_addr, rp->ai_addrlen) == 0)
                 break;
 
-            close(_serverSocketVec[i]);
+            close(serverSocket);
         }
 
         freeaddrinfo(result);
@@ -305,18 +304,20 @@ void Server::startServers(int epollFd)
             return ;
         }
 
-        if (listen(_serverSocketVec[i], 5) == -1)
+        if (listen(serverSocket, 5) == -1)
         {
             std::cerr << "Socket listening error" << std::endl;
-            close(_serverSocketVec[i]);
+            close(serverSocket);
             return ;
         }
 
         std::cout << YELLOW << "[i] Server listening on port " << port << "..." << DEFAULT << std::endl;
 
-        int flags = fcntl(_serverSocketVec[i], F_GETFL, 0);
-        fcntl(_serverSocketVec[i], F_SETFL, flags | O_NONBLOCK);
+        int flags = fcntl(serverSocket, F_GETFL, 0);
+        fcntl(serverSocket, F_SETFL, flags | O_NONBLOCK);
 
-        this->addSocketToEpoll(epollFd, i);
+        this->addSocketToEpoll(epollFd, serverSocket);
+
+        this->_serverSocketVec.push_back(serverSocket);
     }
 }

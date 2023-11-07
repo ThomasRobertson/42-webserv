@@ -137,6 +137,11 @@ void StartServers::closeServers()
             std::cout << YELLOW << "[i] Server shutdown: " << serverIt->getHost() << "::" << *portIt << DEFAULT << std::endl;
         }
     }
+
+    std::map<int, Client>::iterator clientIt;
+
+    for (clientIt = this->_clientList.begin() ; clientIt != this->_clientList.end() ; clientIt++)
+        close(clientIt->first);
 }
 
 void StartServers::listenClientRequest()

@@ -58,7 +58,7 @@ class Server
         void setServerValues();
 
         void startServers(int epollFd);
-        void addSocketToEpoll(int epollFd, int i);
+        void addSocketToEpoll(int epollFd, int serverSocket);
         int acceptNewClient(int epollFd, int serverIndex);
 
 
