@@ -72,7 +72,7 @@ std::string GenerateMethod::listingDirectory(const std::string &fileLocation, st
 	std::string contentType, status, content;
 
 	std::stringstream directoryListing;
-	directoryListing << "<html><head><title>Webserv Listing</title><link rel=\"stylesheet\" type=\"text/css\" href=\"styles/styleListing.css\"></head><body><h1 class=\"listing-title\">" << fileLocation << "</h1>";
+	directoryListing << "<html><head><title>Webserv Listing</title><link rel=\"stylesheet\" type=\"text/css\" href=\"/styles/styleListing.css\"></head><body><h1 class=\"listing-title\">" << fileLocation << "</h1>";
 
 	DIR *dir = opendir(fileLocation.c_str());
 	if (dir != NULL)

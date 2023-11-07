@@ -130,13 +130,21 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	}
 
 	if (location.second.rootDir.empty())
-		location.second.rootDir = _root;
+		location.second.rootDir = _root + location.first;
 
-	std::cout << "root : " << _root << " filename: " << fileName << " loc: " << location.first << std::endl;
+	std::cout << "root : " << location.second.rootDir << " filename: " << fileName << " loc: " << location.first << " index: " << location.second.index << std::endl;
 
-	if (fileName == location.first && !location.second.index.empty()) //if rootDir, check for index config file
+	std::cout << "test : " << fileName.substr(0, fileName.find_last_of("/")) << std::endl;
+
+	if (!location.second.index.empty() &&
+		(fileName == location.first
+			|| fileName.substr(0, fileName.find_last_of("/")) == location.first))
 	{
-		std::string rootIndex = location.second.rootDir + location.second.index;
+		std::string rootIndex;
+		if (*location.second.index.begin() == '/')
+			rootIndex = location.second.index;
+		else
+			rootIndex = location.second.rootDir + '/' + location.second.index;
 		std::cout << "Testing index file : " << rootIndex << std::endl;
 		status = testAccessPath(rootIndex, method);
 		return (rootIndex);
@@ -147,28 +155,29 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		locationAfterRoot = "/" + locationAfterRoot;
 	fileLocation = location.second.rootDir + locationAfterRoot;
 
-	if (*(fileLocation.rbegin()) == '/') //check if index.html present
+	if (*(fileLocation.rbegin()) == '/') //check for listing directory
 	{
 		status = testAccessPath(fileLocation + "index.html", method);
 		if (status != "404")
 		{
 			return std::string(fileLocation + "index.html");
 		}
-	}
 
-	if (*(fileLocation.rbegin()) == '/') //check for listing directory
-	{
-		struct stat path_stat;
-		if (stat(fileLocation.c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
+		if (location.second.listing)
 		{
-			status = "200";
-			return fileLocation;
+			struct stat path_stat;
+			if (stat(fileLocation.c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
+			{
+				status = "200";
+				return fileLocation;
+			}
+			else
+			{
+				status = "403";
+				return "";
+			}
 		}
-		else
-		{
-			status = "403";
-			return "";
-		}
+
 	}
 
 	status = testAccessPath(fileLocation, method);
