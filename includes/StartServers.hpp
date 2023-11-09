@@ -4,6 +4,7 @@
 #include "ConfigFile.hpp"
 #include "Server.hpp"
 #include "Settings.hpp"
+#include "ClientRequest.hpp"
 
 #include <cstring>
 #include <unistd.h>
@@ -19,23 +20,6 @@
 #include <iomanip>
 
 extern bool EXIT_G;
-
-struct UserRequest {
-    std::string method;
-    std::string root;
-    std::string body;
-
-    int contentLength;
-    int length;
-};
-
-struct Client
-{
-    int fd;
-    int serverIndex;
-    UserRequest request;
-    bool toComplete;
-};
 
 class StartServers
 {
@@ -61,9 +45,9 @@ class StartServers
 
         void listenClientRequest();
 
-        void getRequestNextChunk(int userFd, std::string requestStr);
-        std::string getUserResponse(Client client);
-        UserRequest getUserRequest(std::string requestStr);
+        void getRequestNextChunk(UserRequest &request, std::string requestStr);
+        void getRequestChunk(UserRequest &request, std::string requestStr);
+        std::string getUserResponse(Client &client);
 };
 
 class Problem : public std::exception

@@ -1,6 +1,7 @@
 #include "ClientResponse.hpp"
 
-ClientResponse::ClientResponse(std::string status, std::string contentType, std::string contentBody) : _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE)
+ClientResponse::ClientResponse(std::string status, std::string contentType, std::string contentBody) : 
+_status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE)
 {
 	#ifdef DEBUG
 

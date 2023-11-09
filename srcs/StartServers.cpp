@@ -1,5 +1,6 @@
 
 #include "StartServers.hpp"
+#include "ClientRequest.hpp"
 
 StartServers::StartServers(ConfigFile configFile) : _configFile(configFile) {}
 
@@ -28,22 +29,25 @@ void StartServers::initServers()
 
 bool StartServers::getNewConnexion(epoll_event currentEvent)
 {
-    std::vector<Server>::iterator it;
+    std::vector<Server>::iterator serverIt;
     struct Client newClient;
     int serverIndex = 0;
     
-    for (it = this->_serversVec.begin() ; it != this->_serversVec.end() ; it++)
+    for (serverIt = this->_serversVec.begin() ; serverIt != this->_serversVec.end() ; serverIt++)
     {
-        for (int portIndex = 0; portIndex < it->getServerSocketSize(); portIndex++)
+        for (int portIndex = 0; portIndex < serverIt->getServerSocketSize(); portIndex++)
         {
-            if (currentEvent.data.fd == it->getServerSocket(portIndex))
+            if (currentEvent.data.fd == serverIt->getServerSocket(portIndex))
             {
-                newClient.fd = it->acceptNewClient(_epollFd, portIndex);
-                newClient.serverIndex = serverIndex;
-                newClient.toComplete = false;
+                newClient.fd = serverIt->acceptNewClient(_epollFd, portIndex);
+                newClient.server = &(*serverIt);
+                newClient.request.isBodyComplete = false; // default value
+                newClient.request.isHeaderComplete = false; // default value
+                newClient.request.contentLength = 0; // default value
+                newClient.request.length = 0; // default value
                 _clientList[newClient.fd] = newClient;
                 return true;
-            } 
+            }
         }
         serverIndex++;
     }
@@ -146,11 +150,11 @@ void StartServers::closeServers()
 
 void StartServers::listenClientRequest()
 {
-    epoll_event events[10];
+    epoll_event events[64];
 
     while (true)
     {
-        int numEvents = epoll_wait(_epollFd, events, 10, -1);
+        int numEvents = epoll_wait(_epollFd, events, 64, -1);
         if (EXIT_G == true)
             break;
         for (int i = 0; i < numEvents; i++)
@@ -168,5 +172,4 @@ void StartServers::listenClientRequest()
 
         }
     }
-    closeServers();
 }

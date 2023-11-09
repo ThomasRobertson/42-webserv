@@ -3,14 +3,35 @@
 #include "StartServers.hpp"
 #include "ClientResponse.hpp"
 #include "GenerateMethod.hpp"
+#include "ClientRequest.hpp"
 
 bool DEBUG_VERBOSE = false;
 
-std::string StartServers::getUserResponse(Client client)
+std::string getMethod(std::string request)
+{
+	if (request.find("GET") != std::string::npos)
+		return "GET";
+	else if (request.find("POST") != std::string::npos)
+		return "POST";
+	else
+		return "DELETE";
+}
+
+std::string getRoute(std::string request)
+{
+	int rootStartPos = request.find(" ") + 1;
+	int rootEndPos = request.find(" ", rootStartPos);
+
+	std::cout << GREEN << rootStartPos << " " << rootEndPos << DEFAULT << std::endl;
+	return request.substr(rootStartPos, rootEndPos - rootStartPos);
+}
+
+std::string StartServers::getUserResponse(Client &client)
 {
 	std::string response;
 
-	Server currentServer = this->_serversVec[client.serverIndex];
+	client.request.route = getRoute(client.request.fullStr);
+	Server currentServer = *(client.server);
 
 	if (client.request.method == "POST")
 	{
@@ -57,16 +78,16 @@ std::string getRequestBody(std::string request)
 
 std::string getFileName(UserRequest request)
 {
-	size_t nameStartPos = request.body.find("filename=") + std::strlen("filename=\"");
-	size_t nameEndPos = request.body.find("\"", nameStartPos);
+	size_t nameStartPos = request.fullStr.find("filename=") + std::strlen("filename=\"");
+	size_t nameEndPos = request.fullStr.find("\"", nameStartPos);
 	
-	return request.body.substr(nameStartPos, nameEndPos - nameStartPos);
+	return request.fullStr.substr(nameStartPos, nameEndPos - nameStartPos);
 }
 
 void createFile(UserRequest request) // check if file already exists with same name
 {
 	std::string fileName = getFileName(request);
-	std::string body = getRequestBody(request.body);
+	std::string body = getRequestBody(request.fullStr);
 
 	std::ofstream outputFile(("POST/" + fileName).c_str(), std::ios::binary);
     if (outputFile.is_open())
@@ -105,19 +126,23 @@ int deleteFiles()
 	return 0;
 }
 
+void parseRequest()
+{
+
+}
+
 void StartServers::processResponse(epoll_event currentEvent)
 {
     std::string response;
-	Client currentClient = _clientList[currentEvent.data.fd];
+	Client &currentClient = _clientList[currentEvent.data.fd];
 
     std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
     if (currentClient.request.method == "POST")
 	{
-        std::cout << currentClient.request.body << std::endl;
+        // std::cout << currentClient.request.fullStr << std::endl;
 		createFile(currentClient.request);
 	}
-
-    if (currentClient.request.method == "DELETE")
+	else if (currentClient.request.method == "DELETE")
 	{
 		std::cout << "DELETE METH" << std::endl;
 		deleteFiles();

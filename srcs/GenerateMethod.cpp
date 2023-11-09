@@ -4,8 +4,8 @@
 std::string GenerateMethod::GETMethod(Client client, Server server)
 {
 	std::string response, fileLocation, contentType, status;
-	fileLocation = server.getFileRoute(client.request.root, status, client.request.method);
-	std::cout << "File location : " << fileLocation << std::endl;
+	fileLocation = server.getFileRoute(client.request.route, status, client.request.method);
+	// std::cout << "File location : " << fileLocation << std::endl;
 
 	if (status != "200")
 	{
@@ -17,7 +17,7 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 	if (*(fileLocation.rbegin()) == '/')
 	{
 		std::cout << "Listing Directory." << std::endl;
-		return listingDirectory(fileLocation, client.request.root);
+		return listingDirectory(fileLocation, client.request.route);
 	}
 
 	contentType = getContentType(fileLocation);
@@ -32,7 +32,7 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 
 	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-	std::cout << "Content generated for " << fileLocation << "." << std::endl;
+	// std::cout << "Content generated for " << fileLocation << "." << std::endl;
 	ClientResponse clientReponse(status, contentType, htmlContent);
 	response = clientReponse.getReponse();
 

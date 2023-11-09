@@ -1,67 +1,89 @@
 #include "StartServers.hpp"
+#include "ClientRequest.hpp"
 
 int getBodysize(std::string requestStr)
 {
-	size_t bodyStartPos = requestStr.find("\r\n\r\n") + 4;
-	std::string body = requestStr.substr(bodyStartPos);
+	size_t bodyStartPos = requestStr.find("\r\n\r\n");
+    if (bodyStartPos == std::string::npos)
+        return 0;
+
+    std::string body = requestStr.substr(bodyStartPos + 4);
+
 	return body.size();
 }
 
 int getContentLength(std::string requestStr)
 {
-		size_t contentLengthStartPos = requestStr.find("Content-Length:") + 16; // 16 being the length of "Content-Length: "
-		size_t contentLengthEndPos = requestStr.find("\r", contentLengthStartPos);
-		std::string contentLength = requestStr.substr(contentLengthStartPos, contentLengthEndPos - contentLengthStartPos);
-		return atoi(contentLength.c_str());
+    size_t contentLengthStartPos = requestStr.find("Content-Length: ");
+    if (contentLengthStartPos == std::string::npos)
+        return 0;
+    contentLengthStartPos += std::strlen("Content-Length: ");
+
+    size_t contentLengthEndPos = requestStr.find("\r", contentLengthStartPos);
+    if (contentLengthEndPos == std::string::npos)
+        return 0;
+
+    std::string contentLength = requestStr.substr(contentLengthStartPos, contentLengthEndPos - contentLengthStartPos);
+
+    return atoi(contentLength.c_str());
 }
 
-UserRequest StartServers::getUserRequest(std::string requestStr)
+bool isHeaderComplete(std::string requestStr)
 {
-    UserRequest request;
+    if (requestStr.find("\r\n\r\n") == std::string::npos) // header file end with an empty line containing "\r\n"
+        return false;
+    return true;
+}
 
+void StartServers::getRequestChunk(UserRequest &request, std::string requestStr)
+{
 	std::cout << YELLOW << "IS A NEW REQUEST" << DEFAULT << std::endl;
-    size_t spaceSepPos = requestStr.find(" "); // first space char after "GET /scripts/script.js HTTP/1.1"
-    request.method = requestStr.substr(0, spaceSepPos);
-    requestStr.erase(0, spaceSepPos + 1);
-    spaceSepPos = requestStr.find(' '); // first space char after "GET /scripts/script.js HTTP/1.1"
-    request.root = requestStr.substr(0, spaceSepPos);
 
-	if (request.method == "POST")
-	{
-		request.contentLength = getContentLength(requestStr);
-		request.body = requestStr;
-		request.length = getBodysize(request.body);
-		std::cout << RED << request.body << DEFAULT << std::endl;
-		std::cout << CYAN << request.length << DEFAULT << std::endl;
-	}
-	else
-	{
-		request.contentLength = 0;
-		request.length = 0;
-	}
+	request.fullStr += requestStr;
+    if (!request.isHeaderComplete) // if header was not complete yet, check if he is now
+        request.isHeaderComplete = isHeaderComplete(request.fullStr);
 
-    return request;
-}
+    if (request.isHeaderComplete)
+    {
+        if (request.method.empty())
+        {
+            size_t methodEndPos = request.fullStr.find(" ");
+            if (methodEndPos != std::string::npos)
+                request.method = request.fullStr.substr(0, methodEndPos);
+        }
 
-void StartServers::getRequestNextChunk(int userFd, std::string requestStr)
-{
-	std::cout << YELLOW << "IS UNCOMPLETE REQUEST" << DEFAULT << std::endl;
-	_clientList[userFd].request.body += requestStr;
-	_clientList[userFd].request.length = getBodysize(_clientList[userFd].request.body);
-	// std::cout << RED << _clientList[userFd].request.body << DEFAULT << std::endl;
-	// std::cout << CYAN << _clientList[userFd].request.length << DEFAULT << std::endl;
+        if (request.method == "POST")
+        {
+            if (request.contentLength == 0)
+                request.contentLength = getContentLength(request.fullStr);
+            std::cout << RED << "CONTENT-L: " << request.contentLength << DEFAULT << std::endl;
+            request.length = getBodysize(request.fullStr);
+            // if (request.contentLength > maxBodySize)
+            //     throw error;
+            if (request.isHeaderComplete && request.length == request.contentLength)
+                request.isBodyComplete = true;
+        }
+        else
+        {
+            if (request.isHeaderComplete)
+                request.isBodyComplete = true;
+        }
+
+    }
 }
 
 void StartServers::processRequest(epoll_event currentEvent)
 {
-    char buffer[131072]; // set to maxBodySize and read
+    int chunkSize = 1024;
+    char buffer[chunkSize];
     ssize_t bytesRead;
     struct epoll_event event;
+    Client &currentClient = _clientList[currentEvent.data.fd];
 
     std::cout << "----------------------- NEW REQUEST: " << currentEvent.data.fd << " -----------------------" << std::endl;
-    bytesRead = read(currentEvent.data.fd, buffer, 131072);
+    bytesRead = read(currentEvent.data.fd, buffer, chunkSize);
 
-    if (bytesRead <= 0)
+    if (bytesRead <= 0) // error case
     {
         epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, &event);
         close(currentEvent.data.fd);
@@ -71,20 +93,15 @@ void StartServers::processRequest(epoll_event currentEvent)
     else
     {
         std::string requestData(buffer, bytesRead);
-        Client currentClient = _clientList[currentEvent.data.fd];
+        getRequestChunk(currentClient.request, requestData); // receive chunk of the request (depending on chunkSize var)
 
-        if (_clientList[currentEvent.data.fd].toComplete)
-            getRequestNextChunk(currentEvent.data.fd, requestData);
-        else
-            _clientList[currentEvent.data.fd].request = getUserRequest(requestData);
-
-        if (_clientList[currentEvent.data.fd].request.length != _clientList[currentEvent.data.fd].request.contentLength) // not opening EPOLLOUT if request is not complete
+        if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
         {
-            std::cout << "REQUEST UNCOMPLETE YET: " << _clientList[currentEvent.data.fd].request.length << "/" << _clientList[currentEvent.data.fd].request.contentLength << std::endl;
-            _clientList[currentEvent.data.fd].toComplete = true;
+            std::cout << "REQUEST UNCOMPLETE YET: " << currentClient.request.length << "/" << currentClient.request.contentLength << std::endl;
             return;
         }
 
+        std::cout << "REQUEST COMPLETE: " << currentClient.request.length << "/" << currentClient.request.contentLength << std::endl;
         event.data.fd = currentEvent.data.fd;
         event.events = EPOLLOUT;
         epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);

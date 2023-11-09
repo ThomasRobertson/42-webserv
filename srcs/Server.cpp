@@ -25,7 +25,6 @@ void Server::setServerValues()
     this->_htmlPageMap = this->_configFile.getFileRoutes(_serverIndex);
     this->_root = this->_configFile.getRoot(_serverIndex);
     this->_server_name = this->_configFile.getServerName(_serverIndex);
-
 }
 
 std::string Server::getHost()
@@ -132,7 +131,7 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	if (location.second.rootDir.empty())
 		location.second.rootDir = _root;
 
-	std::cout << "root : " << _root << " filename: " << fileName << " loc: " << location.first << std::endl;
+	// std::cout << "root : " << _root << " filename: " << fileName << " loc: " << location.first << std::endl;
 
 	if (fileName == location.first && !location.second.index.empty()) //if rootDir, check for index config file
 	{

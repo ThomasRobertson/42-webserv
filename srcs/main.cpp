@@ -18,7 +18,7 @@ int	main(int argc, char **argv)
     if (argc != 2)
     {
         std::cout << "Error: could not open config file." << std::endl;
-        return 0;
+        return 1;
     }
 
     ConfigFile configFile;
@@ -26,7 +26,7 @@ int	main(int argc, char **argv)
     if (!configFile.loadDataConfigFile(argv[1]))
     {
         std::cout << "Error: could not open " << argv[1] << std::endl;
-        return 0;
+        return 1;
     }
 
     signal(SIGINT, signalHandler);
@@ -37,10 +37,9 @@ int	main(int argc, char **argv)
         servers.createServers();
         servers.initServers();
     }
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << std::endl;
-	}
+	catch(const std::exception& e) {std::cerr << e.what() << std::endl;}
+
+    servers.closeServers();
 
     return 0;
 }
