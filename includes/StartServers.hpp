@@ -66,7 +66,7 @@ class StartServers
         UserRequest getUserRequest(std::string requestStr);
 
         void createFile(UserRequest request, Server currentServer);
-        int deleteFiles(Server currentServer);
+        int deleteFiles(UserRequest request, Server currentServer);
 
 };
 

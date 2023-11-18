@@ -117,7 +117,7 @@ std::pair<std::string, page> Server::getRootDir(std::string url)
 
 std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method, bool &is_dir)
 {
-	std::string fileLocation;
+	std::string fileLocation, rootDir;
 	std::pair<std::string, page> location;
 
 	try
@@ -136,12 +136,31 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		return "";
 	}
 
-	if (location.second.rootDir.empty())
-		location.second.rootDir = _root + location.first;
+	if (method == "GET")
+	{
+		if (location.second.rootDir.empty())
+			rootDir = _root + location.first;
+		else
+			rootDir = location.second.rootDir;
+	}
+	else if (method == "POST" || method == "DETELE")
+	{
+		if (location.second.postRoot.empty())
+		{
+			status = "500";
+			return "";
+		}
+		else
+			return (location.second.postRoot);	
+	}
+	else
+	{
+		std::cout << RED << "Invalid method: " << method << DEFAULT << std::endl;
+		status = "500";
+		return "";
+	}
 
-	std::cout << "root : " << location.second.rootDir << " filename: " << fileName << " loc: " << location.first << " index: " << location.second.index << std::endl;
-
-	std::cout << "test : " << fileName.substr(0, fileName.find_last_of("/")) << std::endl;
+	std::cout << "root : " << rootDir << " filename: " << fileName << " location: " << location.first << " index: " << location.second.index << std::endl << "method: " << method << std::endl;
 
 	if (!location.second.index.empty() &&
 		(fileName == location.first
@@ -152,7 +171,7 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		if (*location.second.index.begin() == '/')
 			rootIndex = location.second.index;
 		else
-			rootIndex = location.second.rootDir + '/' + location.second.index;
+			rootIndex = rootDir + '/' + location.second.index;
 		std::cout << "Testing index file : " << rootIndex << std::endl;
 		status = testAccessPath(rootIndex, method);
 		return (rootIndex);
@@ -160,7 +179,7 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 
 	std::string locationAfterRoot = fileName.substr(location.first.size(), std::string::npos);
 	
-	fileLocation = location.second.rootDir + locationAfterRoot;
+	fileLocation = rootDir + locationAfterRoot;
 	std::cout << "second file loc : " << fileLocation<< std::endl;
 
 	if (*fileLocation.rbegin() == '/')

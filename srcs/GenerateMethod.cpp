@@ -9,6 +9,7 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 	bool is_dir = false;
 	fileLocation = server.getFileRoute(client.request.root, status, client.request.method, is_dir);
 	std::cout << "File location : " << fileLocation << std::endl;
+	std::cout << "Status : " << status << std::endl;
 
 	if (status != "200")
 	{

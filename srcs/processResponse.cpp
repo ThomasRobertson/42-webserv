@@ -64,9 +64,14 @@ void StartServers::createFile(UserRequest request, Server currentServer) // chec
 	std::string fileName = getFileName(request);
 	std::string body = getRequestBody(request.body);
 	std::string status;
-	bool is_dir;
+	bool is_dir; //TODO: Check value
 	
-	std::string fileLocation = currentServer.getFileRoute(request.root, status, request.method, is_dir);
+
+
+	std::string fileLocation = currentServer.getFileRoute("/form", status, request.method, is_dir); //TODO: replace "/form" with the correct URL
+	fileLocation += "/";
+	fileLocation += fileName;
+	std::cout << "Trying to post to : " << fileLocation << "(from fileName: " << fileName << ")" << std::endl;
 
 	std::ofstream outputFile(fileLocation.c_str(), std::ios::binary);
     if (outputFile.is_open())
@@ -79,16 +84,18 @@ void StartServers::createFile(UserRequest request, Server currentServer) // chec
         std::cerr << "Failed to open the file for writing." << std::endl;
 }
 
-int StartServers::deleteFiles(Server currentServer)
+int StartServers::deleteFiles(UserRequest request, Server currentServer)
 {
-	std::string folderPathStr = "./" + currentServer.getPostRoot("/form");
-	const char* folderPath = folderPathStr.c_str(); // Specify the folder path you want to list files from
+	std::string status;
+	bool is_dir; //TODO: check value
+
+	std::string fileLocation = currentServer.getFileRoute(request.root, status, request.method, is_dir);
 
     DIR* dir;
     struct dirent* entry;
 
     // Open the directory
-    dir = opendir(folderPath);
+    dir = opendir(fileLocation.c_str());
 
     if (!dir)
 	{
@@ -124,7 +131,7 @@ void StartServers::processResponse(epoll_event currentEvent)
     if (currentClient.request.method == "DELETE")
 	{
 		std::cout << "DELETE METH" << std::endl;
-		deleteFiles(currentServer);
+		deleteFiles(currentClient.request, currentServer);
 	}
 
 	// if (isValidRequest(client.request))
