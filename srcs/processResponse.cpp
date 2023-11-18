@@ -3,6 +3,7 @@
 #include "StartServers.hpp"
 #include "ClientResponse.hpp"
 #include "GenerateMethod.hpp"
+#include "utils.hpp"
 
 bool DEBUG_VERBOSE = false;
 
@@ -62,10 +63,12 @@ void StartServers::createFile(UserRequest request, Server currentServer) // chec
 {
 	std::string fileName = getFileName(request);
 	std::string body = getRequestBody(request.body);
-	std::cout << "TEST " << currentServer.getPostRoot("/form") + "/" + fileName << std::endl;
+	std::string status;
+	bool is_dir;
 	
-	std::ofstream outputFile((currentServer.getPostRoot("/form") + "/" + fileName).c_str(), std::ios::binary);
-	std::cout << "TEST " << currentServer.getPostRoot("/form") + "/" + fileName << std::endl;
+	std::string fileLocation = currentServer.getFileRoute(request.root, status, request.method, is_dir);
+
+	std::ofstream outputFile(fileLocation.c_str(), std::ios::binary);
     if (outputFile.is_open())
     {
         outputFile.write(body.c_str(), body.size());
