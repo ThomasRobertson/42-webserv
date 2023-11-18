@@ -179,13 +179,22 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		}
 	}
 
-	if (location.second.listing)
+	DIR *dir = opendir(fileLocation.c_str());
+	if (dir != NULL)
 	{
-		struct stat path_stat;
-		if (stat(fileLocation.c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
+		if (location.second.listing)
 		{
-			status = "200";
-			is_dir = true;
+			struct stat path_stat;
+			if (stat(fileLocation.c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
+			{
+				status = "200";
+				is_dir = true;
+				return fileLocation;
+			}
+		}
+		else
+		{
+			status = "404";
 			return fileLocation;
 		}
 	}
