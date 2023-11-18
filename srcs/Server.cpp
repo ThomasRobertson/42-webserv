@@ -25,7 +25,8 @@ void Server::setServerValues()
     this->_htmlPageMap = this->_configFile.getFileRoutes(_serverIndex);
     this->_root = this->_configFile.getRoot(_serverIndex);
     // this->_server_name = this->_configFile.getServerName(_serverIndex);
-    this->_postRoot = this->_configFile.getPostRoot(_serverIndex);
+    //this->_postRoot = this->_configFile.getPostRoot(_serverIndex);
+    
 
 }
 
@@ -44,10 +45,10 @@ std::string Server::getRoot()
     return this->_root;
 }
 
-std::string Server::getPostRoot()
-{
-    return this->_postRoot;
-}
+// std::string Server::getPostRoot()
+// {
+//     return this->_postRoot;
+// }
 
 // std::string Server::getServerName()
 // {
@@ -211,6 +212,11 @@ bool Server::getListing(std::string fileLocation)
 std::string Server::getFileName(std::string fileName)
 {
     return _htmlPageMap[fileName].index;
+}
+
+std::string Server::getPostRoot(std::string fileName)
+{
+    return _htmlPageMap[fileName].postRoot;
 }
 
 std::map<std::string, std::string> Server::getCgiPages()

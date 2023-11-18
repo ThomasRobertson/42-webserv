@@ -45,7 +45,7 @@ class Server
         std::string getRoot();
         bool getListing(std::string fileLocation);
         std::string getFileName(std::string fileName);
-        std::string getPostRoot();
+        std::string getPostRoot(std::string fileName);
 
         int getServerSocket(int i);
         int getServerSocketSize();

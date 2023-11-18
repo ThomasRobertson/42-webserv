@@ -62,8 +62,10 @@ void StartServers::createFile(UserRequest request, Server currentServer) // chec
 {
 	std::string fileName = getFileName(request);
 	std::string body = getRequestBody(request.body);
+	std::cout << "TEST " << currentServer.getPostRoot("/form") + "/" + fileName << std::endl;
 	
-	std::ofstream outputFile((currentServer.getPostRoot() + "/" + fileName).c_str(), std::ios::binary);
+	std::ofstream outputFile((currentServer.getPostRoot("/form") + "/" + fileName).c_str(), std::ios::binary);
+	std::cout << "TEST " << currentServer.getPostRoot("/form") + "/" + fileName << std::endl;
     if (outputFile.is_open())
     {
         outputFile.write(body.c_str(), body.size());
@@ -76,7 +78,7 @@ void StartServers::createFile(UserRequest request, Server currentServer) // chec
 
 int StartServers::deleteFiles(Server currentServer)
 {
-	std::string folderPathStr = "./" + currentServer.getPostRoot();
+	std::string folderPathStr = "./" + currentServer.getPostRoot("/form");
 	const char* folderPath = folderPathStr.c_str(); // Specify the folder path you want to list files from
 
     DIR* dir;
