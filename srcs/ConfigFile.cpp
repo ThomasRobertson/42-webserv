@@ -85,12 +85,15 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 
 	std::ifstream file(filename.c_str());
 	if (!file.is_open())
+	{
+		std::cerr << "Error: could not open config file.\n";
 		return 0;
-	
+	}
 
 	if (std::getline(file, line) && line != "server {\r")
 	{
 		file.close();
+		std::cerr << "Config file not starting with the right first line.\n";
 		return 0;
 	}
 
@@ -196,7 +199,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				}
 				else
 				{
-					// std::cout << line << std::endl;
+					std::cout << line << std::endl;
 					return 0;
 				}
 			}
@@ -242,7 +245,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 		}
 		else if (line != "}" && line != "\n" && line != "\r" && line != "}\n" && line != "}\r")
 		{
-			// std::cout << line << std::endl;
+			std::cout << line << std::endl;
 			return 0;
 		}
 		else if (line == "}" || line == "}\n" || line == "}\r")
