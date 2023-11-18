@@ -26,6 +26,7 @@ class Server
         int _serverIndex;
         std::string _root;
         // std::string _server_name;
+        std::string _postRoot;
 
         std::map<std::string, page> _htmlPageMap;
         std::map<std::string, std::string> _errorsMap;
@@ -44,6 +45,7 @@ class Server
         std::string getRoot();
         bool getListing(std::string fileLocation);
         std::string getFileName(std::string fileName);
+        std::string getPostRoot();
 
         int getServerSocket(int i);
         int getServerSocketSize();

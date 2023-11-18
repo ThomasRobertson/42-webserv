@@ -58,12 +58,12 @@ std::string getFileName(UserRequest request)
 	return request.body.substr(nameStartPos, nameEndPos - nameStartPos);
 }
 
-void createFile(UserRequest request) // check if file already exists with same name
+void StartServers::createFile(UserRequest request, Server currentServer) // check if file already exists with same name
 {
 	std::string fileName = getFileName(request);
 	std::string body = getRequestBody(request.body);
-
-	std::ofstream outputFile(("POST/" + fileName).c_str(), std::ios::binary);
+	
+	std::ofstream outputFile((currentServer.getPostRoot() + "/" + fileName).c_str(), std::ios::binary);
     if (outputFile.is_open())
     {
         outputFile.write(body.c_str(), body.size());
@@ -74,9 +74,10 @@ void createFile(UserRequest request) // check if file already exists with same n
         std::cerr << "Failed to open the file for writing." << std::endl;
 }
 
-int deleteFiles()
+int StartServers::deleteFiles(Server currentServer)
 {
-	const char* folderPath = "./POST"; // Specify the folder path you want to list files from
+	std::string folderPathStr = "./" + currentServer.getPostRoot();
+	const char* folderPath = folderPathStr.c_str(); // Specify the folder path you want to list files from
 
     DIR* dir;
     struct dirent* entry;
@@ -105,17 +106,20 @@ void StartServers::processResponse(epoll_event currentEvent)
     std::string response;
 	Client currentClient = _clientList[currentEvent.data.fd];
 
+	Server currentServer = this->_serversVec[currentClient.serverIndex];
+
+
     std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
     if (currentClient.request.method == "POST")
 	{
         std::cout << currentClient.request.body << std::endl;
-		createFile(currentClient.request);
+		createFile(currentClient.request, currentServer);
 	}
 
     if (currentClient.request.method == "DELETE")
 	{
 		std::cout << "DELETE METH" << std::endl;
-		deleteFiles();
+		deleteFiles(currentServer);
 	}
 
 	// if (isValidRequest(client.request))

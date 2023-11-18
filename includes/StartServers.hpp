@@ -64,6 +64,10 @@ class StartServers
         void getRequestNextChunk(int userFd, std::string requestStr);
         std::string getUserResponse(Client client);
         UserRequest getUserRequest(std::string requestStr);
+
+        void createFile(UserRequest request, Server currentServer);
+        int deleteFiles(Server currentServer);
+
 };
 
 class Problem : public std::exception

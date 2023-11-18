@@ -50,6 +50,11 @@ int ConfigFile::getServerNumber()
 // 	return this->_configVecOfMap[serverIndex]["server_name"];
 // }
 
+std::string ConfigFile::getPostRoot(int serverIndex)
+{
+	return this->_configVecOfMap[serverIndex]["post_root"];
+}
+
 std::string ConfigFile::getRoot(int serverIndex)
 {
 	return this->_configVecOfMap[serverIndex]["root"];
@@ -123,6 +128,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				size_t positionRoot = line.find("\t\troot");
 				size_t positionAuthBasic = line.find("\t\tauth_basic");
 				size_t positionAuthBasicUserFile = line.find("\t\tauth_basic_user_file");
+				size_t positionPostRoot = line.find("\t\tpost_root");
 				if (positionRightBracket != std::string::npos && line[1] != '	')
 				{
 					break;
@@ -167,7 +173,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 						return 0;
 					newPage.rootDir = locationRootStr;
 				}
-				else if (positionAuthBasic != std::string::npos && line[2] != '	')//
+				else if (positionAuthBasic != std::string::npos && line[2] != '	')
 				{
 					if (positionSemicolon == std::string::npos)
 						return 0;
@@ -180,6 +186,13 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 						return 0;
 					std::string locationAuthBasicUserFileStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
 					newPage.authBasicUserFile = locationAuthBasicUserFileStr;
+				}
+				else if (positionPostRoot != std::string::npos && line[2] != '	')
+				{
+					if (positionSemicolon == std::string::npos)
+						return 0;
+					std::string locationPostRootStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+					newPage.postRoot = locationPostRootStr;
 				}
 				else
 				{
