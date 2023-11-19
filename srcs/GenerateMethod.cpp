@@ -193,8 +193,9 @@ std::string GenerateMethod::listingDirectory(const std::string &fileLocation, st
 		while ((entry = readdir(dir)))
 		{
 			std::string entryName = entry->d_name;
-			if (entryName != "." && entryName != ".." && entryName.substr(entryName.find_last_of(".") + 1) == "html")
-				directoryListing << "<div class=\"listing-buttons-container\"><button class=\"listing-buttons\" onclick='location.href=\"" << fileName << "/" << entryName << "\";'>" << entryName.substr(0, entryName.length() - 5) << "</button><br>";        	    }
+			if (entryName != "." && entryName != "..")
+				directoryListing << "<div class=\"listing-buttons-container\"><button class=\"listing-buttons\" onclick='location.href=\"" << fileName << "/" << entryName << "\";'>" << entryName << "</button><br>";
+		}
 		closedir(dir);
 	}
 	else

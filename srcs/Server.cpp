@@ -166,41 +166,21 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 
 	std::cout << "root : " << rootDir << " filename: " << fileName << " location: " << location.first << " index: " << location.second.index << std::endl << "method: " << method << std::endl;
 
-	if (!location.second.index.empty() &&
-		(fileName == location.first
-			||
-		(*fileName.rbegin() == '/' && fileName.substr(0, fileName.find_last_of("/")) == location.first)))
-	{
-		std::string rootIndex;
-		if (*location.second.index.begin() == '/')
-			rootIndex = location.second.index;
-		else
-			rootIndex = rootDir + '/' + location.second.index;
-		std::cout << "Testing index file : " << rootIndex << std::endl;
-		status = testAccessPath(rootIndex, method);
-		return (rootIndex);
-	}
-
 	std::string locationAfterRoot = fileName.substr(location.first.size(), std::string::npos);
 	
 	fileLocation = rootDir + locationAfterRoot;
 	std::cout << "second file loc : " << fileLocation<< std::endl;
 
-	if (*fileLocation.rbegin() == '/')
+	if (!location.second.index.empty())
 	{
-		status = testAccessPath(fileLocation + "index.html", method);
+		std::string rootIndex = fileLocation;
+		if (*fileLocation.rbegin() != '/')
+			rootIndex += "/";
+		rootIndex += location.second.index;
+		std::cout << "Testing index file : " << rootIndex << std::endl;
+		status = testAccessPath(rootIndex, method);
 		if (status != "404")
-		{
-			return std::string(fileLocation + "index.html");
-		}
-	}
-	else
-	{
-		status = testAccessPath(fileLocation + "/" + "index.html", method);
-		if (status != "404")
-		{
-			return std::string(fileLocation + "/" + "index.html");
-		}
+			return (rootIndex);
 	}
 
 	DIR *dir = opendir(fileLocation.c_str());
@@ -211,8 +191,8 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 			struct stat path_stat;
 			if (stat(fileLocation.c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
 			{
-				status = "200";
 				is_dir = true;
+				status = "200";
 				return fileLocation;
 			}
 		}
