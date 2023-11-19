@@ -19,7 +19,7 @@ UserRequest StartServers::getUserRequest(std::string requestStr)
 {
     UserRequest request;
 
-	std::cout << YELLOW << "IS A NEW REQUEST" << DEFAULT << std::endl;
+	std::cout << YELLOW << "IS A NEW REQUEST :\n" << requestStr << "\n" << DEFAULT << std::endl;
     size_t spaceSepPos = requestStr.find(" "); // first space char after "GET /scripts/script.js HTTP/1.1"
     request.method = requestStr.substr(0, spaceSepPos);
     requestStr.erase(0, spaceSepPos + 1);
@@ -48,8 +48,8 @@ void StartServers::getRequestNextChunk(int userFd, std::string requestStr)
 	std::cout << YELLOW << "IS UNCOMPLETE REQUEST" << DEFAULT << std::endl;
 	_clientList[userFd].request.body += requestStr;
 	_clientList[userFd].request.length = getBodysize(_clientList[userFd].request.body);
-	// std::cout << RED << _clientList[userFd].request.body << DEFAULT << std::endl;
-	// std::cout << CYAN << _clientList[userFd].request.length << DEFAULT << std::endl;
+	std::cout << RED << _clientList[userFd].request.body << DEFAULT << std::endl;
+	std::cout << CYAN << _clientList[userFd].request.length << DEFAULT << std::endl;
 }
 
 void StartServers::processRequest(epoll_event currentEvent)
