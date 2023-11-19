@@ -151,7 +151,11 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 			return "";
 		}
 		else
+		{
+			status = "200";
 			return (location.second.postRoot);	
+		}
+			
 	}
 	else
 	{

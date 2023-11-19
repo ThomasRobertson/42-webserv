@@ -32,15 +32,15 @@ int	main(int argc, char **argv)
     signal(SIGINT, signalHandler);
 
     StartServers servers(configFile);
-    try
-    {
+    // try
+    // {
         servers.createServers();
         servers.initServers();
-    }
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << std::endl;
-	}
+    // }
+	// catch(const std::exception& e)
+	// {
+	// 	std::cerr << e.what() << std::endl;
+	// }
 
     return 0;
 }

@@ -9,12 +9,20 @@
 class GenerateMethod
 {
 	private:
+	Client _client;
+	Server _server;
+
+	std::string getRequestBody();
+	std::string getFileName();
 
 	public:
-	GenerateMethod() {}
+	GenerateMethod(Client client, Server server) : _client(client), _server(server) {}
 	~GenerateMethod() {}
 
-	static std::string GETMethod(Client client, Server server);
-	static std::string getErrorPageResponse(Client client, Server server, std::string errorCode);
-	static std::string listingDirectory(const std::string &fileLocation, std::string &fileName);
+	std::string GETMethod();
+	std::string POSTMethod();
+	std::string DELETEMethod();
+	std::string CGIMethod();
+	std::string getErrorPageResponse(std::string errorCode);
+	std::string listingDirectory(const std::string &fileLocation, std::string &fileName);
 };
