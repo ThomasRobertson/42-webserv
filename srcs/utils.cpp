@@ -184,3 +184,30 @@ std::string generateErrorPage(std::string errorCode)
 
 	return bodyReponse;
 }
+
+std::string parseFileName(std::string fileLocation)
+{
+	try
+	{
+		std::string fileName = fileLocation.substr(fileLocation.find_last_of("/"));
+		return fileName;
+	}
+	catch (const std::exception&)
+	{
+		return fileLocation;
+	}
+}
+
+std::string parseFileExtension(std::string fileLocation)
+{
+	std::string fileName = parseFileName(fileLocation);
+	try
+	{
+		std::string fileExtension = fileName.substr(fileName.find_last_of("."));
+		return fileExtension;
+	}
+	catch (const std::exception&)
+	{
+		return fileLocation;
+	}
+}

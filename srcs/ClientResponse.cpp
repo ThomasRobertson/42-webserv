@@ -31,8 +31,8 @@ void ClientResponse::generateResponse()
 	_reponse += statusCode.second;
 	_reponse += newLineDelimiter;
 
-	// _reponse += "Connection: keep-alive";
-	// _reponse += newLineDelimiter;
+	_reponse += "Connection: close";
+	_reponse += newLineDelimiter;
 
 	_reponse += "Server: ";
 	_reponse += _serverSoftware;

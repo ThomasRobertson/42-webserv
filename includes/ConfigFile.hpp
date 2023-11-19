@@ -16,6 +16,9 @@ struct page {
     std::vector<std::string> methods;
 	std::string rootDir;
     bool listing;
+	std::string authBasic;
+	std::string authBasicUserFile;
+	std::string postRoot;
 };
 
 class ConfigFile
@@ -54,6 +57,8 @@ class ConfigFile
         int getServerNumber();
         std::string getServerName(int serverIndex);
         std::string getRoot(int serverIndex);
+        std::string getPostRoot(int serverIndex);
+
 
 
         std::string getFileRoute(std::string fileName, std::string &status, std::string method);

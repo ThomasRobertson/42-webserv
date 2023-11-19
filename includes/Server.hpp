@@ -25,7 +25,8 @@ class Server
         int _maxClientBodySize;
         int _serverIndex;
         std::string _root;
-        std::string _server_name;
+        // std::string _server_name;
+        std::string _postRoot;
 
         std::map<std::string, page> _htmlPageMap;
         std::map<std::string, std::string> _errorsMap;
@@ -44,14 +45,15 @@ class Server
         std::string getRoot();
         bool getListing(std::string fileLocation);
         std::string getFileName(std::string fileName);
+        std::string getPostRoot(std::string fileName);
 
         int getServerSocket(int i);
         int getServerSocketSize();
 
         //std::string getErrorPage(std::string errorCode);
-        std::string getCgiPage(std::string cgiName);
+        std::map<std::string, std::string> getCgiPages();
 		std::pair<std::string, page> getRootDir(std::string url);
-        std::string getFileRoute(std::string fileName, std::string &status, std::string method);
+        std::string getFileRoute(std::string fileName, std::string &status, std::string method, bool &is_dir);
 		std::string getErrorPageRoute(std::string errorCode);
 		std::string testAccessPath(std::string location, std::string method);
 

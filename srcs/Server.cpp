@@ -24,7 +24,10 @@ void Server::setServerValues()
     this->_cgiMap = this->_configFile.getCgiPages(_serverIndex);
     this->_htmlPageMap = this->_configFile.getFileRoutes(_serverIndex);
     this->_root = this->_configFile.getRoot(_serverIndex);
-    this->_server_name = this->_configFile.getServerName(_serverIndex);
+    // this->_server_name = this->_configFile.getServerName(_serverIndex);
+    //this->_postRoot = this->_configFile.getPostRoot(_serverIndex);
+    
+
 }
 
 std::string Server::getHost()
@@ -42,10 +45,15 @@ std::string Server::getRoot()
     return this->_root;
 }
 
-std::string Server::getServerName()
-{
-    return this->_server_name;
-}
+// std::string Server::getPostRoot()
+// {
+//     return this->_postRoot;
+// }
+
+// std::string Server::getServerName()
+// {
+//     return this->_server_name;
+// }
 
 int Server::getMaxClientBodySize()
 {
@@ -107,9 +115,9 @@ std::pair<std::string, page> Server::getRootDir(std::string url)
 	return *(_htmlPageMap.find(url));
 }
 
-std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method)
+std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method, bool &is_dir)
 {
-	std::string fileLocation;
+	std::string fileLocation, rootDir;
 	std::pair<std::string, page> location;
 
 	try
@@ -128,25 +136,57 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		return "";
 	}
 
-	if (location.second.rootDir.empty())
-		location.second.rootDir = _root;
-
-	// std::cout << "root : " << _root << " filename: " << fileName << " loc: " << location.first << std::endl;
-
-	if (fileName == location.first && !location.second.index.empty()) //if rootDir, check for index config file
+	if (method == "GET")
 	{
-		std::string rootIndex = location.second.rootDir + location.second.index;
+		if (location.second.rootDir.empty())
+			rootDir = _root + location.first;
+		else
+			rootDir = location.second.rootDir;
+	}
+	else if (method == "POST" || method == "DETELE")
+	{
+		if (location.second.postRoot.empty())
+		{
+			status = "500";
+			return "";
+		}
+		else
+		{
+			status = "200";
+			return (location.second.postRoot);	
+		}
+			
+	}
+	else
+	{
+		std::cout << RED << "Invalid method: " << method << DEFAULT << std::endl;
+		status = "500";
+		return "";
+	}
+
+	std::cout << "root : " << rootDir << " filename: " << fileName << " location: " << location.first << " index: " << location.second.index << std::endl << "method: " << method << std::endl;
+
+	if (!location.second.index.empty() &&
+		(fileName == location.first
+			||
+		(*fileName.rbegin() == '/' && fileName.substr(0, fileName.find_last_of("/")) == location.first)))
+	{
+		std::string rootIndex;
+		if (*location.second.index.begin() == '/')
+			rootIndex = location.second.index;
+		else
+			rootIndex = rootDir + '/' + location.second.index;
 		std::cout << "Testing index file : " << rootIndex << std::endl;
 		status = testAccessPath(rootIndex, method);
 		return (rootIndex);
 	}
 
 	std::string locationAfterRoot = fileName.substr(location.first.size(), std::string::npos);
-	if (*(locationAfterRoot.begin()) != '/')
-		locationAfterRoot = "/" + locationAfterRoot;
-	fileLocation = location.second.rootDir + locationAfterRoot;
+	
+	fileLocation = rootDir + locationAfterRoot;
+	std::cout << "second file loc : " << fileLocation<< std::endl;
 
-	if (*(fileLocation.rbegin()) == '/') //check if index.html present
+	if (*fileLocation.rbegin() == '/')
 	{
 		status = testAccessPath(fileLocation + "index.html", method);
 		if (status != "404")
@@ -154,19 +194,32 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 			return std::string(fileLocation + "index.html");
 		}
 	}
-
-	if (*(fileLocation.rbegin()) == '/') //check for listing directory
+	else
 	{
-		struct stat path_stat;
-		if (stat(fileLocation.c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
+		status = testAccessPath(fileLocation + "/" + "index.html", method);
+		if (status != "404")
 		{
-			status = "200";
-			return fileLocation;
+			return std::string(fileLocation + "/" + "index.html");
+		}
+	}
+
+	DIR *dir = opendir(fileLocation.c_str());
+	if (dir != NULL)
+	{
+		if (location.second.listing)
+		{
+			struct stat path_stat;
+			if (stat(fileLocation.c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))
+			{
+				status = "200";
+				is_dir = true;
+				return fileLocation;
+			}
 		}
 		else
 		{
-			status = "403";
-			return "";
+			status = "404";
+			return fileLocation;
 		}
 	}
 
@@ -184,9 +237,14 @@ std::string Server::getFileName(std::string fileName)
     return _htmlPageMap[fileName].index;
 }
 
-std::string Server::getCgiPage(std::string cgiName)
+std::string Server::getPostRoot(std::string fileName)
 {
-	return this->_cgiMap[cgiName];
+    return _htmlPageMap[fileName].postRoot;
+}
+
+std::map<std::string, std::string> Server::getCgiPages()
+{
+	return this->_cgiMap;
 }
 
 int Server::getServerSocket(int i)
@@ -222,13 +280,13 @@ void setNonBlocking(int sock)
     if (opts < 0)
     {
         perror("fcntl(F_GETFL)");
-        exit(1); //Problem here
+        throw(Problem());
     }
     opts = (opts | O_NONBLOCK);
     if (fcntl(sock, F_SETFL, opts) < 0)
     {
         perror("fcntl(F_SETFL)");
-        exit(1); //Problem here
+        throw(Problem());
     }
 }
 
@@ -300,10 +358,10 @@ void Server::startServers(int epollFd)
         if (rp == NULL)
         {
             std::cerr << "Socket binding error" << std::endl;
-            return ;
+            continue ;
         }
 
-        if (listen(serverSocket, 5) == -1)
+        if (listen(serverSocket, 100) == -1)
         {
             std::cerr << "Socket listening error" << std::endl;
             close(serverSocket);

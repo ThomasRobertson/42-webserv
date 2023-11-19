@@ -1,23 +1,27 @@
 #include "GenerateMethod.hpp"
+#include "cgi.hpp"
+#include "utils.hpp"
 #include <ostream>
 
-std::string GenerateMethod::GETMethod(Client client, Server server)
+std::string GenerateMethod::GETMethod()
 {
-	std::string response, fileLocation, contentType, status;
-	fileLocation = server.getFileRoute(client.request.route, status, client.request.method);
-	// std::cout << "File location : " << fileLocation << std::endl;
+	std::string response, fileLocation, contentType, status, htmlContent;
+	bool is_dir = false;
+	fileLocation = _server.getFileRoute(_client.request.route, status, _client.request.method, is_dir);
+	std::cout << "File location : " << fileLocation << std::endl;
+	std::cout << "Status : " << status << std::endl;
 
 	if (status != "200")
 	{
 		std::cout << "Error while looking for the file, error : " << status << std::endl;
 		contentType = getContentType(".html");
-		return getErrorPageResponse(client, server, status);
+		return getErrorPageResponse(status);
 	}
 
-	if (*(fileLocation.rbegin()) == '/')
+	if (is_dir)
 	{
 		std::cout << "Listing Directory." << std::endl;
-		return listingDirectory(fileLocation, client.request.route);
+		return listingDirectory(fileLocation, _client.request.route);
 	}
 
 	contentType = getContentType(fileLocation);
@@ -27,32 +31,141 @@ std::string GenerateMethod::GETMethod(Client client, Server server)
 	{
 		std::cout << "Could not open file." << std::endl;
 		contentType = getContentType(".html");
-		return getErrorPageResponse(client, server, "500");
+		return getErrorPageResponse("500");
 	}
 
-	std::string htmlContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-	// std::cout << "Content generated for " << fileLocation << "." << std::endl;
+	std::map<std::string, std::string> CGIMaps = _server.getCgiPages();
+	std::cout << "cgi : " << std::string(parseFileExtension(fileLocation)) << std::endl;
+	if (CGIMaps.find(parseFileExtension(fileLocation)) != CGIMaps.end())
+	{
+		CgiHandler CGI(_client, _server, fileLocation, CGIMaps.find(parseFileExtension(fileLocation))->second);
+		htmlContent = CGI.execute();
+	}
+	else
+	{
+		htmlContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	}
+	std::cout << "Content generated for " << fileLocation << "." << std::endl;
+	std::cout << "Body : \n" << htmlContent << std::endl;
 	ClientResponse clientReponse(status, contentType, htmlContent);
 	response = clientReponse.getReponse();
 
 	return response;
 }
 
-std::string GenerateMethod::getErrorPageResponse(Client client, Server server, std::string errorCode)
+std::string GenerateMethod::POSTMethod()
 {
-    std::string response, fileLocation, contentType, content;
+	std::string fileName = getFileName();
+	std::string body = getRequestBody();
+	std::string status, contentType;
+	bool is_dir = false; //TODO: Check value
+	
+	std::string fileLocation = _server.getFileRoute("/form", status, _client.request.method, is_dir); //TODO: replace "/form" with the correct URL
+
+	if (status != "200")
+	{
+		contentType = getContentType(".html");
+		return getErrorPageResponse(status);
+	}
+
+	fileLocation += "/";
+	fileLocation += fileName;
+	std::cout << "Trying to post to : " << fileLocation << "(from fileName: " << fileName << ")" << std::endl;
+
+	std::ofstream outputFile(fileLocation.c_str(), std::ios::binary);
+	if (outputFile.is_open())
+	{
+		outputFile.write(body.c_str(), body.size());
+		outputFile.close();
+		std::cout << "Binary data has been written to " << std::endl;
+	}
+	else
+		std::cerr << "Failed to open the file for writing." << std::endl;
+
+	ClientResponse response(status, "text/plain");
+
+	return response.getReponse();
+}
+
+std::string GenerateMethod::getRequestBody()
+{
+	std::string request = _client.request.body;
+	size_t boundaryStartPos, boundaryEndPos, bodyStartPos, bodyEndPos;
+	std::string boundary, body;
+
+	boundaryStartPos = request.find("boundary=") + std::strlen("boundary=");
+	boundaryEndPos = request.find("\r", boundaryStartPos);
+	boundary = "--" + request.substr(boundaryStartPos, boundaryEndPos - boundaryStartPos);
+
+	bodyStartPos = request.find(boundary) + boundary.size();
+	bodyStartPos = request.find("\r\n\r\n", bodyStartPos) + std::strlen("\r\n\r\n");
+	bodyEndPos = request.find(boundary + "--") - std::strlen("\r\n");
+
+	body = request.substr(bodyStartPos, bodyEndPos - bodyStartPos);
+
+	return body;
+}
+
+std::string GenerateMethod::getFileName()
+{
+	UserRequest request = _client.request;
+	size_t nameStartPos = request.body.find("filename=") + std::strlen("filename=\"");
+	size_t nameEndPos = request.body.find("\"", nameStartPos);
+	
+	return request.body.substr(nameStartPos, nameEndPos - nameStartPos);
+}
+
+std::string GenerateMethod::DELETEMethod()
+{
+	std::string status, contentType;
+	bool is_dir = false; //TODO: check value
+
+	std::string fileLocation = _server.getFileRoute(_client.request.route, status, _client.request.method, is_dir);
+
+	if (status != "200")
+	{
+		contentType = getContentType(".html");
+		return getErrorPageResponse(status);
+	}
+
+	DIR* dir;
+	struct dirent* entry;
+
+	// Open the directory
+	dir = opendir(fileLocation.c_str());
+
+	if (!dir)
+	{
+		std::cerr << "Error opening directory." << std::endl;
+		return getErrorPageResponse("500");
+	}
+
+	while ((entry = readdir(dir)) != NULL)
+	{
+		if (entry->d_type == DT_REG) // Check if it's a regular file
+			std::cout << entry->d_name << std::endl; // Print the file name
+	}
+	closedir(dir);
+
+	ClientResponse response("200", "application/json", "{\"status\": \"success\", \"message\": \"The DELETE request was processed successfully.\"}");
+
+	return response.getReponse();
+}
+
+std::string GenerateMethod::getErrorPageResponse(std::string errorCode)
+{
+	std::string response, fileLocation, contentType, content;
 	
 	contentType = "text/html";
-    
+	
 	try
 	{
-		fileLocation = server.getErrorPageRoute(errorCode);
+		fileLocation = _server.getErrorPageRoute(errorCode);
 		std::ifstream file(fileLocation.c_str());
 		if (!file.is_open())
 		{
 			errorCode = "500";
-			content = getErrorPageResponse(client, server, errorCode);
+			content = getErrorPageResponse(errorCode);
 		}
 		content = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	}
@@ -72,7 +185,7 @@ std::string GenerateMethod::listingDirectory(const std::string &fileLocation, st
 	std::string contentType, status, content;
 
 	std::stringstream directoryListing;
-	directoryListing << "<html><head><title>Webserv Listing</title><link rel=\"stylesheet\" type=\"text/css\" href=\"styles/styleListing.css\"></head><body><h1 class=\"listing-title\">" << fileLocation << "</h1>";
+	directoryListing << "<html><head><title>Webserv Listing</title><link rel=\"stylesheet\" type=\"text/css\" href=\"/styles/styleListing.css\"></head><body><h1 class=\"listing-title\">" << fileLocation << "</h1>";
 
 	DIR *dir = opendir(fileLocation.c_str());
 	if (dir != NULL)
@@ -88,7 +201,7 @@ std::string GenerateMethod::listingDirectory(const std::string &fileLocation, st
 	else
 	{
 		status = "500";
-		content = generateErrorPage(status);
+		content = getErrorPageResponse(status);
 		contentType = "text/html";
 		ClientResponse clientReponse(status, contentType, content);
 		return clientReponse.getReponse();
