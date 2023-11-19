@@ -37,7 +37,7 @@ bool isHeaderComplete(std::string requestStr)
 
 void StartServers::getRequestChunk(UserRequest &request, std::string requestStr)
 {
-	std::cout << YELLOW << "IS A NEW REQUEST" << DEFAULT << std::endl;
+	std::cout << YELLOW << "IS A NEW REQUEST : \n" << requestStr << "\n" << DEFAULT << std::endl;
 
 	request.fullStr += requestStr;
     if (!request.isHeaderComplete) // if header was not complete yet, check if he is now

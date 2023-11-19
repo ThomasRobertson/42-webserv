@@ -12,7 +12,7 @@
 class ClientResponse
 {
 	public:
-		ClientResponse(std::string status, std::string contentType, std::string contentBody);
+		ClientResponse(std::string status, std::string contentType, std::string contentBody = "");
 		~ClientResponse() {}
 
 		std::string getReponse();

@@ -12,7 +12,7 @@ void StartServers::processResponse(epoll_event currentEvent)
 	std::string response;
 	
 	Client currentClient = _clientList[currentEvent.data.fd];
-	Server currentServer = _serversVec[currentClient.serverIndex];
+	Server currentServer = *(currentClient.server);
 	GenerateMethod genMethod(currentClient, currentServer);
 
 

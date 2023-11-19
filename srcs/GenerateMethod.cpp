@@ -89,7 +89,7 @@ std::string GenerateMethod::POSTMethod()
 
 std::string GenerateMethod::getRequestBody()
 {
-	std::string request = _client.request.body;
+	std::string request = _client.request.fullStr;
 	size_t boundaryStartPos, boundaryEndPos, bodyStartPos, bodyEndPos;
 	std::string boundary, body;
 
@@ -108,11 +108,10 @@ std::string GenerateMethod::getRequestBody()
 
 std::string GenerateMethod::getFileName()
 {
-	UserRequest request = _client.request;
-	size_t nameStartPos = request.body.find("filename=") + std::strlen("filename=\"");
-	size_t nameEndPos = request.body.find("\"", nameStartPos);
-	
-	return request.body.substr(nameStartPos, nameEndPos - nameStartPos);
+	size_t nameStartPos = _client.request.fullStr.find("filename=") + std::strlen("filename=\"");
+	size_t nameEndPos = _client.request.fullStr.find("\"", nameStartPos);
+
+	return _client.request.fullStr.substr(nameStartPos, nameEndPos - nameStartPos);
 }
 
 std::string GenerateMethod::DELETEMethod()
