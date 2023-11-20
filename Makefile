@@ -82,7 +82,7 @@ HEADER_VAR =	@echo "${COLOR_CYAN}\
 
 all: $(NAME)
 
-$(NAME): FORCE header
+$(NAME): FORCE header cgi
 	$(HEADER_VAR)
 	@echo -n "${COLOR_YELLOW}Compiling : \n[${COLOR_END}"
 	@$(MAKE) --no-print-directory --silent $(OBJ)
@@ -92,6 +92,9 @@ $(NAME): FORCE header
 	@echo "${COLOR_GREEN}Done. ${COLOR_END}"
 
 FORCE: ;
+
+cgi:
+	@gcc cgi-bin/test-cgi.c -o cgi-bin/test-cgi
 
 $(OBJ): $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
 	@echo -n "${COLOR_YELLOW}#${COLOR_END}"
