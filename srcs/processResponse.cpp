@@ -10,13 +10,11 @@ bool DEBUG_VERBOSE = false;
 
 bool StartServers::isCGIFile(Server server, std::string request)
 {
-	size_t dotPos = request.find_last_of(".");
 	std::map<std::string, std::string> CGI = server.getCgiPages();
-	if (dotPos != std::string::npos)
+	// std::cout << "cgi : " << std::string(parseFileExtension(request)) << std::endl;
+	if (CGI.find(parseFileExtension(request)) != CGI.end())
 	{
-		std::string extension = request.substr(dotPos + 1);
-		if (CGI.find(extension) != CGI.end())
-			return true;
+		return true;
 	}
 	return false;
 }

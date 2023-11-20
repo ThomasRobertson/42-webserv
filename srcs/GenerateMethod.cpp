@@ -16,23 +16,27 @@ std::string GenerateMethod::CGIMethod()
 	std::string cgiBinLocation;
 
 	std::map<std::string, std::string> CGIMap = _server.getCgiPages();
-	size_t dotPos = _client.request.root.find_last_of(".");
-	if (dotPos != std::string::npos)
+
+	// for (std::map<std::string, std::string>::iterator it = CGIMap.begin(); it != CGIMap.end(); it++)
+	// 	std::cout << it->first << " ; " << it->second << std::endl;
+
+	std::cout << "cgi : " << std::string(parseFileExtension(fileLocation)) << std::endl;
+	if (CGIMap.find(parseFileExtension(fileLocation)) != CGIMap.end())
 	{
-		std::string extension = _client.request.root.substr(dotPos + 1);
-		if (CGIMap.find(extension) != CGIMap.end())
-			cgiBinLocation = CGIMap.find(extension)->second;
-		else
-			throw std::runtime_error("CGI was called but no CGI Bin was find.");
+		cgiBinLocation = CGIMap.find(parseFileExtension(fileLocation))->second;
 	}
 	else
+	{
 		throw std::runtime_error("CGI was called but no CGI Bin was find.");
+	}
 
-	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation);
+	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation, "Ceci est un test!");
 
-	ClientResponse response(status, "html", CGI.execute());
+	std::string response = CGI.execute();
+	// std::cout << "The response is :\n" << response << "\n\nEND OF FILE2\n\n";
+	ClientResponse CGIResponse(status, "html", response);
 
-	return response.getReponse();
+	return CGIResponse.getReponse();
 }
 
 std::string GenerateMethod::GETMethod()
@@ -67,17 +71,7 @@ std::string GenerateMethod::GETMethod()
 		return getErrorPageResponse("500");
 	}
 
-	std::map<std::string, std::string> CGIMaps = _server.getCgiPages();
-	std::cout << "cgi : " << std::string(parseFileExtension(fileLocation)) << std::endl;
-	if (CGIMaps.find(parseFileExtension(fileLocation)) != CGIMaps.end())
-	{
-		CgiHandler CGI(_client, _server, fileLocation, CGIMaps.find(parseFileExtension(fileLocation))->second);
-		htmlContent = CGI.execute();
-	}
-	else
-	{
-		htmlContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-	}
+	htmlContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	std::cout << "Content generated for " << fileLocation << "." << std::endl;
 	std::cout << "Body : \n" << htmlContent << std::endl;
 	ClientResponse clientReponse(status, contentType, htmlContent);

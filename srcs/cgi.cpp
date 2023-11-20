@@ -5,6 +5,7 @@
 #include <ostream>
 #include <cstdio>
 #include <cstring>
+#include <unistd.h>
 
 void CgiHandler::build_args_env()
 {
@@ -145,19 +146,22 @@ void CgiHandler::launch_child()
 	}
 	else if (_child_pid == 0)
 	{
-		dup2(_child_pipe[PIPE_WRITE], STDOUT_FILENO);
-		close(_child_pipe[PIPE_READ]);
+		dup2(_child_out_pipe[PIPE_WRITE], STDOUT_FILENO);
+		close(_child_out_pipe[PIPE_READ]);
+		dup2(_child_in_pipe[PIPE_READ], STDIN_FILENO);
+		close(_child_in_pipe[PIPE_WRITE]);
 		child_is_in_orbit();
 	}
 	else
 	{
-		close(_child_pipe[PIPE_WRITE]);
+		close(_child_out_pipe[PIPE_WRITE]);
+		close(_child_in_pipe[PIPE_READ]);
 	}
 }
 
 std::string CgiHandler::capture_child_return()
 {
-	char read_buffer[CGI_BUFFER_SIZE];
+	char read_buffer[CGI_BUFFER_SIZE + 1];
 	ssize_t size_read;
 	std::string return_str;
 	int wstatus;
@@ -171,26 +175,40 @@ std::string CgiHandler::capture_child_return()
 
 	do
 	{
-		size_read = read(_child_pipe[PIPE_READ], read_buffer, CGI_BUFFER_SIZE);
-		std::cout << "read lenght : " << size_read << std::endl;
+		size_read = read(_child_out_pipe[PIPE_READ], read_buffer, CGI_BUFFER_SIZE);
+		// std::cout << "read lenght : " << size_read << " : " << read_buffer << std::endl;
 		if (size_read == -1)
 			throw std::runtime_error("Could not read from file."); // TODO: add errno output
+		read_buffer[size_read] = '\0';
 		if (size_read != 0)
 			return_str += read_buffer;
 	}
 	while (size_read == CGI_BUFFER_SIZE);
-	close(_child_pipe[PIPE_READ]);
+	close(_child_out_pipe[PIPE_READ]);
 	return (return_str);
+}
+
+void CgiHandler::sendBody()
+{
+	if (_body.size() != 0)
+		write(_child_in_pipe[PIPE_WRITE], _body.c_str(), _body.size());
+	close(_child_in_pipe[PIPE_WRITE]);
 }
 
 std::string CgiHandler::execute()
 {
-	if (pipe(_child_pipe))
+	if (pipe(_child_out_pipe))
+		throw std::runtime_error("Could not pipe process.");
+	if (pipe(_child_in_pipe))
 	{
+		close(_child_out_pipe[0]);
+		close(_child_out_pipe[1]);
 		throw std::runtime_error("Could not pipe process.");
 	}
 	build_args_env();
+
 	launch_child();
+	sendBody();
 	std::string return_str = capture_child_return();
 	
 	return (return_str);
