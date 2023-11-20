@@ -39,6 +39,7 @@ std::string GenerateMethod::GETMethod()
 {
 	std::string response, fileLocation, contentType, status, htmlContent;
 	bool is_dir = false;
+	std::cout << "Client root : " <<_client.request.root << "\n" ;
 	fileLocation = _server.getFileRoute(_client.request.root, status, _client.request.method, is_dir);
 	std::cout << "File location : " << fileLocation << std::endl;
 	std::cout << "Status : " << status << std::endl;
@@ -226,8 +227,9 @@ std::string GenerateMethod::listingDirectory(const std::string &fileLocation, st
 		while ((entry = readdir(dir)))
 		{
 			std::string entryName = entry->d_name;
-			if (entryName != "." && entryName != ".." && entryName.substr(entryName.find_last_of(".") + 1) == "html")
-				directoryListing << "<div class=\"listing-buttons-container\"><button class=\"listing-buttons\" onclick='location.href=\"" << fileName << "/" << entryName << "\";'>" << entryName.substr(0, entryName.length() - 5) << "</button><br>";        	    }
+			if (entryName != "." && entryName != "..")
+				directoryListing << "<div class=\"listing-buttons-container\"><button class=\"listing-buttons\" onclick='location.href=\"" << fileName << "/" << entryName << "\";'>" << entryName << "</button><br>";
+		}
 		closedir(dir);
 	}
 	else
