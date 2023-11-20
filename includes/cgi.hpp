@@ -33,8 +33,7 @@ class CgiHandler
 		std::string _fileLocation;
 
 		std::string _cgi_path;
-		std::vector<std::string> _args;
-		std::map<std::string, std::string> _environ;
+		std::vector<std::string> _environ;
 
 		pid_t _child_pid;
 		int _child_pipe[2];
@@ -43,8 +42,5 @@ class CgiHandler
 		void launch_child();
 		void child_is_in_orbit();
 		std::string capture_child_return();
-		// void check_args_env() const; //?Needed ?
-
-
 };
 
