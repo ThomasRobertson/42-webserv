@@ -47,6 +47,8 @@ class StartServers
 
         int _epollFd;
 
+		bool isCGIFile(Server server, std::string request);
+
     public:
         StartServers(ConfigFile configFile);
         ~StartServers();

@@ -1,7 +1,39 @@
 #include "GenerateMethod.hpp"
+#include "ClientResponse.hpp"
 #include "cgi.hpp"
 #include "utils.hpp"
 #include <ostream>
+#include <stdexcept>
+#include <string>
+
+std::string GenerateMethod::CGIMethod()
+{
+	std::string status;
+	bool is_dir = false;
+
+	std::string fileLocation = _server.getFileRoute(_client.request.root, status, _client.request.method, is_dir);
+
+	std::string cgiBinLocation;
+
+	std::map<std::string, std::string> CGIMap = _server.getCgiPages();
+	size_t dotPos = _client.request.root.find_last_of(".");
+	if (dotPos != std::string::npos)
+	{
+		std::string extension = _client.request.root.substr(dotPos + 1);
+		if (CGIMap.find(extension) != CGIMap.end())
+			cgiBinLocation = CGIMap.find(extension)->second;
+		else
+			throw std::runtime_error("CGI was called but no CGI Bin was find.");
+	}
+	else
+		throw std::runtime_error("CGI was called but no CGI Bin was find.");
+
+	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation);
+
+	ClientResponse response(status, "html", CGI.execute());
+
+	return response.getReponse();
+}
 
 std::string GenerateMethod::GETMethod()
 {

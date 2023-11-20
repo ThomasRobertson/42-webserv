@@ -4,8 +4,22 @@
 #include "ClientResponse.hpp"
 #include "GenerateMethod.hpp"
 #include "utils.hpp"
+#include <vector>
 
 bool DEBUG_VERBOSE = false;
+
+bool StartServers::isCGIFile(Server server, std::string request)
+{
+	size_t dotPos = request.find_last_of(".");
+	std::map<std::string, std::string> CGI = server.getCgiPages();
+	if (dotPos != std::string::npos)
+	{
+		std::string extension = request.substr(dotPos + 1);
+		if (CGI.find(extension) != CGI.end())
+			return true;
+	}
+	return false;
+}
 
 void StartServers::processResponse(epoll_event currentEvent)
 {
@@ -17,8 +31,12 @@ void StartServers::processResponse(epoll_event currentEvent)
 
 
 	std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
-	// if (CGI)
-	if (currentClient.request.method == "GET")
+
+	if (isCGIFile(currentServer, currentClient.request.root))
+	{
+		response = genMethod.CGIMethod();
+	}
+	else if (currentClient.request.method == "GET")
 	{
 		response = genMethod.GETMethod();
 	}
