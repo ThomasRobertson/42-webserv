@@ -15,7 +15,7 @@ class ClientResponse
 {
 	public:
 
-	ClientResponse(std::string status, std::string contentType, std::string contentBody = "");
+	ClientResponse(std::string status, std::string contentType, std::string contentBody = "", std::string cookieSet = "");
 	~ClientResponse() {}
 
 	std::string getReponse();
@@ -28,6 +28,7 @@ class ClientResponse
 	const std::string _serverSoftware; //ex: Webserv/42.0
 	std::string _date; //in GMT
 	std::string _contentLength;
+	std::string _cookieSet;
 
 	std::string _reponse;
 

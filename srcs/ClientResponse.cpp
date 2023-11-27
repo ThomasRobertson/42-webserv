@@ -1,6 +1,6 @@
 #include "ClientResponse.hpp"
 
-ClientResponse::ClientResponse(std::string status, std::string contentType, std::string contentBody) : _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE)
+ClientResponse::ClientResponse(std::string status, std::string contentType, std::string contentBody, std::string cookieSet) : _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE), _cookieSet(cookieSet)
 {
 	#ifdef DEBUG
 
@@ -47,6 +47,10 @@ void ClientResponse::generateResponse()
 
 	_reponse += "Content-Length: ";
 	_reponse += _contentLength;
+	_reponse += newLineDelimiter;
+
+	_reponse += "Set-Cookie: ";
+	_reponse += _cookieSet;
 	_reponse += newLineDelimiter;
 
 	// _reponse += "Accept-Ranges: bytes";
