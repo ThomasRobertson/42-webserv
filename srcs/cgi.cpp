@@ -1,14 +1,18 @@
 #include "cgi.hpp"
+
+#include <unistd.h>
+
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
-#include <ostream>
-#include <cstdio>
 #include <cstring>
-#include <unistd.h>
+#include <ostream>
+#include <stdexcept>
 
-void CgiHandler::build_args_env()
-{
+#include "ClientResponse.hpp"
+
+
+void CgiHandler::build_args_env() {
 	std::string value;
 	// --- SERVER ENVIRON ---
 
@@ -59,13 +63,12 @@ void CgiHandler::build_args_env()
 	value = "REMOTE_ADDR=";
 	value += "127.0.0.1";
 	_environ.push_back(value);
-	
-	if (_client.request.method == "POST")
-	{
+
+	if (_client.request.method == "POST") {
 		value = "CONTENT_TYPE=";
 		value += "";
 		_environ.push_back(value);
-	
+
 		value = "CONTENT_LENGTH=";
 		value += "";
 		_environ.push_back(value);
@@ -81,126 +84,168 @@ void CgiHandler::build_args_env()
 
 	// // --- REQUEST ENVIRON ---
 
-	// _environ.push_back("SERVER_PROTOCOL" + SERVER_PROTOCOL); //? Is it HTTP or does it change ?
-	// // _environ.push_back("SERVER_PORT" + _server.getPort()); //?From request or server ?
-	// _environ.push_back("REQUEST_METHOD" + _client.request.method);
-	// _environ.push_back("PATH_INFO" + _fileLocation);
+	// _environ.push_back("SERVER_PROTOCOL" + SERVER_PROTOCOL); //? Is it HTTP
+	// or does it change ?
+	// // _environ.push_back("SERVER_PORT" + _server.getPort()); //?From request
+	// or server ? _environ.push_back("REQUEST_METHOD" +
+	// _client.request.method); _environ.push_back("PATH_INFO" + _fileLocation);
 	// _environ.push_back("PATH_TRANSLATED" + _fileLocation);
 	// _environ.push_back("SCRIPT_NAME" + _cgi_path);
 	// _environ.push_back("QUERY_STRING" + ""); //Todo, parsing string query
 	// _environ.push_back("REMOTE_HOST" + ""); //? Can we leave it empty ?
-	// _environ.push_back("REMOTE_ADDR" + "127.0.0.1"); //TODO : IP adress of client
+	// _environ.push_back("REMOTE_ADDR" + "127.0.0.1"); //TODO : IP adress of
+	// client
 	// // _environ.push_back("AUTH_TYPE" + AUTH_TYPE);
 	// // _environ.push_back("REMOTE_USER" + "");
-	// // _environ.push_back("REMOTE_IDENT" + ""); //? AUTH TYPE, REMOTE USER AND IDENT just if renable by server, implementation needed ?
-	// if (_client.request.method == "POST")
+	// // _environ.push_back("REMOTE_IDENT" + ""); //? AUTH TYPE, REMOTE USER
+	// AND IDENT just if renable by server, implementation needed ? if
+	// (_client.request.method == "POST")
 	// {
 	// 	// _environ.push_back("CONTENT_TYPE" + ""); //TODO: From request
 	// 	// _environ.push_back("CONTENT_LENGTH" + ""); //TODO: From request
 	// }
 	// _environ.push_back("REQUEST_URI" + _fileLocation);
-	
+
 	// // --- CLIENT ENVIRON ---
 
-	// // _environ["HTTP_ACCEPT" + ""); //Todo: what MIME can the client accept, from client. Needed ?
-	// // _environ["HTTP_ACCEPT_LANGUAGE" + ""); //Todo: Language accepted, from client. Needed ?
-	// // _environ["HTTP_USER_AGENT" + "" //Todo: User agent, from client. Needed ?
-	// _environ["HTTP_COOKIE" + ""); //?Do I have to define it?
+	// // _environ["HTTP_ACCEPT" + ""); //Todo: what MIME can the client accept,
+	// from client. Needed ?
+	// // _environ["HTTP_ACCEPT_LANGUAGE" + ""); //Todo: Language accepted, from
+	// client. Needed ?
+	// // _environ["HTTP_USER_AGENT" + "" //Todo: User agent, from client.
+	// Needed ? _environ["HTTP_COOKIE" + ""); //?Do I have to define it?
 }
 
-void CgiHandler::child_is_in_orbit()
-{
-	char **args = new char*[3];
-	args[0] = const_cast<char*>(_cgi_path.c_str());
-	args[1] = const_cast<char*>(_fileLocation.c_str());
+void CgiHandler::child_is_in_orbit() {
+	char **args = new char *[3];
+	args[0] = const_cast<char *>(_cgi_path.c_str());
+	args[1] = const_cast<char *>(_fileLocation.c_str());
 	args[2] = NULL;
 
-	char **environ = new char*[_environ.size() + 1];
+	char **environ = new char *[_environ.size() + 1];
 	std::vector<std::string>::iterator it = _environ.begin();
 	size_t i = 0;
-	while (it != _environ.end())
-	{
-		environ[i] = const_cast<char*>(strdup(it->c_str()));
+	while (it != _environ.end()) {
+		environ[i] = const_cast<char *>(strdup(it->c_str()));
 		it++;
 		i++;
 	}
 	environ[_environ.size()] = NULL;
 
-	std::cout << "About to launch : " << _cgi_path << std::endl;
+	// std::cout << "About to launch : " << _cgi_path << std::endl;
 	_child_pid = execve(_cgi_path.c_str(), args, environ);
 
-	delete [] args;
-	delete [] environ;
+	delete[] args;
+	delete[] environ;
 	std::perror("Cannot launch CGI");
 	std::exit(EXIT_FAILURE);
 }
 
-void CgiHandler::launch_child()
-{
+void CgiHandler::launch_child() {
 	// check_args_env(); //TODO: to implement
 
 	_child_pid = fork();
-	if (_child_pid == -1)
-	{
+	if (_child_pid == -1) {
 		std::runtime_error("Houston we have a problem, abord launch of child");
-	}
-	else if (_child_pid == 0)
-	{
+	} else if (_child_pid == 0) {
 		dup2(_child_out_pipe[PIPE_WRITE], STDOUT_FILENO);
 		close(_child_out_pipe[PIPE_READ]);
 		dup2(_child_in_pipe[PIPE_READ], STDIN_FILENO);
 		close(_child_in_pipe[PIPE_WRITE]);
 		child_is_in_orbit();
-	}
-	else
-	{
+	} else {
 		close(_child_out_pipe[PIPE_WRITE]);
 		close(_child_in_pipe[PIPE_READ]);
 	}
 }
 
-std::string CgiHandler::capture_child_return()
-{
+std::string CgiHandler::capture_child_return() {
 	char read_buffer[CGI_BUFFER_SIZE + 1];
 	ssize_t size_read;
 	std::string return_str;
 	int wstatus;
 
 	pid_t status = waitpid(-1, &wstatus, 0);
-	if (status == - 1)
+	if (status == -1)
 		std::cerr << "No child launched or error while waiting.\n";
 
 	if (WIFEXITED(wstatus))
-		std::cout << "Child return code : " << WEXITSTATUS(wstatus) << std::endl; //! For debug only, to be removed.
+		std::cout << "Child return code : " << WEXITSTATUS(wstatus)
+				  << std::endl;	 //! For debug only, to be removed.
 
-	do
-	{
-		size_read = read(_child_out_pipe[PIPE_READ], read_buffer, CGI_BUFFER_SIZE);
-		// std::cout << "read lenght : " << size_read << " : " << read_buffer << std::endl;
+	do {
+		size_read =
+			read(_child_out_pipe[PIPE_READ], read_buffer, CGI_BUFFER_SIZE);
+		// std::cout << "read lenght : " << size_read << " : " << read_buffer <<
+		// std::endl;
 		if (size_read == -1)
-			throw std::runtime_error("Could not read from file."); // TODO: add errno output
+			throw std::runtime_error(
+				"Could not read from file.");  // TODO: add errno output
 		read_buffer[size_read] = '\0';
-		if (size_read != 0)
-			return_str += read_buffer;
-	}
-	while (size_read == CGI_BUFFER_SIZE);
+		if (size_read != 0) return_str += read_buffer;
+	} while (size_read == CGI_BUFFER_SIZE);
 	close(_child_out_pipe[PIPE_READ]);
 	return (return_str);
 }
 
-void CgiHandler::sendBody()
-{
+void CgiHandler::sendBody() {
 	if (_body.size() != 0)
 		write(_child_in_pipe[PIPE_WRITE], _body.c_str(), _body.size());
 	close(_child_in_pipe[PIPE_WRITE]);
 }
 
-std::string CgiHandler::execute()
-{
+std::string CgiHandler::generateReturnResponse(std::string return_str) {
+	std::string status;
+	std::string contentBody;
+	std::string cookieSet;
+	std::vector<std::string> extraHeaders;
+	std::string contentType;
+
+	std::istringstream returnStream(return_str);
+	std::string line;
+	while (std::getline(returnStream, line)) {
+		if (line.find(':') == std::string::npos)
+			break;
+		else if (line == "")
+			break;
+
+		std::string field_name = line.substr(0, line.find_first_of(':'));
+		std::string fiel_value = line.substr(line.find_first_of(':') + 1);
+
+		if (field_name == "Content-Type:") {
+			if (!contentType.empty())
+				throw std::invalid_argument("");
+			contentType = field_name + fiel_value;
+		} else if (field_name == "Status:") {
+			if (!status.empty())
+				throw std::invalid_argument("");
+			status = field_name + fiel_value;
+		} else if (field_name == "Location:") {
+			extraHeaders.push_back(field_name + fiel_value);
+		} else if (field_name == "Set-Cookie:") {
+			cookieSet += field_name + fiel_value;
+		} else {
+			extraHeaders.push_back(field_name + fiel_value);
+		}
+	}
+	while (std::getline(returnStream, contentBody) && !returnStream.eof()) {
+		contentBody += "\n";
+	}
+	if (contentType.empty())
+		contentType = "text/html";
+	if (status.empty())
+		status = "200";
+	if (status.empty())
+		status = "200";
+	ClientResponse clientResponse(status, contentType, contentBody, "", cookieSet, extraHeaders);
+
+	return clientResponse.getReponse();
+}
+
+std::string CgiHandler::execute() {
 	if (pipe(_child_out_pipe))
 		throw std::runtime_error("Could not pipe process.");
-	if (pipe(_child_in_pipe))
-	{
+	if (pipe(_child_in_pipe)) {
 		close(_child_out_pipe[0]);
 		close(_child_out_pipe[1]);
 		throw std::runtime_error("Could not pipe process.");
@@ -210,6 +255,6 @@ std::string CgiHandler::execute()
 	launch_child();
 	sendBody();
 	std::string return_str = capture_child_return();
-	
+	return_str = generateReturnResponse(return_str);
 	return (return_str);
 }

@@ -15,7 +15,7 @@ class ClientResponse
 {
 	public:
 
-	ClientResponse(std::string status, std::string contentType, std::string contentBody = "", std::string cookieSet = "");
+	ClientResponse(std::string status, std::string contentType, std::string contentBody = "", std::string authenticateRealm = "", std::string cookieSet = "", std::vector<std::string> extraHeaders = std::vector<std::string>());
 	~ClientResponse() {}
 
 	std::string getReponse();
@@ -29,6 +29,8 @@ class ClientResponse
 	std::string _date; //in GMT
 	std::string _contentLength;
 	std::string _cookieSet;
+	std::string _authenticateRealm;
+	std::vector<std::string> _extraHeaders;
 
 	std::string _reponse;
 
