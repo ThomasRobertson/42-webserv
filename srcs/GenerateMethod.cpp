@@ -34,9 +34,10 @@ std::string GenerateMethod::CGIMethod()
 
 	std::string response = CGI.execute();
 	// std::cout << "The response is :\n" << response << "\n\nEND OF FILE2\n\n";
-	ClientResponse CGIResponse(status, "html", response);
+	// ClientResponse CGIResponse(status, "html", response);
 
-	return CGIResponse.getReponse();
+	// return CGIResponse.getReponse();
+	return response;
 }
 
 std::string GenerateMethod::GETMethod()
