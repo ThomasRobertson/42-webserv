@@ -25,6 +25,9 @@ struct UserRequest {
     std::string root;
     std::string body;
     std::string fullRequest;
+    std::string credential;
+    std::vector<std::string> cookies;
+
 
     int contentLength;
     int length;
