@@ -50,74 +50,101 @@ bool StartServers::getNewConnexion(epoll_event currentEvent)
     return false;
 }
 
-// bool StartServers::isValidRequest(UserRequest requestData)
-// {
-//     std::cout << "requestData: fullRequest: " << requestData.fullRequest << "END" << std::endl;
+bool StartServers::isValidRequest(UserRequest requestData)
+{
+    std::cout << "requestData: fullRequest: " << requestData.fullRequest << std::endl << "END" << std::endl;
 
-//     std::string httpRequest = requestData.fullRequest;
+    std::string httpRequest = requestData.fullRequest;
 
-//     std::size_t pos = 0;
-//     std::string line;
-//     bool validRequest = true;
-//     int count = 0;
-//     std::string method, uri, version;
+    std::size_t pos = 0;
+    std::string line;
 
-//     if ((pos = httpRequest.find("\r\n")) != std::string::npos)
-//     {
-//         line = httpRequest.substr(0, pos);
-//         httpRequest.erase(0, pos + 2);
+    bool validRequest = true;
 
-//         std::istringstream lineStream(line);
-//         lineStream >> method >> uri >> version;
+    int countPost = 0;
+    int countOther = 0;
+    std::string method, uri, version;
 
-//         if (method != "GET" && method != "POST" && method != "DELETE")
-//             validRequest = false;
-//         if (version != "HTTP/1.1")
-//             validRequest = false;
-//         if (uri.find('/') != 0)
-//             validRequest = false;
-//     }
+    if ((pos = httpRequest.find("\r\n")) != std::string::npos || !httpRequest.empty())
+    {
+        if (pos != std::string::npos)
+        {
+            line = httpRequest.substr(0, pos);
+            httpRequest.erase(0, pos + 2);
+        }
+        else
+            line = httpRequest;
+        std::istringstream lineStream(line);
+        lineStream >> method >> uri >> version;
 
-//     if (method == "POST")
-//     {
-//         while ((pos = httpRequest.find("\r\n")) != std::string::npos)
-//         {
-//             line = httpRequest.substr(0, pos);
-//             httpRequest.erase(0, pos + 2);
+        if (method != "GET" && method != "POST" && method != "DELETE")
+            return false;
+        if (version != "HTTP/1.1")
+            return false;
+        if (uri.find('/') != 0)
+            return false;
+        if (line.length() > 8000)
+            return false;
 
-//             if (line.empty())
-//                 break;
-//             else if (line.find("Host:") == 0 || line.find("host:") == 0)
-//                 count++;
-//             else if (line.find("Content-Length:") == 0 || line.find("content-length:") == 0)
-//                 count++;
-//             else if (line.find("Content-Type:") == 0 || line.find("content-type:") == 0)
-//                 count++;
-//         }
-//     }
-//     else
-//     {
-//         while ((pos = httpRequest.find("\r\n")) != std::string::npos)
-//         {
-//             line = httpRequest.substr(0, pos);
-//             httpRequest.erase(0, pos + 2);
+        int spaceCount = std::count(line.begin(), line.end(), ' ');
+        if (spaceCount > 2)
+            return false;
+    }
 
-//             if (line.empty())
-//                 break;
-//             else if (line.find("Host:") == 0 || line.find("host:") == 0)
-//                 count++;
-//         }
-//     }
 
-//     if (count == 1 && validRequest && (method == "GET" || method == "DELETE"))
-//         validRequest = true;
-//     else if (count == 3 && validRequest && method == "POST")
-//         validRequest = true;
-//     else 
-//         validRequest = false;
+    while ((pos = httpRequest.find("\r\n")) != std::string::npos || !httpRequest.empty())
+    {
+        if (pos != std::string::npos)
+        {
+            line = httpRequest.substr(0, pos);
+            httpRequest.erase(0, pos + 2);
+        }
+        else
+            line = httpRequest;
 
-//     return validRequest;
-// }
+        if (line.empty())
+            break;
+        else if (line.find("Host:") == 0 || line.find("host:") == 0)
+        {
+            countPost++;
+            countOther++;
+        }
+        else if (line.find("Content-Length:") == 0 || line.find("content-length:") == 0)
+        {
+            countPost++;
+            std::string lengthValue = line.substr(16); // Extract the value after "Content-Length:" or "content-length:"
+            std::istringstream lengthStream(lengthValue);
+            int contentLength;
+
+            if (!(lengthStream >> contentLength) || contentLength <= 0)
+                return false;
+        }
+        else if (line.find("Content-Type:") == 0 || line.find("content-type:") == 0)
+            countPost++;
+
+        if (line.length() > 8000)
+            return false;
+
+        size_t colonPos = line.find(":");
+        if (colonPos != std::string::npos) {
+            std::string headerKey = line.substr(0, colonPos);
+            std::string headerValue = line.substr(colonPos + 1);
+
+            if (headerKey.find(' ') != std::string::npos || headerKey.empty())
+                return false;
+        }
+    }
+
+
+    if (countOther == 1 && (method == "GET" || method == "DELETE"))
+        validRequest = true;
+    else if (countPost == 3 && method == "POST")
+        validRequest = true;
+    else 
+        validRequest = false;
+
+    return validRequest;
+}
 
 void StartServers::closeServers()
 {

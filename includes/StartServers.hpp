@@ -24,6 +24,7 @@ struct UserRequest {
     std::string method;
     std::string root;
     std::string body;
+    std::string fullRequest;
 
     int contentLength;
     int length;
@@ -69,6 +70,7 @@ class StartServers
 
         void createFile(UserRequest request, Server currentServer);
         int deleteFiles(UserRequest request, Server currentServer);
+        bool isValidRequest(UserRequest requestData);
 
 };
 

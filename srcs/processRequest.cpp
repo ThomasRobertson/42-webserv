@@ -19,6 +19,7 @@ UserRequest StartServers::getUserRequest(std::string requestStr)
 {
     UserRequest request;
 
+    request.fullRequest = requestStr;
 	std::cout << YELLOW << "IS A NEW REQUEST :\n" << requestStr << "\n" << DEFAULT << std::endl;
     size_t spaceSepPos = requestStr.find(" "); // first space char after "GET /scripts/script.js HTTP/1.1"
     request.method = requestStr.substr(0, spaceSepPos);

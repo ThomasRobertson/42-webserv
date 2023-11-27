@@ -32,6 +32,8 @@ void StartServers::processResponse(epoll_event currentEvent)
 
 	try
 	{
+		if (!isValidRequest(currentClient.request))
+			response = genMethod.getErrorPageResponse("400");
 		if (isCGIFile(currentServer, currentClient.request.root))
 		{
 			response = genMethod.CGIMethod();
@@ -60,9 +62,6 @@ void StartServers::processResponse(epoll_event currentEvent)
 		response = genMethod.getErrorPageResponse("500");
 	}
 
-	// if (isValidRequest(client.request))
-	// else
-		// response = GenerateMethod::getErrorPageResponse(client, server, "400");
 
 	write(currentEvent.data.fd, response.c_str(), response.length());
 
