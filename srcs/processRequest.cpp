@@ -83,6 +83,18 @@ std::string getRequestMethod(UserRequest request)
     return "";
 }
 
+std::string getRequestRoute(UserRequest request)
+{
+    size_t startPos = request.fullStr.find(" ");
+    if (startPos != std::string::npos)
+    {
+        startPos++;
+        size_t endPos = request.fullStr.find(" ", startPos);
+        return request.fullStr.substr(startPos, endPos - startPos);
+    }
+    return "";
+}
+
 std::string getRequestTransferEncoding(UserRequest request)
 {
     size_t transferStartPos = request.fullStr.find("Transfer-Encoding: ");
@@ -146,6 +158,9 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr)
     {
         if (request.method.empty())
             request.method = getRequestMethod(request);
+
+        if (request.route.empty())
+            request.route = getRequestRoute(request);
 
         if (request.method == "POST")
         {
