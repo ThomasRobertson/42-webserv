@@ -114,41 +114,39 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr)
 	std::cout << YELLOW << "IS A NEW REQUEST : \n" << requestStr << "\n" << DEFAULT << std::endl;
 
     //Cookies
-    // size_t pos = requestStr.find("Cookie:");
-    // if (pos != std::string::npos)
-    // {
-    //     std::string cookieSubstr = requestStr.substr(pos + 8);
-    //     std::string delimiter = "; ";
-    //     size_t start = 0;
-    //     size_t end = cookieSubstr.find(delimiter);
+    size_t pos = requestStr.find("Cookie:");
+    if (pos != std::string::npos)
+    {
+        std::string cookieSubstr = requestStr.substr(pos + 8);
+        std::string delimiter = "; ";
+        size_t start = 0;
+        size_t end = cookieSubstr.find(delimiter);
         
-    //     while (end != std::string::npos)
-    //     {
-    //         std::string cookie = cookieSubstr.substr(start, end - start);
-    //         request.cookies.push_back(cookie);
-    //         start = end + delimiter.length();
-    //         end = cookieSubstr.find(delimiter, start);
-    //     }
+        while (end != std::string::npos)
+        {
+            std::string cookie = cookieSubstr.substr(start, end - start);
+            request.cookies.push_back(cookie);
+            start = end + delimiter.length();
+            end = cookieSubstr.find(delimiter, start);
+        }
         
-    //     std::string lastCookie = cookieSubstr.substr(start);
-    //     request.cookies.push_back(lastCookie);
-    // }
+        std::string lastCookie = cookieSubstr.substr(start);
+        request.cookies.push_back(lastCookie);
+    }
 
+    // Authorization
+    size_t authPos = requestStr.find("Authorization:");
+    if (authPos != std::string::npos)
+    {
+        std::string authHeader = requestStr.substr(authPos);
 
-
-    //Authorization
-    // size_t authPos = requestStr.find("Authorization:");
-    // if (authPos != std::string::npos)
-    // {
-    //     std::string authHeader = requestStr.substr(authPos);
-
-    //     if (authHeader.find("Basic") != std::string::npos)
-    //     {
-    //         size_t spacePos = authHeader.find(' ');
-    //         if (spacePos != std::string::npos)
-    //             std::string credentials = authHeader.substr(spacePos + 1);
-    //     }
-    // }
+        if (authHeader.find("Basic") != std::string::npos)
+        {
+            size_t spacePos = authHeader.find(' ');
+            if (spacePos != std::string::npos)
+                std::string credentials = authHeader.substr(spacePos + 1);
+        }
+    }
 
 	request.fullStr += requestStr;
     if (!request.isHeaderComplete) // if header was not complete yet, check if he is now
