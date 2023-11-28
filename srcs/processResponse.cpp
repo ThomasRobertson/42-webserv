@@ -4,8 +4,20 @@
 #include "ClientResponse.hpp"
 #include "GenerateMethod.hpp"
 #include "utils.hpp"
+#include <vector>
 
 bool DEBUG_VERBOSE = false;
+
+bool StartServers::isCGIFile(Server server, std::string request)
+{
+	std::map<std::string, std::string> CGI = server.getCgiPages();
+	// std::cout << "cgi : " << std::string(parseFileExtension(request)) << std::endl;
+	if (CGI.find(parseFileExtension(request)) != CGI.end())
+	{
+		return true;
+	}
+	return false;
+}
 
 void StartServers::processResponse(epoll_event currentEvent)
 {
@@ -17,29 +29,39 @@ void StartServers::processResponse(epoll_event currentEvent)
 
 
 	std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
-	// if (CGI)
-	if (currentClient.request.method == "GET")
+
+	try
 	{
-		response = genMethod.GETMethod();
+		if (!isValidRequest(currentClient.request))
+			response = genMethod.getErrorPageResponse("400");
+		if (isCGIFile(currentServer, currentClient.request.route))
+		{
+			response = genMethod.CGIMethod();
+		}
+		else if (currentClient.request.method == "GET")
+		{
+			response = genMethod.GETMethod();
+		}
+		else if (currentClient.request.method == "POST")
+		{
+			// std::cout << currentClient.request.body << std::endl;
+			response = genMethod.POSTMethod();
+		}
+		else if (currentClient.request.method == "DELETE")
+		{
+			// std::cout << "DELETE METH" << std::endl;
+			response = genMethod.DELETEMethod();
+		}
+		else
+		{
+			response = genMethod.getErrorPageResponse("405");
+		}		
 	}
-	else if (currentClient.request.method == "POST")
+	catch (const std::exception&)
 	{
-		// std::cout << currentClient.request.body << std::endl;
-		response = genMethod.POSTMethod();
-	}
-	else if (currentClient.request.method == "DELETE")
-	{
-		// std::cout << "DELETE METH" << std::endl;
-		response = genMethod.DELETEMethod();
-	}
-	else
-	{
-		response = genMethod.getErrorPageResponse("405");
+		response = genMethod.getErrorPageResponse("500");
 	}
 
-	// if (isValidRequest(client.request))
-	// else
-		// response = GenerateMethod::getErrorPageResponse(client, server, "400");
 
 	write(currentEvent.data.fd, response.c_str(), response.length());
 

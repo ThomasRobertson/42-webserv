@@ -1,7 +1,8 @@
 #include "ClientResponse.hpp"
 
-ClientResponse::ClientResponse(std::string status, std::string contentType, std::string contentBody) : 
-_status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE)
+// ClientResponse::ClientResponse(std::string status, std::string contentType, std::string contentBody) : 
+// _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE)
+ClientResponse::ClientResponse(std::string status, std::string contentType, std::string contentBody, std::string authenticateRealm, std::string cookieSet, std::vector<std::string> extraHeaders) : _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE), _cookieSet(cookieSet), _authenticateRealm(authenticateRealm), _extraHeaders(extraHeaders)
 {
 	#ifdef DEBUG
 
@@ -50,11 +51,38 @@ void ClientResponse::generateResponse()
 	_reponse += _contentLength;
 	_reponse += newLineDelimiter;
 
+	if (!_cookieSet.empty())
+	{
+		_reponse += "Set-Cookie: ";
+		_reponse += _cookieSet;
+		_reponse += newLineDelimiter;
+	}
+	
+	if (!_authenticateRealm.empty())
+	{
+		_reponse += "WWW-Authenticate: ";
+		_reponse += "Basic realm=";
+		_reponse += _authenticateRealm;
+		_reponse += newLineDelimiter;
+	}
+
 	// _reponse += "Accept-Ranges: bytes";
 	// _reponse += newLineDelimiter;
 
-	_reponse += newLineDelimiter;
-	_reponse += _contentBody;
+	if (!_extraHeaders.empty())
+	{
+		for (std::vector<std::string>::iterator it = _extraHeaders.begin(); it != _extraHeaders.end(); it++)
+		{
+			_reponse += *it;
+			_reponse += newLineDelimiter;
+		}
+	}
+
+	if (!_contentBody.empty())
+	{
+		_reponse += newLineDelimiter;
+		_reponse += _contentBody;
+	}
 }
 
 std::string ClientResponse::getReponse()

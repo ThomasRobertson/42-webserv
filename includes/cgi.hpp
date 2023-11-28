@@ -23,28 +23,28 @@
 class CgiHandler
 {
 	public:
-		CgiHandler(Client client, Server server, std::string fileLocation, std::string cgiBinLocation) : _client(client), _server(server), _fileLocation(fileLocation), _cgi_path(cgiBinLocation) {}
+		CgiHandler(Client client, Server server, std::string fileLocation, std::string cgiBinLocation, std::string body = "") : _client(client), _server(server), _fileLocation(fileLocation), _cgi_path(cgiBinLocation), _body(body) {}
 		~CgiHandler() {};
 		std::string execute();
 
 	private:
 		Client _client;
 		Server _server;
-		std::string _fileLocation;
 
+		std::string _fileLocation;
 		std::string _cgi_path;
-		std::vector<std::string> _args;
-		std::map<std::string, std::string> _environ;
+		std::vector<std::string> _environ;
+		std::string _body;
 
 		pid_t _child_pid;
-		int _child_pipe[2];
+		int _child_out_pipe[2];
+		int _child_in_pipe[2];
 
 		void build_args_env();
 		void launch_child();
 		void child_is_in_orbit();
 		std::string capture_child_return();
-		// void check_args_env() const; //?Needed ?
-
-
+		void sendBody();
+		std::string generateReturnResponse(std::string return_str);
 };
 
