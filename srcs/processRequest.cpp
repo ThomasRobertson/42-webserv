@@ -35,6 +35,26 @@ bool isHeaderComplete(std::string requestStr)
     return true;
 }
 
+std::string getRequestMethod(UserRequest request)
+{
+    size_t methodEndPos = request.fullStr.find(" ");
+    // if (methodEndPos != std::string::npos)
+        return request.fullStr.substr(0, methodEndPos);
+    // return ""
+}
+
+std::string getRequestTransferEncoding(UserRequest request)
+{
+    size_t transferStartPos = request.fullStr.find("Transfer-Encoding: ");
+    if (transferStartPos != std::string::npos)
+    {
+        transferStartPos += std::strlen("Transfer-Encoding: ");
+        size_t transferEndPos = request.fullStr.find("\r\n", transferStartPos);
+        return request.fullStr.substr(transferStartPos, transferEndPos);
+    }
+    return "default";
+}
+
 void StartServers::getRequestChunk(UserRequest &request, std::string requestStr)
 {
 	std::cout << YELLOW << "IS A NEW REQUEST : \n" << requestStr << "\n" << DEFAULT << std::endl;
@@ -46,14 +66,12 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr)
     if (request.isHeaderComplete)
     {
         if (request.method.empty())
-        {
-            size_t methodEndPos = request.fullStr.find(" ");
-            if (methodEndPos != std::string::npos)
-                request.method = request.fullStr.substr(0, methodEndPos);
-        }
+            request.method = getRequestMethod(request);
 
         if (request.method == "POST")
         {
+            // if (request.transferEncoding.empty())
+            //     request.transferEncoding = getRequestTransferEncoding(request);
             if (request.contentLength == 0)
                 request.contentLength = getContentLength(request.fullStr);
             std::cout << RED << "CONTENT-L: " << request.contentLength << DEFAULT << std::endl;
