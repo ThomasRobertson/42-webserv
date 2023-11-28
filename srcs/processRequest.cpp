@@ -1,15 +1,55 @@
 #include "StartServers.hpp"
 #include "ClientRequest.hpp"
 
-int getBodysize(std::string requestStr)
+int hexStringToInt(std::string hexString)
 {
-	size_t bodyStartPos = requestStr.find("\r\n\r\n");
-    if (bodyStartPos == std::string::npos)
+    std::istringstream iss(hexString);
+    int intValue;
+
+    iss >> std::hex >> intValue;
+
+    // if (iss.fail() || !iss.eof()) {
+    //     // Conversion failed
+    //     throw std::invalid_argument("Invalid hexadecimal string");
+    // }
+
+    return intValue;
+}
+
+int getBodysize(std::string requestStr, std::string transferEncoding)
+{
+	size_t startPos = requestStr.find("\r\n\r\n");
+    if (startPos == std::string::npos)
         return 0;
+    startPos += std::strlen("\r\n\r\n");
 
-    std::string body = requestStr.substr(bodyStartPos + 4);
+    if (transferEncoding == "default")
+    {
+        std::string body = requestStr.substr(startPos);
+	    return body.size();
+    }
+    else
+    {
+        int size = 0;
+        std::string sizeStr;
 
-	return body.size();
+        while (true)
+        {
+            size_t endPos = requestStr.find("\r\n", startPos);
+            if (endPos == std::string::npos)
+                break;
+            sizeStr = requestStr.substr(startPos, endPos - startPos);
+            if (sizeStr == "0")
+                break;
+            size += hexStringToInt(sizeStr);
+            startPos = endPos + std::strlen("\r\n");
+            startPos = requestStr.find("\r\n", startPos);
+            if (startPos == std::string::npos)
+                break;
+            startPos += std::strlen("\r\n");
+        }
+        return size;
+    }
 }
 
 int getContentLength(std::string requestStr)
@@ -38,9 +78,9 @@ bool isHeaderComplete(std::string requestStr)
 std::string getRequestMethod(UserRequest request)
 {
     size_t methodEndPos = request.fullStr.find(" ");
-    // if (methodEndPos != std::string::npos)
+    if (methodEndPos != std::string::npos)
         return request.fullStr.substr(0, methodEndPos);
-    // return ""
+    return "";
 }
 
 std::string getRequestTransferEncoding(UserRequest request)
@@ -50,7 +90,7 @@ std::string getRequestTransferEncoding(UserRequest request)
     {
         transferStartPos += std::strlen("Transfer-Encoding: ");
         size_t transferEndPos = request.fullStr.find("\r\n", transferStartPos);
-        return request.fullStr.substr(transferStartPos, transferEndPos);
+        return request.fullStr.substr(transferStartPos, transferEndPos - transferStartPos);
     }
     return "default";
 }
@@ -70,15 +110,19 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr)
 
         if (request.method == "POST")
         {
-            // if (request.transferEncoding.empty())
-            //     request.transferEncoding = getRequestTransferEncoding(request);
+            if (request.transferEncoding.empty())
+                request.transferEncoding = getRequestTransferEncoding(request);
             if (request.contentLength == 0)
                 request.contentLength = getContentLength(request.fullStr);
-            std::cout << RED << "CONTENT-L: " << request.contentLength << DEFAULT << std::endl;
-            request.length = getBodysize(request.fullStr);
+            // std::cout << RED << "CONTENT-L: " << request.contentLength << DEFAULT << std::endl;
+            // std::cout << RED << "CONTENT-E: " << request.transferEncoding << DEFAULT << std::endl;
+            request.length = getBodysize(request.fullStr, request.transferEncoding);
+            // std::cout << RED << "BODYSIZE: " << request.length << DEFAULT << std::endl;
             // if (request.contentLength > maxBodySize)
             //     throw error;
-            if (request.isHeaderComplete && request.length == request.contentLength)
+            if (request.transferEncoding == "default" && request.isHeaderComplete && request.length == request.contentLength)
+                request.isBodyComplete = true;
+            if (request.transferEncoding == "default" && request.isHeaderComplete && request.length == request.contentLength)
                 request.isBodyComplete = true;
         }
         else
@@ -115,11 +159,11 @@ void StartServers::processRequest(epoll_event currentEvent)
 
         if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
         {
-            std::cout << "REQUEST UNCOMPLETE YET: " << currentClient.request.length << "/" << currentClient.request.contentLength << std::endl;
+            std::cout << "REQUEST UNCOMPLETE YET" << std::endl;
             return;
         }
 
-        std::cout << "REQUEST COMPLETE: " << currentClient.request.length << "/" << currentClient.request.contentLength << std::endl;
+        std::cout << "REQUEST COMPLETE" << std::endl;
         event.data.fd = currentEvent.data.fd;
         event.events = EPOLLOUT;
         epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
