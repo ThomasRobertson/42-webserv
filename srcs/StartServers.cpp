@@ -42,7 +42,7 @@ bool StartServers::getNewConnexion(epoll_event currentEvent)
                 newClient.server = &(*serverIt);
                 newClient.request.isBodyComplete = false; // default value
                 newClient.request.isHeaderComplete = false; // default value
-                newClient.request.contentLength = 0; // default value
+                newClient.request.contentLength = -1; // default value
                 newClient.request.length = 0; // default value
                 _clientList[newClient.fd] = newClient;
                 return true;

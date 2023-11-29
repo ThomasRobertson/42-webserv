@@ -18,21 +18,3 @@ struct UserRequest {
     int contentLength;
     int length;
 };
-
-// class ClientRequest
-// {
-// 	private:
-//         std::string _fullStr;
-//         std::string method;
-//         std::string route;
-
-//         bool isHeaderComplete;
-//         bool isBodyComplete;
-//         int contentLength;
-//         int length;
-
-// 	public:
-//         ClientRequest();
-//         ~ClientRequest() {}
-
-// };

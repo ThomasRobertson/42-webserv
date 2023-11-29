@@ -16,7 +16,7 @@ int hexStringToInt(std::string hexString)
     return intValue;
 }
 
-int getBodysize(std::string requestStr, std::string transferEncoding)
+int getBodysize(std::string requestStr, std::string transferEncoding, UserRequest &request)
 {
 	size_t startPos = requestStr.find("\r\n\r\n");
     if (startPos == std::string::npos)
@@ -40,7 +40,10 @@ int getBodysize(std::string requestStr, std::string transferEncoding)
                 break;
             sizeStr = requestStr.substr(startPos, endPos - startPos);
             if (sizeStr == "0")
+            {
+                request.isBodyComplete = true; // if a chunk of size 0 is found, body is complete
                 break;
+            }
             size += hexStringToInt(sizeStr);
             startPos = endPos + std::strlen("\r\n");
             startPos = requestStr.find("\r\n", startPos);
@@ -114,39 +117,39 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr)
 	std::cout << YELLOW << "IS A NEW REQUEST : \n" << requestStr << "\n" << DEFAULT << std::endl;
 
     //Cookies
-    size_t pos = requestStr.find("Cookie:");
-    if (pos != std::string::npos)
-    {
-        std::string cookieSubstr = requestStr.substr(pos + 8);
-        std::string delimiter = "; ";
-        size_t start = 0;
-        size_t end = cookieSubstr.find(delimiter);
+    // size_t pos = requestStr.find("Cookie:");
+    // if (pos != std::string::npos)
+    // {
+    //     std::string cookieSubstr = requestStr.substr(pos + 8);
+    //     std::string delimiter = "; ";
+    //     size_t start = 0;
+    //     size_t end = cookieSubstr.find(delimiter);
         
-        while (end != std::string::npos)
-        {
-            std::string cookie = cookieSubstr.substr(start, end - start);
-            request.cookies.push_back(cookie);
-            start = end + delimiter.length();
-            end = cookieSubstr.find(delimiter, start);
-        }
+    //     while (end != std::string::npos)
+    //     {
+    //         std::string cookie = cookieSubstr.substr(start, end - start);
+    //         request.cookies.push_back(cookie);
+    //         start = end + delimiter.length();
+    //         end = cookieSubstr.find(delimiter, start);
+    //     }
         
-        std::string lastCookie = cookieSubstr.substr(start);
-        request.cookies.push_back(lastCookie);
-    }
+    //     std::string lastCookie = cookieSubstr.substr(start);
+    //     request.cookies.push_back(lastCookie);
+    // }
 
     // Authorization
-    size_t authPos = requestStr.find("Authorization:");
-    if (authPos != std::string::npos)
-    {
-        std::string authHeader = requestStr.substr(authPos);
+    // size_t authPos = requestStr.find("Authorization:");
+    // if (authPos != std::string::npos)
+    // {
+    //     std::string authHeader = requestStr.substr(authPos);
 
-        if (authHeader.find("Basic") != std::string::npos)
-        {
-            size_t spacePos = authHeader.find(' ');
-            if (spacePos != std::string::npos)
-                std::string credentials = authHeader.substr(spacePos + 1);
-        }
-    }
+    //     if (authHeader.find("Basic") != std::string::npos)
+    //     {
+    //         size_t spacePos = authHeader.find(' ');
+    //         if (spacePos != std::string::npos)
+    //             std::string credentials = authHeader.substr(spacePos + 1);
+    //     }
+    // }
 
 	request.fullStr += requestStr;
     if (!request.isHeaderComplete) // if header was not complete yet, check if he is now
@@ -164,22 +167,20 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr)
         {
             if (request.transferEncoding.empty())
                 request.transferEncoding = getRequestTransferEncoding(request);
-            if (request.contentLength == 0)
+            if (request.contentLength == -1)
                 request.contentLength = getContentLength(request.fullStr);
+            request.length = getBodysize(request.fullStr, request.transferEncoding, request);
             // std::cout << RED << "CONTENT-L: " << request.contentLength << DEFAULT << std::endl;
             // std::cout << RED << "CONTENT-E: " << request.transferEncoding << DEFAULT << std::endl;
-            request.length = getBodysize(request.fullStr, request.transferEncoding);
-            // std::cout << RED << "BODYSIZE: " << request.length << DEFAULT << std::endl;
-            // if (request.contentLength > maxBodySize)
+            std::cout << RED << "BODYSIZE: " << request.length << DEFAULT << std::endl;
+            // if (request.length > maxBodySize)
             //     throw error;
-            if (request.transferEncoding == "default" && request.isHeaderComplete && request.length == request.contentLength)
-                request.isBodyComplete = true;
-            if (request.transferEncoding == "default" && request.isHeaderComplete && request.length == request.contentLength)
+            if (request.transferEncoding == "default" && request.length == request.contentLength)
                 request.isBodyComplete = true;
         }
         else
         {
-            if (request.isHeaderComplete)
+            if (request.isHeaderComplete) // set bodyComplete to true because GET method doesn't need a body
                 request.isBodyComplete = true;
         }
     }
@@ -187,7 +188,7 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr)
 
 void StartServers::processRequest(epoll_event currentEvent)
 {
-    int chunkSize = 1024;
+    int chunkSize = 16384;
     char buffer[chunkSize];
     ssize_t bytesRead;
     struct epoll_event event;
