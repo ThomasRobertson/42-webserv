@@ -1,5 +1,6 @@
 #include "cgi.hpp"
 
+#include <string>
 #include <unistd.h>
 
 #include <cstddef>
@@ -10,7 +11,8 @@
 #include <stdexcept>
 
 #include "ClientResponse.hpp"
-
+#include "GenerateMethod.hpp"
+#include "Settings.hpp"
 
 void CgiHandler::build_args_env() {
 	std::string value;
@@ -210,22 +212,33 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 			break;
 
 		std::string field_name = line.substr(0, line.find_first_of(':'));
-		std::string fiel_value = line.substr(line.find_first_of(':') + 1);
+		std::string field_value = line.substr(line.find_first_of(':') + 1);
+		field_value.erase(0, field_value.find_first_not_of(' '));
+		if (field_value.find_first_of(';') != std::string::npos)
+			field_value.erase(field_value.find_first_of(';'));
+		std::cout << field_name << " + " << field_value << std::endl;
 
-		if (field_name == "Content-Type:") {
+		if (field_name == "Content-Type") {
 			if (!contentType.empty())
 				throw std::invalid_argument("");
-			contentType = field_name + fiel_value;
-		} else if (field_name == "Status:") {
+			else
+				contentType = field_value;
+		}
+		else if (field_name == "Status") {
 			if (!status.empty())
 				throw std::invalid_argument("");
-			status = field_name + fiel_value;
-		} else if (field_name == "Location:") {
-			extraHeaders.push_back(field_name + fiel_value);
-		} else if (field_name == "Set-Cookie:") {
-			cookieSet += field_name + fiel_value;
-		} else {
-			extraHeaders.push_back(field_name + fiel_value);
+			std::cout << "add status" << std::endl;
+			status = field_value;
+		}
+		else if (field_name == "Location") {
+			extraHeaders.push_back(field_name + field_value);
+		}
+		else if (field_name == "Set-Cookie") {
+			cookieSet += field_value;
+		}
+		else {
+			std::cout << GREEN << "Adding extra headers to response : " << field_name << " " << field_value << DEFAULT << std::endl;
+			extraHeaders.push_back(field_name + field_value);
 		}
 	}
 	while (std::getline(returnStream, contentBody) && !returnStream.eof()) {
@@ -234,10 +247,9 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 	if (contentType.empty())
 		contentType = "text/html";
 	if (status.empty())
-		status = "200";
-	if (status.empty())
-		status = "200";
-	ClientResponse clientResponse(status, contentType, contentBody, "", cookieSet, extraHeaders);
+		status = "200 OK";
+	std::cout << status << std::endl;
+	ClientResponse clientResponse(false, status, contentType, contentBody, "", cookieSet, extraHeaders);
 
 	return clientResponse.getReponse();
 }
@@ -255,6 +267,8 @@ std::string CgiHandler::execute() {
 	launch_child();
 	sendBody();
 	std::string return_str = capture_child_return();
+	std::cout << return_str << std::endl;
 	return_str = generateReturnResponse(return_str);
+	std::cout << GREEN << "reponse is:" << return_str << DEFAULT << std::endl;
 	return (return_str);
 }

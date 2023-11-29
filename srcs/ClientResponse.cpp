@@ -1,8 +1,12 @@
 #include "ClientResponse.hpp"
+#include "Settings.hpp"
+
+const std::string ClientResponse::spaceDelimiter = " ";
+const std::string ClientResponse::newLineDelimiter = "\r\n";
 
 // ClientResponse::ClientResponse(std::string status, std::string contentType, std::string contentBody) : 
 // _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE)
-ClientResponse::ClientResponse(std::string status, std::string contentType, std::string contentBody, std::string authenticateRealm, std::string cookieSet, std::vector<std::string> extraHeaders) : _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE), _cookieSet(cookieSet), _authenticateRealm(authenticateRealm), _extraHeaders(extraHeaders)
+ClientResponse::ClientResponse(bool parseStatus, std::string status, std::string contentType, std::string contentBody, std::string authenticateRealm, std::string cookieSet, std::vector<std::string> extraHeaders) : _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE), _cookieSet(cookieSet), _authenticateRealm(authenticateRealm), _extraHeaders(extraHeaders)
 {
 	#ifdef DEBUG
 
@@ -16,20 +20,25 @@ ClientResponse::ClientResponse(std::string status, std::string contentType, std:
 	_date = _dateStream.str();
 
 	_contentLength = sizeToString(_contentBody.length());
+
+	if (parseStatus)
+	{
+		std::pair<std::string, std::string> statusCode = getStatus(_status);
+		
+		_status = statusCode.first;
+		_status += spaceDelimiter;
+		_status += statusCode.second;
+		
+	}
+	std::cout << RED << _status << DEFAULT << std::endl;
 }
 
 void ClientResponse::generateResponse()
 {
-	static const std::string spaceDelimiter = " ";
-	static const std::string newLineDelimiter = "\r\n";
-
 	_reponse = _serverProtocol;
 	_reponse += spaceDelimiter;
 
-	std::pair<std::string, std::string> statusCode = getStatus(_status);
-	_reponse += statusCode.first;
-	_reponse += spaceDelimiter;
-	_reponse += statusCode.second;
+	_reponse += _status;
 	_reponse += newLineDelimiter;
 
 	_reponse += "Connection: close";
@@ -88,5 +97,6 @@ void ClientResponse::generateResponse()
 std::string ClientResponse::getReponse()
 {
 	generateResponse();
+	std::cout << YELLOW << "Response is :\n" << _reponse << DEFAULT;
 	return (_reponse);
 }

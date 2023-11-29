@@ -1,5 +1,6 @@
 #include "GenerateMethod.hpp"
 #include "ClientResponse.hpp"
+#include "Settings.hpp"
 #include "cgi.hpp"
 #include "utils.hpp"
 #include <ostream>
@@ -31,12 +32,19 @@ std::string GenerateMethod::CGIMethod()
 	}
 
 	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation, "Ceci est un test!");
+	
+	std::string response;
+	try
+	{
+		response = CGI.execute();
+		std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
+	}
+	catch (const std::exception&)
+	{
+		response = getErrorPageResponse("500");
+		std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
+	}
 
-	std::string response = CGI.execute();
-	// std::cout << "The response is :\n" << response << "\n\nEND OF FILE2\n\n";
-	// ClientResponse CGIResponse(status, "html", response);
-
-	// return CGIResponse.getReponse();
 	return response;
 }
 
@@ -74,7 +82,7 @@ std::string GenerateMethod::GETMethod()
 	htmlContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	std::cout << "Content generated for " << fileLocation << "." << std::endl;
 	std::cout << "Body : \n" << htmlContent << std::endl;
-	ClientResponse clientReponse(status, contentType, htmlContent);
+	ClientResponse clientReponse(true, status, contentType, htmlContent);
 	response = clientReponse.getReponse();
 
 	return response;
@@ -109,7 +117,7 @@ std::string GenerateMethod::POSTMethod()
 	else
 		std::cerr << "Failed to open the file for writing." << std::endl;
 
-	ClientResponse response(status, "text/plain");
+	ClientResponse response(true, status, "text/plain");
 
 	return response.getReponse();
 }
@@ -200,7 +208,7 @@ std::string GenerateMethod::getErrorPageResponse(std::string errorCode)
 		content = generateErrorPage(errorCode);
 	}
 
-	ClientResponse clientReponse(errorCode, contentType, content);
+	ClientResponse clientReponse(true, errorCode, contentType, content);
 
 	response = clientReponse.getReponse();
 	return response;
@@ -230,7 +238,7 @@ std::string GenerateMethod::listingDirectory(const std::string &fileLocation, st
 		status = "500";
 		content = getErrorPageResponse(status);
 		contentType = "text/html";
-		ClientResponse clientReponse(status, contentType, content);
+		ClientResponse clientReponse(true, status, contentType, content);
 		return clientReponse.getReponse();
 	}
 	
@@ -239,7 +247,7 @@ std::string GenerateMethod::listingDirectory(const std::string &fileLocation, st
 	status = "200";
 	contentType = "text/html";
 	content = directoryListing.str();
-	ClientResponse clientReponse(status, contentType, content);
+	ClientResponse clientReponse(true, status, contentType, content);
 
 	return clientReponse.getReponse();
 }
