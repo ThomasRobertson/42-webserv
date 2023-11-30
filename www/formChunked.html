@@ -1,0 +1,65 @@
+<!-- Index.html -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Webserv 42</title>
+        <link rel="icon" href="styles/favicon.png" type="image/x-icon">
+        <link rel="stylesheet" type="text/css" href="styles/style.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <div class="main-container">
+			<h1 class="main-title">Form</h1>
+			<div>
+				<form id="form"  method="post">
+					<!-- <input id="input-file" type="file" name="file" accept=".jpg, .png, .txt"/> -->
+					<!-- <input type="text" id="dataInput" placeholder="Enter data"> -->
+					<button id="submit-button" type="submit">Upload File</button>
+				</form>
+			</div>
+        </div>
+        <script>
+			const form = document.getElementById("form");
+			
+			form.addEventListener("submit", function (e) {
+				e.preventDefault();
+
+				const form_data = new FormData(form);
+				const host = window.location.hostname;
+				// const data = document.getElementById("dataInput").value;
+
+				// if (!data)
+				// {
+        		// 	alert('Please enter data');
+       			// 	return;
+     			// }
+
+				const chunkSize = 10; // Define your chunk size
+				let index = 0;
+				
+				const test =	"5\r\nabcde\r\n0\r\n\r\n"
+
+				// while (index < data.length) {
+				// 	const chunk = data.substring(index, index + chunkSize);
+					
+				fetch(host, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/octet-stream',
+              			'Transfer-Encoding': 'chunked'
+					},
+					// body: test
+				})
+				.then(response => response.json())
+				.then(response => console.log(JSON.stringify(response)))
+
+				// 	index += chunkSize;
+				// }
+
+				console.log('Chunked request sent successfully');
+			})
+		</script>
+	</body>
+</html>

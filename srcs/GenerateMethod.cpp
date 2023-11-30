@@ -81,7 +81,7 @@ std::string GenerateMethod::GETMethod()
 
 	htmlContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	std::cout << "Content generated for " << fileLocation << "." << std::endl;
-	std::cout << "Body : \n" << htmlContent << std::endl;
+	// std::cout << "Body : \n" << htmlContent << std::endl;
 	ClientResponse clientReponse(true, status, contentType, htmlContent);
 	response = clientReponse.getReponse();
 

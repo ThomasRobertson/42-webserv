@@ -19,40 +19,14 @@ int hexStringToInt(std::string hexString)
 int getBodysize(std::string requestStr)
 {
 	size_t startPos = requestStr.find("\r\n\r\n");
+
     if (startPos == std::string::npos)
         return 0;
+
     startPos += std::strlen("\r\n\r\n");
-
-    // if (transferEncoding == "default")
-    // {
     std::string body = requestStr.substr(startPos);
-    return body.size();
-    // }
-    // else
-    // {
-    //     int size = 0;
-    //     std::string sizeStr;
 
-    //     while (true)
-    //     {
-    //         size_t endPos = requestStr.find("\r\n", startPos);
-    //         if (endPos == std::string::npos)
-    //             break;
-    //         sizeStr = requestStr.substr(startPos, endPos - startPos);
-    //         if (sizeStr == "0")
-    //         {
-    //             request.isBodyComplete = true; // if a chunk of size 0 is found, body is complete
-    //             break;
-    //         }
-    //         size += hexStringToInt(sizeStr);
-    //         startPos = endPos + std::strlen("\r\n");
-    //         startPos = requestStr.find("\r\n", startPos);
-    //         if (startPos == std::string::npos)
-    //             break;
-    //         startPos += std::strlen("\r\n");
-    //     }
-    //     return size;
-    // }
+    return body.size();
 }
 
 int getContentLength(std::string requestStr)
@@ -194,6 +168,16 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr,
     }
 }
 
+// This is how we process the request:
+
+// - We read the client fd to receive the request as a string in the buffer.
+// - If the size of bytes read is 0 then either the client disconnected or an error occured.
+// - If the size is not 0, request was received successfully.
+// - We parse the request string and put all the data in the client.request struct.
+// - While parsing the request, we check that the request is complete (different methods for GET, POST OR DELETE).
+// - If the request is complete, we open EPOLLOUT which means the request is ready for a response.
+// - If the request is NOT complete, we let EPOLLIN open so the next part can be received.
+
 void StartServers::processRequest(epoll_event currentEvent)
 {
     int chunkSize = 16384;
@@ -203,6 +187,7 @@ void StartServers::processRequest(epoll_event currentEvent)
     Client &currentClient = _clientList[currentEvent.data.fd];
 
     std::cout << "----------------------- NEW REQUEST: " << currentEvent.data.fd << " -----------------------" << std::endl;
+
     bytesRead = read(currentEvent.data.fd, buffer, chunkSize);
 
     if (bytesRead <= 0) // error case

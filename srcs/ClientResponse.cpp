@@ -97,6 +97,6 @@ void ClientResponse::generateResponse()
 std::string ClientResponse::getReponse()
 {
 	generateResponse();
-	std::cout << YELLOW << "Response is :\n" << _reponse << DEFAULT;
+	// std::cout << YELLOW << "Response is :\n" << _reponse << DEFAULT;
 	return (_reponse);
 }
