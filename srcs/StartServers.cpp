@@ -1,5 +1,6 @@
 #include "StartServers.hpp"
 #include "ClientRequest.hpp"
+#include "utils.hpp"
 
 StartServers::StartServers(ConfigFile configFile) : _configFile(configFile) {}
 
@@ -39,6 +40,7 @@ bool StartServers::getNewConnexion(epoll_event currentEvent)
             if (currentEvent.data.fd == serverIt->getServerSocket(portIndex))
             {
                 newClient.fd = serverIt->acceptNewClient(_epollFd, portIndex);
+                newClient.lastActionDate = getDate();
                 newClient.server = &(*serverIt);
                 newClient.request.isBodyComplete = false; // default value
                 newClient.request.isHeaderComplete = false; // default value
@@ -174,13 +176,35 @@ void StartServers::closeServers()
         close(clientIt->first);
 }
 
+void StartServers::checkTimeout()
+{
+    std::map<int, Client>::iterator clientIter;
+    int timeoutValue = 5;
+
+    for (clientIter = this->_clientList.begin(); clientIter != this->_clientList.end();)
+    {
+        if (getDate() - clientIter->second.lastActionDate > timeoutValue)
+        {
+            int clientFd = clientIter->second.fd;
+            std::cout << RED << "Client: " << clientFd << " disconnected from timeout." << DEFAULT << std::endl;
+            clientIter++;
+            _clientList.erase(clientFd);
+            epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL);
+            close(clientFd);
+        }
+        else
+            clientIter++;
+    }
+}
+
 void StartServers::listenClientRequest()
 {
     epoll_event events[64];
 
     while (true)
     {
-        int numEvents = epoll_wait(_epollFd, events, 64, -1);
+        int numEvents = epoll_wait(_epollFd, events, 64, 1000);
+        checkTimeout();
         if (EXIT_G == true)
             break;
         for (int i = 0; i < numEvents; i++)

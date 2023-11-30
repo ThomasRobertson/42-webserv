@@ -32,8 +32,11 @@ extern bool EXIT_G;
 struct Client
 {
     int fd;
+
     Server *server;
     UserRequest request;
+
+    time_t lastActionDate;
 };
 
 class StartServers
@@ -55,6 +58,7 @@ class StartServers
 		void createServers();
         void initServers();
 
+        void checkTimeout();
         bool getNewConnexion(epoll_event currentEvent);
         void processRequest(epoll_event currentEvent);
         void processResponse(epoll_event currentEvent);

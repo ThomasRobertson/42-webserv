@@ -1,5 +1,13 @@
 #include "utils.hpp"
 
+time_t getDate()
+{
+    time_t seconds;
+
+    seconds = time(NULL);
+    return seconds;
+}
+
 static std::map<std::string, std::string> constructMapMIME()
 {
 	static const std::pair<std::string, std::string> extensionToMIME_pair[] = {

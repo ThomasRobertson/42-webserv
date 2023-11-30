@@ -61,7 +61,6 @@ void StartServers::processResponse(epoll_event currentEvent)
 		response = genMethod.getErrorPageResponse("500");
 	}
 
-
 	write(currentEvent.data.fd, response.c_str(), response.length());
 
 	_clientList.erase(currentEvent.data.fd);
