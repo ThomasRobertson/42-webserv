@@ -190,6 +190,8 @@ void StartServers::processRequest(epoll_event currentEvent)
 
     bytesRead = read(currentEvent.data.fd, buffer, chunkSize);
 
+    currentClient.lastActionDate = getDate(); // update timeout
+
     if (bytesRead <= 0) // error case
     {
         epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, &event);
