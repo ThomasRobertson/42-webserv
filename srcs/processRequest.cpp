@@ -16,7 +16,7 @@ int hexStringToInt(std::string hexString)
     return intValue;
 }
 
-int getBodysize(std::string requestStr, std::string transferEncoding, UserRequest &request)
+int getBodysize(std::string requestStr)
 {
 	size_t startPos = requestStr.find("\r\n\r\n");
     if (startPos == std::string::npos)
@@ -175,7 +175,7 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr,
             if (request.contentLength == -1)
                 request.contentLength = getContentLength(request.fullStr);
 
-            request.length = getBodysize(request.fullStr, request.transferEncoding, request);
+            request.length = getBodysize(request.fullStr);
             // std::cout << RED << "CONTENT-L: " << request.contentLength << DEFAULT << std::endl;
             // std::cout << RED << "CONTENT-E: " << request.transferEncoding << DEFAULT << std::endl;
             // std::cout << RED << "BODYSIZE: " << request.length << DEFAULT << std::endl;
