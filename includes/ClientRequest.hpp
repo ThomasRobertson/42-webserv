@@ -18,3 +18,9 @@ struct UserRequest {
     int contentLength;
     int length;
 };
+
+class MaxClientBodySizeExceed : public std::exception
+{
+    public:
+        virtual const char* what() const throw() {return "Body size limit exceed !";};
+};

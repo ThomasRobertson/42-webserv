@@ -27,7 +27,6 @@ void StartServers::processResponse(epoll_event currentEvent)
 	Server currentServer = *(currentClient.server);
 	GenerateMethod genMethod(currentClient, currentServer);
 
-
 	std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
 
 	try

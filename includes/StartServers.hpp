@@ -62,13 +62,10 @@ class StartServers
 
         void listenClientRequest();
 
-        // void getRequestNextChunk(UserRequest &request, std::string requestStr);
-        void getRequestChunk(UserRequest &request, std::string requestStr);
+        void getRequestChunk(UserRequest &request, std::string requestStr, int maxBodySize);
+        UserRequest getUserRequest(std::string requestStr);
         std::string getUserResponse(Client &client);
 
-        // void getRequestNextChunk(int userFd, std::string requestStr);
-        // std::string getUserResponse(Client client);
-        UserRequest getUserRequest(std::string requestStr);
 
         void createFile(UserRequest request, Server currentServer);
         int deleteFiles(UserRequest request, Server currentServer);
