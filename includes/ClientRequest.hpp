@@ -16,7 +16,7 @@ struct UserRequest {
     bool isHeaderComplete;
     bool isBodyComplete;
     int contentLength;
-    int length;
+    int bodySize;
 };
 
 class MaxClientBodySizeExceed : public std::exception

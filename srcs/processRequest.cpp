@@ -175,13 +175,13 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr,
             if (request.contentLength == -1)
                 request.contentLength = getContentLength(request.fullStr);
 
-            request.length = getBodysize(request.fullStr);
+            request.bodySize = getBodysize(request.fullStr);
             // std::cout << RED << "CONTENT-L: " << request.contentLength << DEFAULT << std::endl;
             // std::cout << RED << "CONTENT-E: " << request.transferEncoding << DEFAULT << std::endl;
             // std::cout << RED << "BODYSIZE: " << request.length << DEFAULT << std::endl;
-            if (request.length > maxBodySize)
+            if (request.bodySize > maxBodySize)
                 throw MaxClientBodySizeExceed();
-            if (request.transferEncoding == "default" && request.length == request.contentLength)
+            if (request.transferEncoding == "default" && request.bodySize == request.contentLength)
                 request.isBodyComplete = true;
             else if (request.transferEncoding == "chunked" && isLastChunkReceived(request.fullStr))
                 request.isBodyComplete = true;
