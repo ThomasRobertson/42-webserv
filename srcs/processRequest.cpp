@@ -86,7 +86,7 @@ std::string getRequestTransferEncoding(UserRequest request)
 
 bool isLastChunkReceived(std::string str)
 {
-    if (str.find("\r\n0\r\n\r\n"))
+    if (str.find("\r\n0\r\n\r\n") != std::string::npos)
         return true;
     return false;
 }
