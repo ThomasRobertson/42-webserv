@@ -284,7 +284,7 @@ int Server::acceptNewClient(int epollFd, int serverIndex)
     event.events = EPOLLIN;
     epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event);
 
-    std::cout << GREEN << "New client connected: " << clientSocket << DEFAULT << std::endl;
+    std::cout << GREEN << "[i] New client connected: " << clientSocket << DEFAULT << std::endl;
     return clientSocket;
 }
 

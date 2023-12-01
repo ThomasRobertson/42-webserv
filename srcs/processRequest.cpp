@@ -150,11 +150,10 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr,
                 request.contentLength = getContentLength(request.fullStr);
 
             request.bodySize = getBodysize(request.fullStr);
-            // std::cout << RED << "CONTENT-L: " << request.contentLength << DEFAULT << std::endl;
-            // std::cout << RED << "CONTENT-E: " << request.transferEncoding << DEFAULT << std::endl;
-            // std::cout << RED << "BODYSIZE: " << request.length << DEFAULT << std::endl;
+
             if (request.bodySize > maxBodySize)
                 throw MaxClientBodySizeExceed();
+
             if (request.transferEncoding == "default" && request.bodySize == request.contentLength)
                 request.isBodyComplete = true;
             else if (request.transferEncoding == "chunked" && isLastChunkReceived(request.fullStr))
@@ -162,7 +161,7 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr,
         }
         else
         {
-            if (request.isHeaderComplete) // set bodyComplete to true because GET and DELETE methods don't need a body
+            if (request.isHeaderComplete) // set isBodyComplete to true because GET and DELETE methods don't need a body
                 request.isBodyComplete = true;
         }
     }
