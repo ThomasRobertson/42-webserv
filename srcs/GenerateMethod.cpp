@@ -21,7 +21,7 @@ std::string GenerateMethod::CGIMethod()
 	// for (std::map<std::string, std::string>::iterator it = CGIMap.begin(); it != CGIMap.end(); it++)
 	// 	std::cout << it->first << " ; " << it->second << std::endl;
 
-	std::cout << "cgi : " << std::string(parseFileExtension(fileLocation)) << std::endl;
+	// std::cout << "cgi : " << std::string(parseFileExtension(fileLocation)) << std::endl;
 	if (CGIMap.find(parseFileExtension(fileLocation)) != CGIMap.end())
 	{
 		cgiBinLocation = CGIMap.find(parseFileExtension(fileLocation))->second;
@@ -90,6 +90,11 @@ std::string GenerateMethod::GETMethod()
 
 std::string GenerateMethod::POSTMethod()
 {
+	// if (_client.request.bodySize > _client.server->getMaxClientBodySize())
+	// {
+
+	// }
+
 	std::string fileName = getFileName();
 	std::string body = getRequestBody();
 	std::string status, contentType;

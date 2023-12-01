@@ -32,10 +32,14 @@ void StartServers::processResponse(epoll_event currentEvent)
 	try
 	{
 		if (!isValidRequest(currentClient.request))
+		{
 			response = genMethod.getErrorPageResponse("400");
+		}
 		if (isCGIFile(currentServer, currentClient.request.route))
 		{
+			std::cout << "ceci est un post" << std::endl;
 			response = genMethod.CGIMethod();
+			std::cout << "ceci est un post 2" << std::endl;
 		}
 		else if (currentClient.request.method == "GET")
 		{
@@ -62,6 +66,7 @@ void StartServers::processResponse(epoll_event currentEvent)
 	}
 
 	write(currentEvent.data.fd, response.c_str(), response.length());
+	std::cout << YELLOW << response << DEFAULT << std::endl;
 
 	_clientList.erase(currentEvent.data.fd);
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);

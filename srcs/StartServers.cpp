@@ -57,7 +57,7 @@ bool StartServers::getNewConnexion(epoll_event currentEvent)
 
 bool StartServers::isValidRequest(UserRequest requestData)
 {
-    std::cout << "requestData: fullRequest: " << requestData.fullRequest << std::endl << "END" << std::endl;
+    // std::cout << "requestData: fullRequest: " << requestData.fullRequest << std::endl << "END" << std::endl;
 
     std::string httpRequest = requestData.fullRequest;
 
