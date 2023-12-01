@@ -37,9 +37,7 @@ void StartServers::processResponse(epoll_event currentEvent)
 		}
 		if (isCGIFile(currentServer, currentClient.request.route))
 		{
-			std::cout << "ceci est un post" << std::endl;
 			response = genMethod.CGIMethod();
-			std::cout << "ceci est un post 2" << std::endl;
 		}
 		else if (currentClient.request.method == "GET")
 		{
