@@ -44,12 +44,14 @@ int main(int ac, char **av, char **env)
 
 	putstr("\n\nDisplaying content of file is :");
 	char ch[BUFFER_SIZE];
+	sleep(1);
 	size_t len = 0;
 	do
 	{
 		len = read(STDIN_FILENO, ch, BUFFER_SIZE);
-		//putstr(ch, len);
-	} while (len < 0);
+		write(STDIN_FILENO, ch, len);
+		// putstr(ch, len);
+	} while (len > 0);
 
 	putstr("\n\nEND OF FILE\n");
 }
