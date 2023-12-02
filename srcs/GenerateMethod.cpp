@@ -31,12 +31,24 @@ std::string GenerateMethod::CGIMethod()
 	}
 
 	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation, "Ceci est un test!");
+	
+	std::string response;
 
-	std::string response = CGI.execute();
-	// std::cout << "The response is :\n" << response << "\n\nEND OF FILE2\n\n";
-	ClientResponse CGIResponse(status, "html", response);
+	response = CGI.execute();
+	std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
+	// try
+	// {
+	// 	response = CGI.execute();
+	// 	std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
+	// }
+	// catch (const std::exception& e)
+	// {
+	// 	std::cerr << e.what() << std::endl;
+	// 	response = getErrorPageResponse("500");
+	// 	std::cout << RED << "reponse is:" << response << DEFAULT << std::endl;
+	// }
 
-	return CGIResponse.getReponse();
+	return response;
 }
 
 std::string GenerateMethod::GETMethod()
