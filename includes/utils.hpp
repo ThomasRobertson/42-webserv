@@ -7,6 +7,7 @@
 #include <sstream>
 #include "Settings.hpp"
 #include <ctime>
+#include <iostream>
 
 #define nullptr NULL
 #define DELIMITER "="

@@ -222,7 +222,7 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 			std::cout << "ici2: " << field_value << std::endl;
 			std::string value = field_value.substr(0, field_value.find_first_of(';'));
 			std::cout << "ici3: " << value << std::endl;
-			field_value.erase(0, field_value.find_first_of(';'));
+			field_value.erase(0, field_value.find_first_of(';') + 1);
 			std::cout << "ici4: " << value << std::endl;
 			if (value.find_first_of(';') != std::string::npos)
 				value.erase(value.find_first_of(';'));
