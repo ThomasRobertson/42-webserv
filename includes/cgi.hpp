@@ -45,5 +45,6 @@ class CgiHandler
 		void child_is_in_orbit();
 		std::string capture_child_return();
 		void sendBody();
+		std::string generateReturnResponse(std::string return_str);
 };
 

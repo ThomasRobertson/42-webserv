@@ -24,40 +24,47 @@ void StartServers::processResponse(epoll_event currentEvent)
 	std::string response;
 	
 	Client currentClient = _clientList[currentEvent.data.fd];
-	Server currentServer = _serversVec[currentClient.serverIndex];
+	Server currentServer = *(currentClient.server);
 	GenerateMethod genMethod(currentClient, currentServer);
-
 
 	std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
 
-	if (isCGIFile(currentServer, currentClient.request.root))
+	try
 	{
-		response = genMethod.CGIMethod();
+		if (!isValidRequest(currentClient.request))
+		{
+			response = genMethod.getErrorPageResponse("400");
+		}
+		if (isCGIFile(currentServer, currentClient.request.route))
+		{
+			response = genMethod.CGIMethod();
+		}
+		else if (currentClient.request.method == "GET")
+		{
+			response = genMethod.GETMethod();
+		}
+		else if (currentClient.request.method == "POST")
+		{
+			// std::cout << currentClient.request.body << std::endl;
+			response = genMethod.POSTMethod();
+		}
+		else if (currentClient.request.method == "DELETE")
+		{
+			// std::cout << "DELETE METH" << std::endl;
+			response = genMethod.DELETEMethod();
+		}
+		else
+		{
+			response = genMethod.getErrorPageResponse("405");
+		}		
 	}
-	else if (currentClient.request.method == "GET")
+	catch (const std::exception&)
 	{
-		response = genMethod.GETMethod();
+		response = genMethod.getErrorPageResponse("500");
 	}
-	else if (currentClient.request.method == "POST")
-	{
-		// std::cout << currentClient.request.body << std::endl;
-		response = genMethod.POSTMethod();
-	}
-	else if (currentClient.request.method == "DELETE")
-	{
-		// std::cout << "DELETE METH" << std::endl;
-		response = genMethod.DELETEMethod();
-	}
-	else
-	{
-		response = genMethod.getErrorPageResponse("405");
-	}
-
-	// if (isValidRequest(client.request))
-	// else
-		// response = GenerateMethod::getErrorPageResponse(client, server, "400");
 
 	write(currentEvent.data.fd, response.c_str(), response.length());
+	std::cout << YELLOW << response << DEFAULT << std::endl;
 
 	_clientList.erase(currentEvent.data.fd);
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);

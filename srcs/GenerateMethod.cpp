@@ -1,5 +1,6 @@
 #include "GenerateMethod.hpp"
 #include "ClientResponse.hpp"
+#include "Settings.hpp"
 #include "cgi.hpp"
 #include "utils.hpp"
 #include <ostream>
@@ -11,7 +12,7 @@ std::string GenerateMethod::CGIMethod()
 	std::string status;
 	bool is_dir = false;
 
-	std::string fileLocation = _server.getFileRoute(_client.request.root, status, _client.request.method, is_dir);
+	std::string fileLocation = _server.getFileRoute(_client.request.route, status, _client.request.method, is_dir);
 
 	std::string cgiBinLocation;
 
@@ -20,7 +21,7 @@ std::string GenerateMethod::CGIMethod()
 	// for (std::map<std::string, std::string>::iterator it = CGIMap.begin(); it != CGIMap.end(); it++)
 	// 	std::cout << it->first << " ; " << it->second << std::endl;
 
-	std::cout << "cgi : " << std::string(parseFileExtension(fileLocation)) << std::endl;
+	// std::cout << "cgi : " << std::string(parseFileExtension(fileLocation)) << std::endl;
 	if (CGIMap.find(parseFileExtension(fileLocation)) != CGIMap.end())
 	{
 		cgiBinLocation = CGIMap.find(parseFileExtension(fileLocation))->second;
@@ -55,8 +56,7 @@ std::string GenerateMethod::GETMethod()
 {
 	std::string response, fileLocation, contentType, status, htmlContent;
 	bool is_dir = false;
-	std::cout << "Client root : " <<_client.request.root << "\n" ;
-	fileLocation = _server.getFileRoute(_client.request.root, status, _client.request.method, is_dir);
+	fileLocation = _server.getFileRoute(_client.request.route, status, _client.request.method, is_dir);
 	std::cout << "File location : " << fileLocation << std::endl;
 	std::cout << "Status : " << status << std::endl;
 
@@ -70,7 +70,7 @@ std::string GenerateMethod::GETMethod()
 	if (is_dir)
 	{
 		std::cout << "Listing Directory." << std::endl;
-		return listingDirectory(fileLocation, _client.request.root);
+		return listingDirectory(fileLocation, _client.request.route);
 	}
 
 	contentType = getContentType(fileLocation);
@@ -85,8 +85,8 @@ std::string GenerateMethod::GETMethod()
 
 	htmlContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	std::cout << "Content generated for " << fileLocation << "." << std::endl;
-	std::cout << "Body : \n" << htmlContent << std::endl;
-	ClientResponse clientReponse(status, contentType, htmlContent);
+	// std::cout << "Body : \n" << htmlContent << std::endl;
+	ClientResponse clientReponse(true, status, contentType, htmlContent);
 	response = clientReponse.getReponse();
 
 	return response;
@@ -94,6 +94,11 @@ std::string GenerateMethod::GETMethod()
 
 std::string GenerateMethod::POSTMethod()
 {
+	// if (_client.request.bodySize > _client.server->getMaxClientBodySize())
+	// {
+
+	// }
+
 	std::string fileName = getFileName();
 	std::string body = getRequestBody();
 	std::string status, contentType;
@@ -121,14 +126,14 @@ std::string GenerateMethod::POSTMethod()
 	else
 		std::cerr << "Failed to open the file for writing." << std::endl;
 
-	ClientResponse response(status, "text/plain");
+	ClientResponse response(true, status, "text/plain");
 
 	return response.getReponse();
 }
 
 std::string GenerateMethod::getRequestBody()
 {
-	std::string request = _client.request.body;
+	std::string request = _client.request.fullStr;
 	size_t boundaryStartPos, boundaryEndPos, bodyStartPos, bodyEndPos;
 	std::string boundary, body;
 
@@ -147,11 +152,10 @@ std::string GenerateMethod::getRequestBody()
 
 std::string GenerateMethod::getFileName()
 {
-	UserRequest request = _client.request;
-	size_t nameStartPos = request.body.find("filename=") + std::strlen("filename=\"");
-	size_t nameEndPos = request.body.find("\"", nameStartPos);
-	
-	return request.body.substr(nameStartPos, nameEndPos - nameStartPos);
+	size_t nameStartPos = _client.request.fullStr.find("filename=") + std::strlen("filename=\"");
+	size_t nameEndPos = _client.request.fullStr.find("\"", nameStartPos);
+
+	return _client.request.fullStr.substr(nameStartPos, nameEndPos - nameStartPos);
 }
 
 std::string GenerateMethod::DELETEMethod()
@@ -159,7 +163,7 @@ std::string GenerateMethod::DELETEMethod()
 	std::string status, contentType;
 	bool is_dir = false; //TODO: check value
 
-	std::string fileLocation = _server.getFileRoute(_client.request.root, status, _client.request.method, is_dir);
+	std::string fileLocation = _server.getFileRoute(_client.request.route, status, _client.request.method, is_dir);
 
 	if (status != "200")
 	{
@@ -213,7 +217,7 @@ std::string GenerateMethod::getErrorPageResponse(std::string errorCode)
 		content = generateErrorPage(errorCode);
 	}
 
-	ClientResponse clientReponse(errorCode, contentType, content);
+	ClientResponse clientReponse(true, errorCode, contentType, content);
 
 	response = clientReponse.getReponse();
 	return response;
@@ -243,7 +247,7 @@ std::string GenerateMethod::listingDirectory(const std::string &fileLocation, st
 		status = "500";
 		content = getErrorPageResponse(status);
 		contentType = "text/html";
-		ClientResponse clientReponse(status, contentType, content);
+		ClientResponse clientReponse(true, status, contentType, content);
 		return clientReponse.getReponse();
 	}
 	
@@ -252,7 +256,7 @@ std::string GenerateMethod::listingDirectory(const std::string &fileLocation, st
 	status = "200";
 	contentType = "text/html";
 	content = directoryListing.str();
-	ClientResponse clientReponse(status, contentType, content);
+	ClientResponse clientReponse(true, status, contentType, content);
 
 	return clientReponse.getReponse();
 }

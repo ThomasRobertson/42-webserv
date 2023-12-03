@@ -4,6 +4,7 @@
 #include "ConfigFile.hpp"
 #include "Server.hpp"
 #include "Settings.hpp"
+#include "ClientRequest.hpp"
 
 #include <cstring>
 #include <unistd.h>
@@ -20,21 +21,22 @@
 
 extern bool EXIT_G;
 
-struct UserRequest {
-    std::string method;
-    std::string root;
-    std::string body;
-
-    int contentLength;
-    int length;
-};
+// struct Client
+// {
+//     int fd;
+//     int serverIndex;
+//     UserRequest request;
+//     bool toComplete;
+// };
 
 struct Client
 {
     int fd;
-    int serverIndex;
+
+    Server *server;
     UserRequest request;
-    bool toComplete;
+
+    time_t lastActionDate;
 };
 
 class StartServers
@@ -56,6 +58,7 @@ class StartServers
 		void createServers();
         void initServers();
 
+        void checkTimeout();
         bool getNewConnexion(epoll_event currentEvent);
         void processRequest(epoll_event currentEvent);
         void processResponse(epoll_event currentEvent);
@@ -63,13 +66,14 @@ class StartServers
 
         void listenClientRequest();
 
-        void getRequestNextChunk(int userFd, std::string requestStr);
-        std::string getUserResponse(Client client);
+        void getRequestChunk(UserRequest &request, std::string requestStr, int maxBodySize);
         UserRequest getUserRequest(std::string requestStr);
+        std::string getUserResponse(Client &client);
+
 
         void createFile(UserRequest request, Server currentServer);
         int deleteFiles(UserRequest request, Server currentServer);
-
+        bool isValidRequest(UserRequest requestData);
 };
 
 class Problem : public std::exception

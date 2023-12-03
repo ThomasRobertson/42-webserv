@@ -6,10 +6,12 @@
 #include <algorithm>
 #include <sstream>
 #include "Settings.hpp"
+#include <ctime>
 
 #define nullptr NULL
 #define DELIMITER "="
 
+time_t getDate();
 std::string getContentType(std::string fileName);
 std::pair<std::string, std::string> getStatus(std::string statusCode);
 std::string sizeToString(size_t value);
