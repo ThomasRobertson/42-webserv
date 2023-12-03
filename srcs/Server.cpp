@@ -66,12 +66,12 @@ std::string Server::getErrorPageRoute(std::string errorCode)
 
 	if (_errorsMap.find(errorCode) == _errorsMap.end())
 	{
-		throw std::runtime_error("No valid page found, cannot continue execution.");
+		throw std::runtime_error("No error page configured for this error code, generating one.");
 	}
 	fileLocation = getRoot() + _errorsMap[errorCode];
 	if (access(fileLocation.c_str(), R_OK) != 0)
 	{
-		throw std::runtime_error("No valid error page found, cannot continue execution.");
+		throw std::runtime_error("Cannot open the error page, generating one.");
 	}
 
 	return fileLocation;

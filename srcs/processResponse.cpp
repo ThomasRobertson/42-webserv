@@ -21,7 +21,7 @@ bool StartServers::isCGIFile(Server server, std::string request)
 
 void StartServers::processResponse(epoll_event currentEvent)
 {
-	std::string response;
+	std::string response, status;
 	
 	Client currentClient = _clientList[currentEvent.data.fd];
 	Server currentServer = *(currentClient.server);
@@ -31,11 +31,11 @@ void StartServers::processResponse(epoll_event currentEvent)
 
 	try
 	{
-		if (!isValidRequest(currentClient.request))
+		if (!isValidRequest(currentClient.request, status))
 		{
-			response = genMethod.getErrorPageResponse("400");
+			response = genMethod.getErrorPageResponse(status);
 		}
-		if (isCGIFile(currentServer, currentClient.request.route))
+		else if (isCGIFile(currentServer, currentClient.request.route))
 		{
 			response = genMethod.CGIMethod();
 		}

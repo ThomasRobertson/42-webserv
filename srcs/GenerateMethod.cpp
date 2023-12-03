@@ -200,6 +200,8 @@ std::string GenerateMethod::getErrorPageResponse(std::string errorCode)
 	std::string response, fileLocation, contentType, content;
 	
 	contentType = "text/html";
+
+	std::cout << RED << "Generating error page for status : " << errorCode << DEFAULT << std::endl;
 	
 	try
 	{
@@ -207,13 +209,13 @@ std::string GenerateMethod::getErrorPageResponse(std::string errorCode)
 		std::ifstream file(fileLocation.c_str());
 		if (!file.is_open())
 		{
-			errorCode = "500";
-			content = getErrorPageResponse(errorCode);
+			throw std::runtime_error("Cannot open the error page, generating one.");
 		}
 		content = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	}
-	catch (const std::exception&)
+	catch (const std::exception& e)
 	{
+		std::cout << YELLOW << e.what() << DEFAULT << std::endl;
 		content = generateErrorPage(errorCode);
 	}
 

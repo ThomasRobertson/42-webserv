@@ -1,4 +1,5 @@
 #include "utils.hpp"
+#include "Settings.hpp"
 
 time_t getDate()
 {
@@ -128,6 +129,8 @@ static std::map<std::string, std::string> constructMapStatus()
 		std::make_pair("405", "Method Not Allowed"), //!required
 		std::make_pair("406", "Not Acceptable"),
 		std::make_pair("411", "Length Required"),
+		std::make_pair("413", "Content Too Large"), //!required
+		std::make_pair("414", "URI Too Long"), //!required
 		std::make_pair("416", "Range Not Satisfiable"),
 		std::make_pair("500", "Internal Server Error"), //!required
 		std::make_pair("501", "Not Implemented"),
@@ -169,6 +172,8 @@ std::string generateErrorPage(std::string errorCode)
 {
 	if (errorCode.empty())
 		errorCode = "500";
+
+	std::cout << YELLOW << "Generating page for status : " << errorCode << std::endl;
 
 	std::pair<std::string, std::string> status = getStatus(errorCode);
 

@@ -4,7 +4,7 @@
 
 struct UserRequest {
     std::string fullStr;
-    std::string fullRequest;
+    // std::string fullRequest; //?FullStr plutôt ?
     std::string body;
     std::string credential;
     std::vector<std::string> cookies;
@@ -15,6 +15,7 @@ struct UserRequest {
 
     bool isHeaderComplete;
     bool isBodyComplete;
+	bool isBodyTooLarge;
     int contentLength;
     int bodySize;
 };

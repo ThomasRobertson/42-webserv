@@ -209,6 +209,7 @@ void StartServers::processRequest(epoll_event currentEvent)
             std::cout << RED << e.what() << DEFAULT << std::endl;
             currentClient.request.isHeaderComplete = true;
             currentClient.request.isBodyComplete = true;
+			currentClient.request.isBodyTooLarge = true;
         }
 
         if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
