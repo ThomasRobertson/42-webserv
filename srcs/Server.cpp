@@ -338,6 +338,7 @@ void Server::startServers(int epollFd)
         if (rp == NULL)
         {
             std::cerr << "Socket binding error" << std::endl;
+        	this->_serverSocketVec.push_back(-1);
             continue ;
         }
 
@@ -345,8 +346,10 @@ void Server::startServers(int epollFd)
         {
             std::cerr << "Socket listening error" << std::endl;
             close(serverSocket);
-            return ;
+            continue ;
         }
+
+
 
         std::cout << YELLOW << "[i] Server listening on port " << port << "..." << DEFAULT << std::endl;
 

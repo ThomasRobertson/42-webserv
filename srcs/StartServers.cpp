@@ -165,7 +165,8 @@ void StartServers::closeServers()
         portsVec = serverIt->getPort();
         for (portIt = portsVec.begin(), portIndex = 0 ; portIt != portsVec.end() ; portIndex++, portIt++)
         {
-            close(serverIt->getServerSocket(portIndex));
+            if (serverIt->getServerSocket(portIndex) != -1)
+                close(serverIt->getServerSocket(portIndex));
             std::cout << YELLOW << "[i] Server shutdown: " << serverIt->getHost() << "::" << *portIt << DEFAULT << std::endl;
         }
     }
@@ -173,7 +174,9 @@ void StartServers::closeServers()
     std::map<int, Client>::iterator clientIt;
 
     for (clientIt = this->_clientList.begin() ; clientIt != this->_clientList.end() ; clientIt++)
+    {
         close(clientIt->first);
+    }
 }
 
 void StartServers::checkTimeout()
