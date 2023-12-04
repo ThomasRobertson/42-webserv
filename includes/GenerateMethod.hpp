@@ -13,6 +13,7 @@ class GenerateMethod
 	Server _server;
 
 	std::string getRequestBody();
+	std::string getChunkedRequestBody();
 	std::string getFileName();
 
 	public:

@@ -9,6 +9,21 @@ time_t getDate()
     return seconds;
 }
 
+int hexStringToInt(std::string hexString)
+{
+    std::istringstream iss(hexString);
+    int intValue;
+
+    iss >> std::hex >> intValue;
+
+    // if (iss.fail() || !iss.eof()) {
+    //     // Conversion failed
+    //     throw std::invalid_argument("Invalid hexadecimal string");
+    // }
+
+    return intValue;
+}
+
 static std::map<std::string, std::string> constructMapMIME()
 {
 	static const std::pair<std::string, std::string> extensionToMIME_pair[] = {

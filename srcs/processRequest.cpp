@@ -1,21 +1,6 @@
 #include "StartServers.hpp"
 #include "ClientRequest.hpp"
 
-int hexStringToInt(std::string hexString)
-{
-    std::istringstream iss(hexString);
-    int intValue;
-
-    iss >> std::hex >> intValue;
-
-    // if (iss.fail() || !iss.eof()) {
-    //     // Conversion failed
-    //     throw std::invalid_argument("Invalid hexadecimal string");
-    // }
-
-    return intValue;
-}
-
 int getBodysize(std::string requestStr)
 {
 	size_t startPos = requestStr.find("\r\n\r\n");
@@ -91,7 +76,7 @@ bool isLastChunkReceived(std::string str)
     return false;
 }
 
-void StartServers::getRequestChunk(UserRequest &request, std::string requestStr, int maxBodySize)
+void StartServers::getRequestChunk(Client &client, std::string requestStr)
 {
     //Cookies
     // size_t pos = requestStr.find("Cookie:");
@@ -128,42 +113,45 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr,
     //     }
     // }
 
-	request.fullStr += requestStr;
+	client.request.fullStr += requestStr;
 
-    if (!request.isHeaderComplete) // if header was not complete yet, check if he is now
-        request.isHeaderComplete = isHeaderComplete(request.fullStr);
+    if (!client.request.isHeaderComplete) // if header was not complete yet, check if he is now
+        client.request.isHeaderComplete = isHeaderComplete(client.request.fullStr);
 
-    if (request.isHeaderComplete)
+    if (!client.request.isHeaderComplete) // if header is still not complete
+        return;
+
+    if (client.request.method.empty())
+        client.request.method = getRequestMethod(client.request);
+
+    if (client.request.route.empty())
+        client.request.route = getRequestRoute(client.request);
+
+    if (client.request.method == "POST")
     {
-        if (request.method.empty())
-            request.method = getRequestMethod(request);
+        if (client.request.transferEncoding.empty())
+            client.request.transferEncoding = getRequestTransferEncoding(client.request);
 
-        if (request.route.empty())
-            request.route = getRequestRoute(request);
+        if (client.request.contentLength == -1)
+            client.request.contentLength = getContentLength(client.request.fullStr);
 
-        if (request.method == "POST")
-        {
-            if (request.transferEncoding.empty())
-                request.transferEncoding = getRequestTransferEncoding(request);
+        if (!client.request.isCGI)
+            client.request.isCGI = isCGIFile(*(client.server), client.request.route);
 
-            if (request.contentLength == -1)
-                request.contentLength = getContentLength(request.fullStr);
+        client.request.bodySize = getBodysize(client.request.fullStr);
 
-            request.bodySize = getBodysize(request.fullStr);
+        if (!client.request.isCGI && client.request.bodySize > client.server->getMaxClientBodySize())
+            throw MaxClientBodySizeExceed();
 
-            if (request.bodySize > maxBodySize)
-                throw MaxClientBodySizeExceed();
-
-            if (request.transferEncoding == "default" && request.bodySize == request.contentLength)
-                request.isBodyComplete = true;
-            else if (request.transferEncoding == "chunked" && isLastChunkReceived(request.fullStr))
-                request.isBodyComplete = true;
-        }
-        else
-        {
-            if (request.isHeaderComplete) // set isBodyComplete to true because GET and DELETE methods don't need a body
-                request.isBodyComplete = true;
-        }
+        if (client.request.transferEncoding == "default" && client.request.bodySize == client.request.contentLength)
+            client.request.isBodyComplete = true;
+        else if (client.request.transferEncoding == "chunked" && isLastChunkReceived(client.request.fullStr))
+            client.request.isBodyComplete = true;
+    }
+    else
+    {
+        if (client.request.isHeaderComplete) // set isBodyComplete to true because GET and DELETE methods don't need a body
+            client.request.isBodyComplete = true;
     }
 }
 
@@ -179,7 +167,8 @@ void StartServers::getRequestChunk(UserRequest &request, std::string requestStr,
 
 void StartServers::processRequest(epoll_event currentEvent)
 {
-    int chunkSize = 16384;
+    // int chunkSize = 65536;
+    int chunkSize = 1048576;
     char buffer[chunkSize];
     ssize_t bytesRead;
     struct epoll_event event;
@@ -187,40 +176,47 @@ void StartServers::processRequest(epoll_event currentEvent)
 
     std::cout << "----------------------- NEW REQUEST: " << currentEvent.data.fd << " -----------------------" << std::endl;
 
-    bytesRead = read(currentEvent.data.fd, buffer, chunkSize);
-
     currentClient.lastActionDate = getDate(); // update timeout
 
+    bytesRead = read(currentEvent.data.fd, buffer, chunkSize);
     if (bytesRead <= 0) // error case
     {
         epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, &event);
         close(currentEvent.data.fd);
         _clientList.erase(currentEvent.data.fd);
         std::cout << "Client disconnected from error: " << currentEvent.data.fd << std::endl;
+        return;
     }
-    else
+
+    std::string requestData(buffer, bytesRead);
+    std::cout << requestData << std::endl;
+
+    try
     {
-        std::string requestData(buffer, bytesRead);
-        std::cout << requestData << std::endl;
-
-        try {
-            getRequestChunk(currentClient.request, requestData, currentClient.server->getMaxClientBodySize());
-        } catch (std::exception &e) {
-            std::cout << RED << e.what() << DEFAULT << std::endl;
-            currentClient.request.isHeaderComplete = true;
-            currentClient.request.isBodyComplete = true;
-			currentClient.request.isBodyTooLarge = true;
-        }
-
-        if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
-        {
-            std::cout << RED << "REQUEST UNCOMPLETE" << DEFAULT << std::endl;
-            return;
-        }
-
-        std::cout << GREEN << "REQUEST COMPLETE" << DEFAULT << std::endl;
-        event.data.fd = currentEvent.data.fd;
-        event.events = EPOLLOUT;
-        epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
+        getRequestChunk(currentClient, requestData);
     }
+    catch (std::exception &e) 
+    {
+        std::cout << RED << e.what() << DEFAULT << std::endl;
+        currentClient.request.isHeaderComplete = true;
+        currentClient.request.isBodyComplete = true;
+		currentClient.request.isBodyTooLarge = true;
+    }
+
+    if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
+    {
+        std::cout << RED << "REQUEST UNCOMPLETE" << DEFAULT << std::endl;
+        // std::cout << currentClient.request.bodySize << "/" << currentClient.request.contentLength << std::endl;
+        return;
+    }
+
+    std::cout << GREEN << "REQUEST COMPLETE" << DEFAULT << std::endl;
+    event.data.fd = currentEvent.data.fd;
+    event.events = EPOLLOUT;
+    epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
 }
+
+// To check:
+// - Multiple files in one POST request
+// - Body in DELETE request
+// - Chunked response

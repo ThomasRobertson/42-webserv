@@ -9,6 +9,17 @@
 
 std::string GenerateMethod::CGIMethod()
 {
+	
+	if (_client.request.bodySize > _client.server->getMaxClientBodySize())
+	{
+		std::string response = "HTTP/1.1 413 Request Entity Too Large\r\n";
+		response += "Content-Length: 0\r\n";
+		response += "Connection: close\r\n";
+		response += "\r\n";
+		// std::cout << "CONTENT TOO LARGE ERROR SENT" << std::endl;
+		return response;
+	}
+
 	std::string status;
 	bool is_dir = false;
 
@@ -17,6 +28,7 @@ std::string GenerateMethod::CGIMethod()
 	std::string cgiBinLocation;
 
 	std::map<std::string, std::string> CGIMap = _server.getCgiPages();
+
 
 	// for (std::map<std::string, std::string>::iterator it = CGIMap.begin(); it != CGIMap.end(); it++)
 	// 	std::cout << it->first << " ; " << it->second << std::endl;
@@ -35,19 +47,16 @@ std::string GenerateMethod::CGIMethod()
 	
 	std::string response;
 
-	response = CGI.execute();
-	std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
-	// try
-	// {
-	// 	response = CGI.execute();
-	// 	std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
-	// }
-	// catch (const std::exception& e)
-	// {
-	// 	std::cerr << e.what() << std::endl;
-	// 	response = getErrorPageResponse("500");
-	// 	std::cout << RED << "reponse is:" << response << DEFAULT << std::endl;
-	// }
+	try
+	{
+		response = CGI.execute();
+		std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
+	}
+	catch (const std::exception&)
+	{
+		response = getErrorPageResponse("500");
+		std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
+	}
 
 	return response;
 }
@@ -94,14 +103,34 @@ std::string GenerateMethod::GETMethod()
 
 std::string GenerateMethod::POSTMethod()
 {
-	// if (_client.request.bodySize > _client.server->getMaxClientBodySize())
-	// {
-
-	// }
+	if (_client.request.bodySize > _client.server->getMaxClientBodySize())
+	{
+		std::string response = "HTTP/1.1 413 Content Too Large\r\n";
+		response += "Connection: close\r\n";
+		response += "Server: Webserv/42.1\r\n";
+		response += "Content-Type: text/plain\r\n";
+		response += "Content-Length: 0\r\n";
+		response += "\r\n";
+		std::cout << "CONTENT TOO LARGE ERROR SENT" << std::endl;
+		return response;
+	}
 
 	std::string fileName = getFileName();
-	std::string body = getRequestBody();
-	std::string status, contentType;
+	std::string status, contentType, body;
+
+	if (_client.request.transferEncoding == "default")
+	{
+		body = getRequestBody();
+		std::cout << YELLOW << "DEFAULT BODY:" << std::endl;
+		std::cout << body << DEFAULT << std::endl;
+	}
+	else
+	{
+		body = getChunkedRequestBody();
+		std::cout << YELLOW << "CHUNKED BODY:" << std::endl;
+		std::cout << body << DEFAULT << std::endl;
+	}
+
 	bool is_dir = false; //TODO: Check value
 	
 	std::string fileLocation = _server.getFileRoute("/form", status, _client.request.method, is_dir); //TODO: replace "/form" with the correct URL
@@ -147,6 +176,43 @@ std::string GenerateMethod::getRequestBody()
 
 	body = request.substr(bodyStartPos, bodyEndPos - bodyStartPos);
 
+	return body;
+}
+
+// POST 127.0.0.1 HTTP1.1\r\n
+// \r\n
+// 5\r\n
+// Hello\r\n
+// 2\r\n
+// cv\r\n
+// 0\r\n
+// \r\n
+
+std::string GenerateMethod::getChunkedRequestBody()
+{
+	std::string request = _client.request.fullStr;
+	size_t startPos, endPos;
+	std::string chunkSizeStr;
+	int chunkSize = 0;
+	std::string body;
+
+	startPos = request.find("\r\n\r\n") + std::strlen("\r\n\r\n");
+	if (startPos == std::string::npos) // throw internal server error
+		return body;
+
+	while (true)
+	{
+		endPos = request.find("\r\n", startPos);
+		if (endPos == std::string::npos) // throw internal server error
+			break ;
+		chunkSizeStr = request.substr(startPos, endPos - startPos);
+		chunkSize = hexStringToInt(chunkSizeStr);
+		if (chunkSize == 0)
+			break ;
+		startPos = endPos + std::strlen("\r\n");
+		body += request.substr(startPos, chunkSize);
+		startPos += chunkSize + std::strlen("\r\n");
+	}
 	return body;
 }
 
@@ -198,11 +264,9 @@ std::string GenerateMethod::DELETEMethod()
 std::string GenerateMethod::getErrorPageResponse(std::string errorCode)
 {
 	std::string response, fileLocation, contentType, content;
-	
+
 	contentType = "text/html";
 
-	std::cout << RED << "Generating error page for status : " << errorCode << DEFAULT << std::endl;
-	
 	try
 	{
 		fileLocation = _server.getErrorPageRoute(errorCode);

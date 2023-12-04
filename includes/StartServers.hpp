@@ -66,7 +66,7 @@ class StartServers
 
         void listenClientRequest();
 
-        void getRequestChunk(UserRequest &request, std::string requestStr, int maxBodySize);
+        void getRequestChunk(Client &client, std::string requestStr);
         UserRequest getUserRequest(std::string requestStr);
         std::string getUserResponse(Client &client);
 

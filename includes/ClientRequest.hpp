@@ -4,7 +4,6 @@
 
 struct UserRequest {
     std::string fullStr;
-    // std::string fullRequest; //?FullStr plutôt ?
     std::string body;
     std::string credential;
     std::vector<std::string> cookies;
@@ -16,6 +15,8 @@ struct UserRequest {
     bool isHeaderComplete;
     bool isBodyComplete;
 	bool isBodyTooLarge;
+    bool isCGI;
+
     int contentLength;
     int bodySize;
 };
@@ -25,3 +26,5 @@ class MaxClientBodySizeExceed : public std::exception
     public:
         virtual const char* what() const throw() {return "Body size limit exceed !";};
 };
+
+bool isValidRequest(UserRequest request);

@@ -13,6 +13,7 @@
 #define DELIMITER "="
 
 time_t getDate();
+int hexStringToInt(std::string hexString);
 std::string getContentType(std::string fileName);
 std::pair<std::string, std::string> getStatus(std::string statusCode);
 std::string sizeToString(size_t value);

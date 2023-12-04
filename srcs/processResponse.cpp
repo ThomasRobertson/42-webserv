@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "ConfigFile.hpp"
 #include "StartServers.hpp"
+#include "ClientRequest.hpp"
 #include "ClientResponse.hpp"
 #include "GenerateMethod.hpp"
 #include "utils.hpp"
