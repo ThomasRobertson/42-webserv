@@ -7,11 +7,18 @@
 #include <vector>
 #include <iostream>
 #include <map>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <stdexcept>
 
 #include "Settings.hpp"
 #include "StartServers.hpp"
 #include "utils.hpp"
 #include "ConfigFile.hpp"
+#include "ClientResponse.hpp"
+#include "GenerateMethod.hpp"
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1

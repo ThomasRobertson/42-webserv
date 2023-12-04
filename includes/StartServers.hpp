@@ -73,7 +73,7 @@ class StartServers
 
         void createFile(UserRequest request, Server currentServer);
         int deleteFiles(UserRequest request, Server currentServer);
-        bool isValidRequest(UserRequest requestData, std::string &status);
+        bool isValidRequest(UserRequest requestData, std::string &status, bool isCGI);
 };
 
 class Problem : public std::exception

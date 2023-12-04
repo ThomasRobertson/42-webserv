@@ -1,19 +1,5 @@
 #include "cgi.hpp"
 
-#include <string>
-#include <unistd.h>
-
-#include <cstddef>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ostream>
-#include <stdexcept>
-
-#include "ClientResponse.hpp"
-#include "GenerateMethod.hpp"
-#include "Settings.hpp"
-
 void CgiHandler::build_args_env() {
 	std::string value;
 	// --- SERVER ENVIRON ---
@@ -68,11 +54,11 @@ void CgiHandler::build_args_env() {
 
 	if (_client.request.method == "POST") {
 		value = "CONTENT_TYPE=";
-		value += "";
+		value += getContentType(_fileLocation);
 		_environ.push_back(value);
 
 		value = "CONTENT_LENGTH=";
-		value += "";
+		value += _client.request.contentLength;
 		_environ.push_back(value);
 	}
 
@@ -178,13 +164,11 @@ std::string CgiHandler::capture_child_return() {
 	do {
 		size_read =
 			read(_child_out_pipe[PIPE_READ], read_buffer, CGI_BUFFER_SIZE);
-		// std::cout << "read lenght : " << size_read << " : " << read_buffer <<
-		// std::endl;
 		if (size_read == -1)
-			throw std::runtime_error(
-				"Could not read from file.");  // TODO: add errno output
+			throw std::runtime_error("Could not read from file.");  // TODO: add errno output
 		read_buffer[size_read] = '\0';
-		if (size_read != 0) return_str += read_buffer;
+		if (size_read != 0)
+			return_str += read_buffer;
 	} while (size_read == CGI_BUFFER_SIZE);
 	close(_child_out_pipe[PIPE_READ]);
 	return (return_str);
@@ -217,24 +201,17 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 		std::vector<std::string> field_values;
 		do
 		{
-			std::cout << "ici1: " << field_value << std::endl;
 			field_value.erase(0, field_value.find_first_not_of(' '));
-			std::cout << "ici2: " << field_value << std::endl;
 			std::string value = field_value.substr(0, field_value.find_first_of(';'));
-			std::cout << "ici3: " << value << std::endl;
 			field_value.erase(0, field_value.find_first_of(';') + 1);
-			std::cout << "ici4: " << value << std::endl;
 			if (value.find_first_of(';') != std::string::npos)
 				value.erase(value.find_first_of(';'));
-			std::cout << "ici5: " << value << std::endl;
 			field_values.push_back(value);
-			std::cout << "ici6: " << value << std::endl;
 		} while (field_value.find_first_of(';') != std::string::npos);
 
 		if (field_name == "Content-Type") {
 			for (std::vector<std::string>::iterator it = field_values.begin(); it != field_values.end(); it++)
 			{
-				std::cout << "test3";
 				if (!contentType.empty() && it == field_values.begin())
 					contentType = *it;
 				else
@@ -248,12 +225,8 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 			}
 		}
 		else if (field_name == "Status") {
-			std::cout << field_values.size() << std::endl;
 			if (!status.empty() || field_values.size() != 1)
-			{
-				std::cout << "ici !\n";
 				throw std::invalid_argument("");
-			}
 			status = field_values.front();
 		}
 		else if (field_name == "Location") {
@@ -271,7 +244,6 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 				cookieSet += *it;
 		}
 		else {
-			std::cout << GREEN << "Adding extra headers to response : " << field_name << " " << field_value << DEFAULT << std::endl;
 			for (std::vector<std::string>::iterator it = field_values.begin(); it != field_values.end(); it++)
 			{
 				std::string str;
@@ -291,7 +263,6 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 		contentType = "text/html";
 	if (status.empty())
 		status = "200 OK";
-	std::cout << GREEN << status << DEFAULT << std::endl;
 	ClientResponse clientResponse(false, status, contentType, contentBody, "", cookieSet, extraHeaders);
 
 	return clientResponse.getReponse();
@@ -310,7 +281,7 @@ std::string CgiHandler::execute() {
 	launch_child();
 	sendBody();
 	std::string return_str = capture_child_return();
-	std::cout << return_str << std::endl;
+	// std::cout << return_str << std::endl;
 	return_str = generateReturnResponse(return_str);
 	std::cout << GREEN << "reponse is:" << return_str << DEFAULT << std::endl;
 	return (return_str);

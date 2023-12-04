@@ -9,7 +9,7 @@
 
 std::string GenerateMethod::CGIMethod()
 {
-	std::string status;
+	std::string status, body;
 	bool is_dir = false;
 
 	std::string fileLocation = _server.getFileRoute(_client.request.route, status, _client.request.method, is_dir);
@@ -31,7 +31,7 @@ std::string GenerateMethod::CGIMethod()
 		throw std::runtime_error("CGI was called but no CGI Bin was find.");
 	}
 
-	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation, "Ceci est un test!");
+	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation, "");
 	
 	std::string response;
 
@@ -89,6 +89,7 @@ std::string GenerateMethod::GETMethod()
 	ClientResponse clientReponse(true, status, contentType, htmlContent);
 	response = clientReponse.getReponse();
 
+	file.close();
 	return response;
 }
 
@@ -212,6 +213,7 @@ std::string GenerateMethod::getErrorPageResponse(std::string errorCode)
 			throw std::runtime_error("Cannot open the error page, generating one.");
 		}
 		content = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		file.close();
 	}
 	catch (const std::exception& e)
 	{
