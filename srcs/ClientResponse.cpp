@@ -87,11 +87,8 @@ void ClientResponse::generateResponse()
 		}
 	}
 
-	if (!_contentBody.empty())
-	{
-		_reponse += newLineDelimiter;
-		_reponse += _contentBody;
-	}
+	_reponse += newLineDelimiter;
+	_reponse += _contentBody;
 }
 
 std::string ClientResponse::getReponse()
