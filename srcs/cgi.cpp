@@ -1,4 +1,5 @@
 #include "cgi.hpp"
+#include "Settings.hpp"
 
 void CgiHandler::build_args_env() {
 	std::string value;
@@ -135,15 +136,12 @@ void CgiHandler::launch_child() {
 	_child_pid = fork();
 	if (_child_pid == -1) {
 		std::runtime_error("Houston we have a problem, abord launch of child");
-	} else if (_child_pid == 0) {
-		dup2(_child_out_pipe[PIPE_WRITE], STDOUT_FILENO);
-		close(_child_out_pipe[PIPE_READ]);
-		dup2(_child_in_pipe[PIPE_READ], STDIN_FILENO);
-		close(_child_in_pipe[PIPE_WRITE]);
+	}
+	else if (_child_pid == 0)
+	{
+		dup2(_child_out_pipe, STDOUT_FILENO);
+		dup2(_child_in_pipe, STDIN_FILENO);
 		child_is_in_orbit();
-	} else {
-		close(_child_out_pipe[PIPE_WRITE]);
-		close(_child_in_pipe[PIPE_READ]);
 	}
 }
 
@@ -163,21 +161,26 @@ std::string CgiHandler::capture_child_return() {
 
 	do {
 		size_read =
-			read(_child_out_pipe[PIPE_READ], read_buffer, CGI_BUFFER_SIZE);
+			read(_child_out_pipe, read_buffer, CGI_BUFFER_SIZE);
 		if (size_read == -1)
 			throw std::runtime_error("Could not read from file.");  // TODO: add errno output
 		read_buffer[size_read] = '\0';
 		if (size_read != 0)
 			return_str += read_buffer;
 	} while (size_read == CGI_BUFFER_SIZE);
-	close(_child_out_pipe[PIPE_READ]);
 	return (return_str);
 }
 
+#define WRITE_SIZE 32768
+
 void CgiHandler::sendBody() {
+	std::cout << "SIZE: " << _body.size() << std::endl;
 	if (_body.size() != 0)
-		write(_child_in_pipe[PIPE_WRITE], _body.c_str(), _body.size());
-	close(_child_in_pipe[PIPE_WRITE]);
+	{
+		write(_child_in_pipe, _body.c_str(), _body.size());
+		lseek(_child_in_pipe, 0, SEEK_SET);
+	}
+	std::cout << "SEND" << std::endl;
 }
 
 std::string CgiHandler::generateReturnResponse(std::string return_str) {
@@ -188,6 +191,7 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 	std::string contentType;
 
 	std::istringstream returnStream(return_str);
+	std::cout << "SIZE : " << return_str.size() << std::endl;
 	std::string line;
 	while (std::getline(returnStream, line)) {
 		if (line.find(':') == std::string::npos)
@@ -269,20 +273,35 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 }
 
 std::string CgiHandler::execute() {
-	if (pipe(_child_out_pipe))
-		throw std::runtime_error("Could not pipe process.");
-	if (pipe(_child_in_pipe)) {
-		close(_child_out_pipe[0]);
-		close(_child_out_pipe[1]);
-		throw std::runtime_error("Could not pipe process.");
-	}
+	// if (pipe(_child_out_pipe))
+	// 	throw std::runtime_error("Could not pipe process.");
+
+	// _child_in_pipe = open("temp_cgi", O_RDWR | O_TRUNC | O_CREAT);
+	// if (_child_in_pipe == -1)
+	// {
+	// 	close(_child_out_pipe[PIPE_READ]);
+	// 	close(_child_out_pipe[PIPE_WRITE]);
+	// 	throw std::runtime_error("Could not open temp file for CGI.");
+	// }
+
+	FILE *fIn = tmpfile();
+	FILE *fOut = tmpfile();
+	_child_in_pipe = fileno(fIn);
+	_child_out_pipe = fileno(fOut);
+
 	build_args_env();
 
-	launch_child();
 	sendBody();
+	launch_child();
 	std::string return_str = capture_child_return();
-	// std::cout << return_str << std::endl;
+	std::cout << RED << "The return str is : " << return_str << DEFAULT << std::endl;
 	return_str = generateReturnResponse(return_str);
 	std::cout << GREEN << "reponse is:" << return_str << DEFAULT << std::endl;
+
+	fclose(fIn);
+	fclose(fOut);
+	close(_child_in_pipe);
+	close(_child_out_pipe);
+
 	return (return_str);
 }

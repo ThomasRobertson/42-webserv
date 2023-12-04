@@ -174,7 +174,7 @@ void StartServers::processRequest(epoll_event currentEvent)
     struct epoll_event event;
     Client &currentClient = _clientList[currentEvent.data.fd];
 
-    std::cout << "----------------------- NEW REQUEST: " << currentEvent.data.fd << " -----------------------" << std::endl;
+    // std::cout << "----------------------- NEW REQUEST: " << currentEvent.data.fd << " -----------------------" << std::endl;
 
     currentClient.lastActionDate = getDate(); // update timeout
 
@@ -189,7 +189,7 @@ void StartServers::processRequest(epoll_event currentEvent)
     }
 
     std::string requestData(buffer, bytesRead);
-    std::cout << requestData << std::endl;
+    // std::cout << requestData << std::endl;
 
     try
     {
@@ -205,7 +205,7 @@ void StartServers::processRequest(epoll_event currentEvent)
 
     if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
     {
-        std::cout << RED << "REQUEST UNCOMPLETE" << DEFAULT << std::endl;
+        // std::cout << RED << "REQUEST UNCOMPLETE" << DEFAULT << std::endl;
         // std::cout << currentClient.request.bodySize << "/" << currentClient.request.contentLength << std::endl;
         return;
     }

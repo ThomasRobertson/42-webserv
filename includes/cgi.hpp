@@ -44,8 +44,8 @@ class CgiHandler
 		std::string _body;
 
 		pid_t _child_pid;
-		int _child_out_pipe[2];
-		int _child_in_pipe[2];
+		int _child_out_pipe;
+		int _child_in_pipe;
 
 		void build_args_env();
 		void launch_child();
@@ -54,4 +54,3 @@ class CgiHandler
 		void sendBody();
 		std::string generateReturnResponse(std::string return_str);
 };
-

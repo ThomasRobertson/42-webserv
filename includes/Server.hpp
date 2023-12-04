@@ -53,7 +53,7 @@ class Server
         //std::string getErrorPage(std::string errorCode);
         std::map<std::string, std::string> getCgiPages();
 		std::pair<std::string, page> getRootDir(std::string url);
-        std::string getFileRoute(std::string fileName, std::string &status, std::string method, bool &is_dir);
+        std::string getFileRoute(std::string fileName, std::string &status, std::string method, bool &is_dir, bool isCGI = false);
 		std::string getErrorPageRoute(std::string errorCode);
 		std::string testAccessPath(std::string location, std::string method);
 

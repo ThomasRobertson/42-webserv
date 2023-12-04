@@ -12,7 +12,7 @@ std::string GenerateMethod::CGIMethod()
 	std::string status, body;
 	bool is_dir = false;
 
-	std::string fileLocation = _server.getFileRoute(_client.request.route, status, _client.request.method, is_dir);
+	std::string fileLocation = _server.getFileRoute(_client.request.route, status, _client.request.method, is_dir, true);
 
 	std::string cgiBinLocation;
 
@@ -23,16 +23,36 @@ std::string GenerateMethod::CGIMethod()
 	// 	std::cout << it->first << " ; " << it->second << std::endl;
 
 	// std::cout << "cgi : " << std::string(parseFileExtension(fileLocation)) << std::endl;
+
+	std::string fileExtension = parseFileExtension(fileLocation);
+
+	std::map<std::string, std::string>::iterator it = CGIMap.find(fileExtension);
+	(void)it;
+
 	if (CGIMap.find(parseFileExtension(fileLocation)) != CGIMap.end())
 	{
 		cgiBinLocation = CGIMap.find(parseFileExtension(fileLocation))->second;
 	}
 	else
 	{
-		throw std::runtime_error("CGI was called but no CGI Bin was find.");
+		std::cout << RED << "CGI was called but no CGI Bin was find.\n" << DEFAULT;
+		throw std::runtime_error("");
 	}
 
-	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation, "");
+	if (_client.request.transferEncoding == "default")
+	{
+		body = getRequestBody();
+		// std::cout << YELLOW << "DEFAULT BODY:" << std::endl;
+		// std::cout << body << DEFAULT << std::endl;
+	}
+	else
+	{
+		body = getChunkedRequestBody();
+		// std::cout << YELLOW << "CHUNKED BODY:" << std::endl;
+		// std::cout << body << DEFAULT << std::endl;
+	}
+
+	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation, body);
 	
 	std::string response;
 

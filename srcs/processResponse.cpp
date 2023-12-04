@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "ConfigFile.hpp"
+#include "Settings.hpp"
 #include "StartServers.hpp"
 #include "ClientRequest.hpp"
 #include "ClientResponse.hpp"
@@ -28,35 +29,41 @@ void StartServers::processResponse(epoll_event currentEvent)
 	Server currentServer = *(currentClient.server);
 	GenerateMethod genMethod(currentClient, currentServer);
 
-	std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
+	// std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
 
 	try
 	{
 		bool isCGI = isCGIFile(currentServer, currentClient.request.route);
 		if (!isValidRequest(currentClient.request, status, isCGI))
 		{
+			std::cout << RED << "Invalid header, generating error page.\n" << DEFAULT;
 			response = genMethod.getErrorPageResponse(status);
 		}
 		else if (isCGI)
 		{
+			std::cout << GREEN << "Launching CGI.\n" << DEFAULT;
 			response = genMethod.CGIMethod();
 		}
 		else if (currentClient.request.method == "GET")
 		{
+			std::cout << GREEN << "Launching GET Method.\n" << DEFAULT;
 			response = genMethod.GETMethod();
 		}
 		else if (currentClient.request.method == "POST")
 		{
+			std::cout << GREEN << "Launching POST Method.\n" << DEFAULT;
 			// std::cout << currentClient.request.body << std::endl;
 			response = genMethod.POSTMethod();
 		}
 		else if (currentClient.request.method == "DELETE")
 		{
+			std::cout << GREEN << "Launching DELETE Method.\n" << DEFAULT;
 			// std::cout << "DELETE METH" << std::endl;
 			response = genMethod.DELETEMethod();
 		}
 		else
 		{
+			std::cout << RED << "No valid method found, return error.\n" << DEFAULT;
 			response = genMethod.getErrorPageResponse("405");
 		}		
 	}

@@ -115,7 +115,7 @@ std::pair<std::string, page> Server::getRootDir(std::string url)
 	return *(_htmlPageMap.find(url));
 }
 
-std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method, bool &is_dir)
+std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method, bool &is_dir, bool isCGI)
 {
 	std::string fileLocation, rootDir;
 	std::pair<std::string, page> location;
@@ -127,13 +127,13 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	catch (const std::exception&)
 	{
 		status = "404";
-		return "";
+		return fileName;
 	}
 
-	if (std::find(location.second.methods.begin(), location.second.methods.end(), method) == location.second.methods.end())
+	if (!isCGI && std::find(location.second.methods.begin(), location.second.methods.end(), method) == location.second.methods.end())
 	{
 		status = "405";
-		return "";
+		return fileName;
 	}
 
 	if (method == "GET")
@@ -148,7 +148,7 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		if (location.second.postRoot.empty())
 		{
 			status = "500";
-			return "";
+			return fileName;
 		}
 		else
 		{
@@ -161,15 +161,15 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	{
 		std::cout << RED << "Invalid method: " << method << DEFAULT << std::endl;
 		status = "500";
-		return "";
+		return fileName;
 	}
 
-	std::cout << "root : " << rootDir << " filename: " << fileName << " location: " << location.first << " index: " << location.second.index << std::endl << "method: " << method << std::endl;
+	// std::cout << "root : " << rootDir << " filename: " << fileName << " location: " << location.first << " index: " << location.second.index << std::endl << "method: " << method << std::endl;
 
 	std::string locationAfterRoot = fileName.substr(location.first.size(), std::string::npos);
 	
 	fileLocation = rootDir + locationAfterRoot;
-	std::cout << "second file loc : " << fileLocation<< std::endl;
+	// std::cout << "second file loc : " << fileLocation<< std::endl;
 
 	if (!location.second.index.empty())
 	{
@@ -177,7 +177,7 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		if (*fileLocation.rbegin() != '/')
 			rootIndex += "/";
 		rootIndex += location.second.index;
-		std::cout << "Testing index file : " << rootIndex << std::endl;
+		// std::cout << "Testing index file : " << rootIndex << std::endl;
 		status = testAccessPath(rootIndex, method);
 		if (status != "404")
 			return (rootIndex);
