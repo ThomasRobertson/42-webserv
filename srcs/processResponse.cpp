@@ -187,9 +187,19 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
             std::istringstream lengthStream(lengthValue);
             int contentLength;
 
-			lengthStream >> contentLength;
+			if (!(lengthStream >> contentLength))
+			{
+    		    status = "400";
+    		    return false;
+    		}
 
-            if (contentLength <= 0)
+            if (contentLength < 0)
+			{
+				status = "400";
+				return false;
+			}
+
+			if (contentLength > 0 && (method == "DELETE" || method == "GET"))
 			{
 				status = "400";
 				return false;
@@ -206,7 +216,8 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		}
 
         size_t colonPos = line.find(":");
-        if (colonPos != std::string::npos) {
+        if (colonPos != std::string::npos)
+		{
             std::string headerKey = line.substr(0, colonPos);
             std::string headerValue = line.substr(colonPos + 1);
 
@@ -215,12 +226,27 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 				status = "400";
 				return false;
 			}
+
+			if (colonPos > 0 && line[colonPos - 1] == ' ') {
+        		status = "400";
+        		return false;
+    		}
+
+			// if (line.length() > colonPos + 1 && line[colonPos + 1] != ' ')
+			// {
+			// 	status = "400";
+			// 	return false;
+            // }
+
         }
     }
 
 
     if (countOther == 1 && (method == "GET" || method == "DELETE"))
+	{
+
         return true;
+	}
     else if (countPost >= 3 && method == "POST")
         return true;
     else
