@@ -178,7 +178,7 @@ void CgiHandler::sendBody() {
 	if (_body.size() != 0)
 	{
 		write(_child_in_pipe, _body.c_str(), _body.size());
-		lseek(_child_in_pipe, 0, SEEK_SET);
+		//lseek(_child_in_pipe, 0, SEEK_SET);
 	}
 	std::cout << "SEND" << std::endl;
 }
@@ -196,7 +196,7 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 	while (std::getline(returnStream, line)) {
 		if (line.find(':') == std::string::npos)
 			break;
-		else if (line == "")
+		else if (line == "" || line == "\r\n" || line == "\n")
 			break;
 
 		std::string field_name = line.substr(0, line.find_first_of(':'));
@@ -286,8 +286,22 @@ std::string CgiHandler::execute() {
 
 	FILE *fIn = tmpfile();
 	FILE *fOut = tmpfile();
+	if (fIn == NULL || fOut == NULL)
+	{
+		fclose(fIn);
+		fclose(fOut);
+		std::cout << RED << "Could not create temp files for CGI.\n" << DEFAULT;
+		throw std::runtime_error("");
+	}
 	_child_in_pipe = fileno(fIn);
 	_child_out_pipe = fileno(fOut);
+	if (_child_in_pipe == -1 || _child_out_pipe == -1)
+	{
+		fclose(fIn);
+		fclose(fOut);
+		std::cout << RED << "Could not create temp files for CGI.\n" << DEFAULT;
+		throw std::runtime_error("");
+	}
 
 	build_args_env();
 
@@ -300,8 +314,6 @@ std::string CgiHandler::execute() {
 
 	fclose(fIn);
 	fclose(fOut);
-	close(_child_in_pipe);
-	close(_child_out_pipe);
 
 	return (return_str);
 }
