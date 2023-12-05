@@ -243,10 +243,7 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 
 
     if (countOther == 1 && (method == "GET" || method == "DELETE"))
-	{
-
         return true;
-	}
     else if (countPost >= 3 && method == "POST")
         return true;
     else
