@@ -323,31 +323,34 @@ void ConfigFile::splitStrInVector(std::string input, char delimiter, std::vector
 
 int ConfigFile::splitStrInMap(std::string input, char delimiter, std::map<std::string, std::string> &result)
 {
-	std::string token;
-	int tokenCount = 0;
+    std::string key, value;
+    bool keyFound = false;
 
-	for (size_t i = 0; i < input.length(); ++i)
+    for (size_t i = 0; i < input.length(); ++i)
 	{
-		if (input[i] != delimiter)
-			token += input[i];
+        if (input[i] != delimiter)
+		{
+            if (!keyFound)
+                key += input[i];
+            else
+                value += input[i];
+        }
 		else
 		{
-			if (tokenCount == 0)
-				result[token] = ""; 
-			else
-				return 0;
+            if (!keyFound)
+                keyFound = true;
+            else
+                return 0;
+        }
+    }
 
-			token.clear();
-			tokenCount++;
-		}
-	}
+    if (keyFound && value.empty())
+        return 0;
 
-	if (tokenCount == 1)
-	{
-    	result[result.begin()->first] = token;
-	}
-    if (tokenCount != 1)
-		return 0;
+    if (keyFound)
+        result[key] = value;
+    else
+        return 0;
 
-	return 1;
+    return 1;
 }
