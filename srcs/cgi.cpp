@@ -1,6 +1,8 @@
 #include "cgi.hpp"
 #include "Settings.hpp"
 
+#define SSTR(x) static_cast< std::ostringstream & >(( std::ostringstream() << std::dec << x) ).str()
+
 void CgiHandler::build_args_env() {
 	std::string value;
 	// --- SERVER ENVIRON ---
@@ -59,7 +61,7 @@ void CgiHandler::build_args_env() {
 		_environ.push_back(value);
 
 		value = "CONTENT_LENGTH=";
-		value += _client.request.contentLength;
+		value += SSTR(_client.request.contentLength);
 		_environ.push_back(value);
 	}
 
@@ -159,6 +161,7 @@ std::string CgiHandler::capture_child_return() {
 		std::cout << "Child return code : " << WEXITSTATUS(wstatus)
 				  << std::endl;	 //! For debug only, to be removed.
 
+	lseek(_child_out_pipe, 0, SEEK_SET);
 	do {
 		size_read =
 			read(_child_out_pipe, read_buffer, CGI_BUFFER_SIZE);
@@ -178,9 +181,18 @@ void CgiHandler::sendBody() {
 	if (_body.size() != 0)
 	{
 		write(_child_in_pipe, _body.c_str(), _body.size());
-		//lseek(_child_in_pipe, 0, SEEK_SET);
+		// lseek(_child_in_pipe, 0, SEEK_SET);
 	}
 	std::cout << "SEND" << std::endl;
+	// char buff[1025];
+	// buff[1024] = '\0';
+	// ssize_t readLenght;
+	// do {
+	// 	memset(buff, '\0', 1024);
+	// 	readLenght = read(_child_in_pipe, buff, 1024);
+	// 	std::cout << buff;
+	// }while (readLenght != 0);
+	lseek(_child_in_pipe, 0, SEEK_SET);
 }
 
 std::string CgiHandler::generateReturnResponse(std::string return_str) {
@@ -283,26 +295,6 @@ std::string CgiHandler::execute() {
 	// 	close(_child_out_pipe[PIPE_WRITE]);
 	// 	throw std::runtime_error("Could not open temp file for CGI.");
 	// }
-
-	FILE *fIn = tmpfile();
-	FILE *fOut = tmpfile();
-	if (fIn == NULL || fOut == NULL)
-	{
-		fclose(fIn);
-		fclose(fOut);
-		std::cout << RED << "Could not create temp files for CGI.\n" << DEFAULT;
-		throw std::runtime_error("");
-	}
-	_child_in_pipe = fileno(fIn);
-	_child_out_pipe = fileno(fOut);
-	if (_child_in_pipe == -1 || _child_out_pipe == -1)
-	{
-		fclose(fIn);
-		fclose(fOut);
-		std::cout << RED << "Could not create temp files for CGI.\n" << DEFAULT;
-		throw std::runtime_error("");
-	}
-
 	build_args_env();
 
 	sendBody();
@@ -310,10 +302,7 @@ std::string CgiHandler::execute() {
 	std::string return_str = capture_child_return();
 	std::cout << RED << "The return str is : " << return_str << DEFAULT << std::endl;
 	return_str = generateReturnResponse(return_str);
-	std::cout << GREEN << "reponse is:" << return_str << DEFAULT << std::endl;
-
-	fclose(fIn);
-	fclose(fOut);
+	//std::cout << GREEN << "reponse is:" << return_str << DEFAULT << std::endl;
 
 	return (return_str);
 }

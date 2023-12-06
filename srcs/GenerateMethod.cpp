@@ -59,12 +59,12 @@ std::string GenerateMethod::CGIMethod()
 	try
 	{
 		response = CGI.execute();
-		std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
+		//std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
 	}
 	catch (const std::exception&)
 	{
 		response = getErrorPageResponse("500");
-		std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
+		//std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
 	}
 
 	return response;
