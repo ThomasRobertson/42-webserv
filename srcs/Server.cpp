@@ -193,12 +193,14 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 			{
 				is_dir = true;
 				status = "200";
+				closedir(dir);
 				return fileLocation;
 			}
 		}
 		else
 		{
 			status = "404";
+			closedir(dir);
 			return fileLocation;
 		}
 	}
