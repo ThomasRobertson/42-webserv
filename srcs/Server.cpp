@@ -101,7 +101,7 @@ std::string Server::testAccessPath(std::string location, std::string method)
 		return "403";
 }
 
-std::pair<std::string, page> Server::getRootDir(std::string url)
+std::pair<std::string, Location> Server::getRootDir(std::string url)
 {
 	while (_htmlPageMap.find(url) == _htmlPageMap.end())
 	{
@@ -118,7 +118,7 @@ std::pair<std::string, page> Server::getRootDir(std::string url)
 std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method, bool &is_dir, bool isCGI)
 {
 	std::string fileLocation, rootDir;
-	std::pair<std::string, page> location;
+	std::pair<std::string, Location> location;
 
 	try
 	{

@@ -28,7 +28,7 @@ class Server
         // std::string _server_name;
         std::string _postRoot;
 
-        std::map<std::string, page> _htmlPageMap;
+        std::map<std::string, Location> _htmlPageMap;
         std::map<std::string, std::string> _errorsMap;
         std::map<std::string, std::string> _cgiMap;
 
@@ -52,7 +52,7 @@ class Server
 
         //std::string getErrorPage(std::string errorCode);
         std::map<std::string, std::string> getCgiPages();
-		std::pair<std::string, page> getRootDir(std::string url);
+		std::pair<std::string, Location> getRootDir(std::string url);
         std::string getFileRoute(std::string fileName, std::string &status, std::string method, bool &is_dir, bool isCGI = false);
 		std::string getErrorPageRoute(std::string errorCode);
 		std::string testAccessPath(std::string location, std::string method);

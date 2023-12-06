@@ -18,7 +18,6 @@ std::string GenerateMethod::CGIMethod()
 
 	std::map<std::string, std::string> CGIMap = _server.getCgiPages();
 
-
 	// for (std::map<std::string, std::string>::iterator it = CGIMap.begin(); it != CGIMap.end(); it++)
 	// 	std::cout << it->first << " ; " << it->second << std::endl;
 
@@ -72,9 +71,11 @@ std::string GenerateMethod::CGIMethod()
 
 std::string GenerateMethod::GETMethod()
 {
+	Location location;
+
 	std::string response, fileLocation, contentType, status, htmlContent;
 	bool is_dir = false;
-	fileLocation = _server.getFileRoute(_client.request.route, status, _client.request.method, is_dir);
+	fileLocation = _server.getFileRoute(_client.request.route, status, "GET", is_dir);
 	std::cout << "File location : " << fileLocation << std::endl;
 	std::cout << "Status : " << status << std::endl;
 
@@ -103,7 +104,7 @@ std::string GenerateMethod::GETMethod()
 
 	htmlContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	std::cout << "Content generated for " << fileLocation << "." << std::endl;
-	// std::cout << "Body : \n" << htmlContent << std::endl;
+
 	ClientResponse clientReponse(true, status, contentType, htmlContent);
 	response = clientReponse.getReponse();
 
@@ -143,7 +144,7 @@ std::string GenerateMethod::POSTMethod()
 
 	bool is_dir = false; //TODO: Check value
 	
-	std::string fileLocation = _server.getFileRoute("/form", status, _client.request.method, is_dir); //TODO: replace "/form" with the correct URL
+	std::string fileLocation = _server.getFileRoute(_client.request.route, status, "POST", is_dir); //TODO: replace "/form" with the correct URL
 
 	if (status != "200")
 	{

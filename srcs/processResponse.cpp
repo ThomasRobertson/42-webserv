@@ -65,7 +65,7 @@ void StartServers::processResponse(epoll_event currentEvent)
 		{
 			std::cout << RED << "No valid method found, return error.\n" << DEFAULT;
 			response = genMethod.getErrorPageResponse("405");
-		}		
+		}
 	}
 	catch (const std::exception&)
 	{
@@ -73,7 +73,7 @@ void StartServers::processResponse(epoll_event currentEvent)
 	}
 
 	write(currentEvent.data.fd, response.c_str(), response.length());
-	std::cout << YELLOW << response << DEFAULT << std::endl;
+	// std::cout << YELLOW << response << DEFAULT << std::endl;
 
 	_clientList.erase(currentEvent.data.fd);
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);

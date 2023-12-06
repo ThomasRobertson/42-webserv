@@ -25,7 +25,7 @@ int ConfigFile::getMaxClientBodySize(int serverIndex)
 	return convertStrToInt(this->_configVecOfMap[serverIndex]["maxClientBodySize"]);
 }
 
-std::map<std::string, page> ConfigFile::getFileRoutes(int serverIndex)
+std::map<std::string, Location> ConfigFile::getFileRoutes(int serverIndex)
 {
     return this->_htmlPageVecOfMap[serverIndex];
 }
@@ -78,7 +78,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 	int serverIndex = 0;
 
 	std::map<std::string, std::string> newErrorMap;
-	std::map<std::string, page> newHtmlPageMap;
+	std::map<std::string, Location> newHtmlPageMap;
 	std::map<std::string, std::string> newConfigMap;
 	std::map<std::string, std::string> newCgiMap;
 
@@ -115,7 +115,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 		}
 		if (positionLocation != std::string::npos && line[1] != '\t' && line[9] == ' ' && line[10] != ' ')
 		{
-			page newPage;
+			Location newPage;
 			newPage.listing = false;
 
 			std::string locationStr = line.substr(positionSpace + 1, (positionLeftBracket) - (positionSpace + 2));
@@ -281,7 +281,7 @@ void ConfigFile::displayValuesConfigFile(int serverIndex)
 	std::cout << "port: " << this->_portsVec[serverIndex][0] << std::endl;
 	std::cout << "maxClientBodySize: " << convertStrToInt(this->_configVecOfMap[serverIndex]["maxClientBodySize"]) << std::endl;
 
-	std::map<std::string, page>::iterator it;
+	std::map<std::string, Location>::iterator it;
 	for (it = _htmlPageVecOfMap[serverIndex].begin(); it != _htmlPageVecOfMap[serverIndex].end(); it++)
 	{
 		// std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method 1: " << it->second.methods[0] << " Method 2: " << it->second.methods[1] << std::endl;
