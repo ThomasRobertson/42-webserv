@@ -69,6 +69,18 @@ void CgiHandler::build_args_env() {
 	value += _fileLocation;
 	_environ.push_back(value);
 
+	value = "HTTP_COOKIE=";
+	std::vector<std::string>::iterator it = _client.request.cookies.begin();
+	while (it != _client.request.cookies.end())
+	{
+		value += *it;
+		it++;
+		if (it != _client.request.cookies.end())
+			value += ", ";
+	}
+	_environ.push_back(value);
+
+
 	// _environ.push_back("SERVER_NAME" + _server.getHost());
 	// _environ.push_back("GATEWAY_INTERFACE" + GATEWAY_INTERFACE);
 	// _environ.push_back("DOCUMENT_ROOT" + _server.getRoot());
@@ -204,12 +216,17 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 
 	std::istringstream returnStream(return_str);
 	std::cout << "SIZE : " << return_str.size() << std::endl;
-	std::string line;
+	std::string line, bodyBuffer;
+
 	while (std::getline(returnStream, line)) {
-		if (line.find(':') == std::string::npos)
+		if (line == "" || line == "\r\n" || line == "\n")
 			break;
-		else if (line == "" || line == "\r\n" || line == "\n")
-			break;
+		else if (line.find(':') == std::string::npos)
+		{
+			contentBody = line;
+			contentBody += "\n";
+			break ;
+		}
 
 		std::string field_name = line.substr(0, line.find_first_of(':'));
 		std::string field_value = line.substr(line.find_first_of(':') + 1);
@@ -270,13 +287,15 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 			}
 		}
 	}
-	while (std::getline(returnStream, contentBody)) {
+	
+	while (std::getline(returnStream, bodyBuffer)) {
+		contentBody += bodyBuffer;
 		contentBody += "\n";
 		if (returnStream.eof())
 			break;
 	}
 	if (contentType.empty())
-		contentType = "text/html";
+		contentType = "text/plain";
 	if (status.empty())
 		status = "200 OK";
 	ClientResponse clientResponse(false, status, contentType, contentBody, "", cookieSet, extraHeaders);
@@ -302,7 +321,7 @@ std::string CgiHandler::execute() {
 	std::string return_str = capture_child_return();
 	std::cout << RED << "The return str is : " << return_str << DEFAULT << std::endl;
 	return_str = generateReturnResponse(return_str);
-	//std::cout << GREEN << "reponse is:" << return_str << DEFAULT << std::endl;
+	std::cout << GREEN << "reponse is:" << return_str << DEFAULT << std::endl;
 
 	return (return_str);
 }
