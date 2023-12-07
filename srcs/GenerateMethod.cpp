@@ -9,24 +9,11 @@
 
 std::string GenerateMethod::CGIMethod()
 {
-	std::string status, body;
+	std::string status, body, response, cgiBinLocation;
 	bool is_dir = false;
 
 	std::string fileLocation = _server.getFileRoute(_client.request.route, status, _client.request.method, is_dir, true);
-
-	std::string cgiBinLocation;
-
 	std::map<std::string, std::string> CGIMap = _server.getCgiPages();
-
-	// for (std::map<std::string, std::string>::iterator it = CGIMap.begin(); it != CGIMap.end(); it++)
-	// 	std::cout << it->first << " ; " << it->second << std::endl;
-
-	// std::cout << "cgi : " << std::string(parseFileExtension(fileLocation)) << std::endl;
-
-	std::string fileExtension = parseFileExtension(fileLocation);
-
-	std::map<std::string, std::string>::iterator it = CGIMap.find(fileExtension);
-	(void)it;
 
 	if (CGIMap.find(parseFileExtension(fileLocation)) != CGIMap.end())
 	{
@@ -39,32 +26,12 @@ std::string GenerateMethod::CGIMethod()
 	}
 
 	if (_client.request.transferEncoding == "default")
-	{
 		body = getRequestBody();
-		// std::cout << YELLOW << "DEFAULT BODY:" << std::endl;
-		// std::cout << body << DEFAULT << std::endl;
-	}
 	else
-	{
 		body = getChunkedRequestBody();
-		// std::cout << YELLOW << "CHUNKED BODY:" << std::endl;
-		// std::cout << body << DEFAULT << std::endl;
-	}
 
-	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation, body);
-	
-	std::string response;
-
-	try
-	{
-		response = CGI.execute();
-		//std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
-	}
-	catch (const std::exception&)
-	{
-		response = getErrorPageResponse("500");
-		//std::cout << GREEN << "reponse is:" << response << DEFAULT << std::endl;
-	}
+	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation,body);
+	response = CGI.execute();
 
 	return response;
 }
@@ -115,16 +82,7 @@ std::string GenerateMethod::GETMethod()
 std::string GenerateMethod::POSTMethod()
 {
 	if (_client.request.bodySize > _client.server->getMaxClientBodySize())
-	{
-		std::string response = "HTTP/1.1 413 Content Too Large\r\n";
-		response += "Connection: close\r\n";
-		response += "Server: Webserv/42.1\r\n";
-		response += "Content-Type: text/plain\r\n";
-		response += "Content-Length: 0\r\n";
-		response += "\r\n";
-		std::cout << "CONTENT TOO LARGE ERROR SENT" << std::endl;
-		return response;
-	}
+		return getErrorPageResponse("413");
 
 	std::string fileName = getFileName();
 	std::string status, contentType, body;

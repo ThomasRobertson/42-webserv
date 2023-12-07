@@ -78,26 +78,26 @@ bool isLastChunkReceived(std::string str)
 
 void StartServers::getRequestChunk(Client &client, std::string requestStr)
 {
-    //Cookies
-    // size_t pos = requestStr.find("Cookie:");
-    // if (pos != std::string::npos)
-    // {
-    //     std::string cookieSubstr = requestStr.substr(pos + 8);
-    //     std::string delimiter = "; ";
-    //     size_t start = 0;
-    //     size_t end = cookieSubstr.find(delimiter);
+    // Cookies
+    size_t pos = requestStr.find("Cookie:");
+    if (pos != std::string::npos)
+    {
+        std::string cookieSubstr = requestStr.substr(pos + 8);
+        std::string delimiter = "; ";
+        size_t start = 0;
+        size_t end = cookieSubstr.find(delimiter);
         
-    //     while (end != std::string::npos)
-    //     {
-    //         std::string cookie = cookieSubstr.substr(start, end - start);
-    //         request.cookies.push_back(cookie);
-    //         start = end + delimiter.length();
-    //         end = cookieSubstr.find(delimiter, start);
-    //     }
+        while (end != std::string::npos)
+        {
+            std::string cookie = cookieSubstr.substr(start, end - start);
+            client.request.cookies.push_back(cookie);
+            start = end + delimiter.length();
+            end = cookieSubstr.find(delimiter, start);
+        }
         
-    //     std::string lastCookie = cookieSubstr.substr(start);
-    //     request.cookies.push_back(lastCookie);
-    // }
+        std::string lastCookie = cookieSubstr.substr(start, cookieSubstr.find_first_of("\n\r"));
+        client.request.cookies.push_back(lastCookie);
+    }
 
     // Authorization
     // size_t authPos = requestStr.find("Authorization:");

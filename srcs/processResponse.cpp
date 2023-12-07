@@ -67,8 +67,9 @@ void StartServers::processResponse(epoll_event currentEvent)
 			response = genMethod.getErrorPageResponse("405");
 		}
 	}
-	catch (const std::exception&)
+	catch (const std::exception& e)
 	{
+		std::cerr << e.what() << std::endl;
 		response = genMethod.getErrorPageResponse("500");
 	}
 
