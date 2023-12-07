@@ -3,6 +3,107 @@
 
 #define SSTR(x) static_cast< std::ostringstream & >(( std::ostringstream() << std::dec << x) ).str()
 
+std::string CgiHandler::generateReturnResponse(std::string return_str)
+{
+	std::string status, contentBody, cookieSet, contentType, line, bodyBuffer;
+	std::vector<std::string> extraHeaders;
+	std::istringstream returnStream(return_str);
+
+	// std::cout << "SIZE : " << return_str.size() << std::endl;
+
+	while (std::getline(returnStream, line))
+	{
+		if (line == "" || line.find_first_not_of("\r\n") == std::string::npos)
+			break;
+		else if (line.find(':') == std::string::npos)
+		{
+			contentBody = line;
+			contentBody += "\n";
+			break ;
+		}
+
+		std::string field_name = line.substr(0, line.find_first_of(':'));
+		std::string field_value = line.substr(line.find_first_of(':') + 1);
+		
+		std::vector<std::string> field_values;
+		do
+		{
+			field_value.erase(0, field_value.find_first_not_of(' '));
+			std::string value = field_value.substr(0, field_value.find_first_of(';'));
+			field_value.erase(0, field_value.find_first_of(';') + 1);
+			if (value.find_first_of(';') != std::string::npos)
+				value.erase(value.find_first_of(';'));
+			field_values.push_back(value);
+		} while (field_value.find_first_of(';') != std::string::npos);
+
+		if (field_name == "Content-Type")
+		{
+			for (std::vector<std::string>::iterator it = field_values.begin(); it != field_values.end(); it++)
+			{
+				if (!contentType.empty() && it == field_values.begin())
+					contentType = *it;
+				else
+				{
+					std::string str;
+					str = field_name;
+					str += ": ";
+					str += *it;
+					extraHeaders.push_back(str);
+				}
+			}
+		}
+		else if (field_name == "Status") {
+			if (!status.empty() || field_values.size() != 1)
+				throw std::invalid_argument("");
+			status = field_values.front();
+		}
+		else if (field_name == "Location")
+		{
+			for (std::vector<std::string>::iterator it = field_values.begin(); it != field_values.end(); it++)
+			{
+				std::string str;
+				str = field_name;
+				str += ": ";
+				str += *it;
+				extraHeaders.push_back(str);
+			}
+		}
+		else if (field_name == "Set-Cookie")
+		{
+			for (std::vector<std::string>::iterator it = field_values.begin(); it != field_values.end(); it++)
+				cookieSet += *it;
+		}
+		else
+		{
+			for (std::vector<std::string>::iterator it = field_values.begin(); it != field_values.end(); it++)
+			{
+				std::string str;
+				str = field_name;
+				str += ": ";
+				str += *it;
+				extraHeaders.push_back(str);
+			}
+		}
+	}
+
+	while (std::getline(returnStream, bodyBuffer))
+	{
+		if (contentBody.empty() && (bodyBuffer == "" || bodyBuffer.find_first_not_of("\r\n") == std::string::npos))
+			continue;
+		contentBody += bodyBuffer;
+		contentBody += "\n";
+		if (returnStream.eof())
+			break;
+	}
+	if (contentType.empty())
+		contentType = "text/plain";
+	if (status.empty())
+		status = "200 OK";
+	ClientResponse clientResponse(false, status, contentType, contentBody, "", cookieSet, extraHeaders);
+
+	return clientResponse.getReponse();
+}
+
 void CgiHandler::build_args_env()
 {
 	std::string value;
@@ -55,7 +156,8 @@ void CgiHandler::build_args_env()
 	value += "127.0.0.1";
 	_environ.push_back(value);
 
-	if (_client.request.method == "POST") {
+	if (_client.request.method == "POST")
+	{
 		value = "CONTENT_TYPE=";
 		value += getContentType(_fileLocation);
 		_environ.push_back(value);
@@ -90,8 +192,10 @@ void CgiHandler::child_is_in_orbit() {
 	char **environ = new char *[_environ.size() + 1];
 	std::vector<std::string>::iterator it = _environ.begin();
 	size_t i = 0;
-	while (it != _environ.end()) {
-		environ[i] = const_cast<char *>(strdup(it->c_str()));
+
+	while (it != _environ.end())
+	{
+		environ[i] = strdup(it->c_str());
 		it++;
 		i++;
 	}
@@ -108,7 +212,8 @@ void CgiHandler::child_is_in_orbit() {
 void CgiHandler::launch_child()
 {
 	_child_pid = fork();
-	if (_child_pid == -1) {
+	if (_child_pid == -1)
+	{
 		std::runtime_error("Houston we have a problem, abord launch of child");
 	}
 	else if (_child_pid == 0)
@@ -138,130 +243,36 @@ std::string CgiHandler::capture_child_return()
 
 	lseek(_child_out_pipe, 0, SEEK_SET);
 	do {
-		size_read =
-			read(_child_out_pipe, read_buffer, CGI_BUFFER_SIZE);
+		size_read = read(_child_out_pipe, read_buffer, CGI_BUFFER_SIZE);
 		if (size_read == -1)
 			throw std::runtime_error("Could not read from file.");
 		read_buffer[size_read] = '\0';
 		if (size_read != 0)
 			return_str += read_buffer;
 	} while (size_read == CGI_BUFFER_SIZE);
+
 	return (return_str);
 }
 
 #define WRITE_SIZE 32768
 
-void CgiHandler::sendBody() {
-	// std::cout << "SIZE: " << _body.size() << std::endl;
-	if (_body.size() != 0)
-		write(_child_in_pipe, _body.c_str(), _body.size());
-	// std::cout << "SEND" << std::endl;
-	lseek(_child_in_pipe, 0, SEEK_SET);
-}
-
-std::string CgiHandler::generateReturnResponse(std::string return_str)
+void CgiHandler::sendBody()
 {
-	std::string status, contentBody, cookieSet, contentType, line, bodyBuffer;
-	std::vector<std::string> extraHeaders;
-	std::istringstream returnStream(return_str);
-
-	// std::cout << "SIZE : " << return_str.size() << std::endl;
-
-	while (std::getline(returnStream, line))
+	if (_body.size() != 0)
 	{
-		if (line == "" || line.find_first_not_of("\r\n") == std::string::npos)
-			break;
-		else if (line.find(':') == std::string::npos)
-		{
-			contentBody = line;
-			contentBody += "\n";
-			break ;
-		}
-
-		std::string field_name = line.substr(0, line.find_first_of(':'));
-		std::string field_value = line.substr(line.find_first_of(':') + 1);
-		
-		std::vector<std::string> field_values;
-		do
-		{
-			field_value.erase(0, field_value.find_first_not_of(' '));
-			std::string value = field_value.substr(0, field_value.find_first_of(';'));
-			field_value.erase(0, field_value.find_first_of(';') + 1);
-			if (value.find_first_of(';') != std::string::npos)
-				value.erase(value.find_first_of(';'));
-			field_values.push_back(value);
-		} while (field_value.find_first_of(';') != std::string::npos);
-
-		if (field_name == "Content-Type") {
-			for (std::vector<std::string>::iterator it = field_values.begin(); it != field_values.end(); it++)
-			{
-				if (!contentType.empty() && it == field_values.begin())
-					contentType = *it;
-				else
-				{
-					std::string str;
-					str = field_name;
-					str += ": ";
-					str += *it;
-					extraHeaders.push_back(str);
-				}
-			}
-		}
-		else if (field_name == "Status") {
-			if (!status.empty() || field_values.size() != 1)
-				throw std::invalid_argument("");
-			status = field_values.front();
-		}
-		else if (field_name == "Location") {
-			for (std::vector<std::string>::iterator it = field_values.begin(); it != field_values.end(); it++)
-			{
-				std::string str;
-				str = field_name;
-				str += ": ";
-				str += *it;
-				extraHeaders.push_back(str);
-			}
-		}
-		else if (field_name == "Set-Cookie") {
-			for (std::vector<std::string>::iterator it = field_values.begin(); it != field_values.end(); it++)
-				cookieSet += *it;
-		}
-		else {
-			for (std::vector<std::string>::iterator it = field_values.begin(); it != field_values.end(); it++)
-			{
-				std::string str;
-				str = field_name;
-				str += ": ";
-				str += *it;
-				extraHeaders.push_back(str);
-			}
-		}
+		write(_child_in_pipe, _body.c_str(), _body.size());
+		lseek(_child_in_pipe, 0, SEEK_SET); // set fd ptr to beginning of the file (may need protection)
 	}
-
-	while (std::getline(returnStream, bodyBuffer))
-	{
-		if (contentBody.empty() && (bodyBuffer == "" || bodyBuffer.find_first_not_of("\r\n") == std::string::npos))
-			continue;
-		contentBody += bodyBuffer;
-		contentBody += "\n";
-		if (returnStream.eof())
-			break;
-	}
-	if (contentType.empty())
-		contentType = "text/plain";
-	if (status.empty())
-		status = "200 OK";
-	ClientResponse clientResponse(false, status, contentType, contentBody, "", cookieSet, extraHeaders);
-
-	return clientResponse.getReponse();
 }
 
-std::string CgiHandler::execute() {
+std::string CgiHandler::execute()
+{
 	build_args_env();
 
 	sendBody();
 	launch_child();
 	std::string return_str = capture_child_return();
+	// std::cout << RED << return_str << DEFAULT << std::endl;
 	return_str = generateReturnResponse(return_str);
 
 	return (return_str);
