@@ -30,7 +30,9 @@
 class CgiHandler
 {
 	public:
-		CgiHandler(Client client, Server server, std::string fileLocation, std::string cgiBinLocation, std::string body = "") : _client(client), _server(server), _fileLocation(fileLocation), _cgi_path(cgiBinLocation), _body(body) {
+		CgiHandler(Client client, Server server, std::string fileLocation, std::string cgiBinLocation, std::string body = "") :
+		_client(client), _server(server), _fileLocation(fileLocation), _cgi_path(cgiBinLocation), _body(body)
+		{
 			_fIn = tmpfile();
 			_fOut = tmpfile();
 			if (_fIn == NULL || _fOut == NULL)

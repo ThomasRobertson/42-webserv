@@ -33,67 +33,59 @@ ClientResponse::ClientResponse(bool parseStatus, std::string status, std::string
 	std::cout << RED << _status << DEFAULT << std::endl;
 }
 
-void ClientResponse::generateResponse()
+std::string ClientResponse::getReponse()
 {
-	_reponse = _serverProtocol;
-	_reponse += spaceDelimiter;
+	_response = _serverProtocol;
+	_response += spaceDelimiter;
 
-	_reponse += _status;
-	_reponse += newLineDelimiter;
+	_response += _status;
+	_response += newLineDelimiter;
 
-	_reponse += "Connection: close";
-	_reponse += newLineDelimiter;
+	_response += "Connection: close";
+	_response += newLineDelimiter;
 
-	_reponse += "Server: ";
-	_reponse += _serverSoftware;
-	_reponse += newLineDelimiter;
+	_response += "Server: ";
+	_response += _serverSoftware;
+	_response += newLineDelimiter;
 
-	// _reponse += "Date: ";
-	// _reponse += _date;
-	// _reponse += newLineDelimiter;
+	// _response += "Date: ";
+	// _response += _date;
+	// _response += newLineDelimiter;
 
-	_reponse += "Content-Type: ";
-	_reponse += _contentType;
-	_reponse += newLineDelimiter;
+	_response += "Content-Type: ";
+	_response += _contentType;
+	_response += newLineDelimiter;
 
-	_reponse += "Content-Length: ";
-	_reponse += _contentLength;
-	_reponse += newLineDelimiter;
+	_response += "Content-Length: ";
+	_response += _contentLength;
+	_response += newLineDelimiter;
 
 	if (!_cookieSet.empty())
 	{
-		_reponse += "Set-Cookie: ";
-		_reponse += _cookieSet;
-		_reponse += newLineDelimiter;
-	}
-	
-	if (!_authenticateRealm.empty())
-	{
-		_reponse += "WWW-Authenticate: ";
-		_reponse += "Basic realm=";
-		_reponse += _authenticateRealm;
-		_reponse += newLineDelimiter;
+		_response += "Set-Cookie: ";
+		_response += _cookieSet;
+		_response += newLineDelimiter;
 	}
 
-	// _reponse += "Accept-Ranges: bytes";
-	// _reponse += newLineDelimiter;
+	if (!_authenticateRealm.empty())
+	{
+		_response += "WWW-Authenticate: ";
+		_response += "Basic realm=";
+		_response += _authenticateRealm;
+		_response += newLineDelimiter;
+	}
 
 	if (!_extraHeaders.empty())
 	{
 		for (std::vector<std::string>::iterator it = _extraHeaders.begin(); it != _extraHeaders.end(); it++)
 		{
-			_reponse += *it;
-			_reponse += newLineDelimiter;
+			_response += *it;
+			_response += newLineDelimiter;
 		}
 	}
 
-	_reponse += newLineDelimiter;
-	_reponse += _contentBody;
-}
+	_response += newLineDelimiter;
+	_response += _contentBody;
 
-std::string ClientResponse::getReponse()
-{
-	generateResponse();
-	// std::cout << YELLOW << "Response is :\n" << _reponse << DEFAULT;
-	return (_reponse);
+	return _response;
 }

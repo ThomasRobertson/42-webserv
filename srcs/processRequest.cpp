@@ -115,10 +115,10 @@ void StartServers::getRequestChunk(Client &client, std::string requestStr)
 
 	client.request.fullStr += requestStr;
 
-    if (!client.request.isHeaderComplete) // if header was not complete yet, check if he is now
+    if (!client.request.isHeaderComplete) // if header was not complete yet, check if it is now
         client.request.isHeaderComplete = isHeaderComplete(client.request.fullStr);
 
-    if (!client.request.isHeaderComplete) // if header is still not complete
+    if (!client.request.isHeaderComplete) // if header is still not complete, stop here
         return;
 
     if (client.request.method.empty())
@@ -202,7 +202,7 @@ void StartServers::processRequest(epoll_event currentEvent)
         currentClient.request.isBodyComplete = true;
 		currentClient.request.isBodyTooLarge = true;
     }
-
+ 
     if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
     {
         // std::cout << RED << "REQUEST UNCOMPLETE" << DEFAULT << std::endl;

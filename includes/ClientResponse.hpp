@@ -12,7 +12,8 @@
 class ClientResponse
 {
 	public:
-		ClientResponse(bool parseStatusAndContentType, std::string status, std::string contentType, std::string contentBody = "", std::string authenticateRealm = "", std::string cookieSet = "", std::vector<std::string> extraHeaders = std::vector<std::string>());
+		ClientResponse(bool parseStatusAndContentType, std::string status, std::string contentType, std::string contentBody = "", 
+		std::string authenticateRealm = "", std::string cookieSet = "", std::vector<std::string> extraHeaders = std::vector<std::string>());
 		~ClientResponse() {}
 
 		std::string getReponse();
@@ -29,10 +30,9 @@ class ClientResponse
 		std::string _authenticateRealm;
 		std::vector<std::string> _extraHeaders;
 
-		std::string _reponse;
+		std::string _response;
 
 		static const std::string spaceDelimiter;
 		static const std::string newLineDelimiter;
 
-	void generateResponse();
 };

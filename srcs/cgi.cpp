@@ -159,14 +159,16 @@ void CgiHandler::sendBody() {
 	lseek(_child_in_pipe, 0, SEEK_SET);
 }
 
-std::string CgiHandler::generateReturnResponse(std::string return_str) {
+std::string CgiHandler::generateReturnResponse(std::string return_str)
+{
 	std::string status, contentBody, cookieSet, contentType, line, bodyBuffer;
 	std::vector<std::string> extraHeaders;
 	std::istringstream returnStream(return_str);
 
 	// std::cout << "SIZE : " << return_str.size() << std::endl;
 
-	while (std::getline(returnStream, line)) {
+	while (std::getline(returnStream, line))
+	{
 		if (line == "" || line.find_first_not_of("\r\n") == std::string::npos)
 			break;
 		else if (line.find(':') == std::string::npos)
@@ -260,9 +262,7 @@ std::string CgiHandler::execute() {
 	sendBody();
 	launch_child();
 	std::string return_str = capture_child_return();
-	std::cout << RED << "The return str is : " << return_str << DEFAULT << std::endl;
 	return_str = generateReturnResponse(return_str);
-	std::cout << GREEN << "reponse is:" << return_str << DEFAULT << std::endl;
 
 	return (return_str);
 }
