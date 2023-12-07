@@ -3,9 +3,9 @@
 
 #define SSTR(x) static_cast< std::ostringstream & >(( std::ostringstream() << std::dec << x) ).str()
 
-void CgiHandler::build_args_env() {
+void CgiHandler::build_args_env()
+{
 	std::string value;
-	// --- SERVER ENVIRON ---
 
 	value = "SERVER_SOFTWARE=";
 	value += SERVER_SOFTWARE;
@@ -79,44 +79,6 @@ void CgiHandler::build_args_env() {
 			value += ", ";
 	}
 	_environ.push_back(value);
-
-
-	// _environ.push_back("SERVER_NAME" + _server.getHost());
-	// _environ.push_back("GATEWAY_INTERFACE" + GATEWAY_INTERFACE);
-	// _environ.push_back("DOCUMENT_ROOT" + _server.getRoot());
-
-	// // --- REQUEST ENVIRON ---
-
-	// _environ.push_back("SERVER_PROTOCOL" + SERVER_PROTOCOL); //? Is it HTTP
-	// or does it change ?
-	// // _environ.push_back("SERVER_PORT" + _server.getPort()); //?From request
-	// or server ? _environ.push_back("REQUEST_METHOD" +
-	// _client.request.method); _environ.push_back("PATH_INFO" + _fileLocation);
-	// _environ.push_back("PATH_TRANSLATED" + _fileLocation);
-	// _environ.push_back("SCRIPT_NAME" + _cgi_path);
-	// _environ.push_back("QUERY_STRING" + ""); //Todo, parsing string query
-	// _environ.push_back("REMOTE_HOST" + ""); //? Can we leave it empty ?
-	// _environ.push_back("REMOTE_ADDR" + "127.0.0.1"); //TODO : IP adress of
-	// client
-	// // _environ.push_back("AUTH_TYPE" + AUTH_TYPE);
-	// // _environ.push_back("REMOTE_USER" + "");
-	// // _environ.push_back("REMOTE_IDENT" + ""); //? AUTH TYPE, REMOTE USER
-	// AND IDENT just if renable by server, implementation needed ? if
-	// (_client.request.method == "POST")
-	// {
-	// 	// _environ.push_back("CONTENT_TYPE" + ""); //TODO: From request
-	// 	// _environ.push_back("CONTENT_LENGTH" + ""); //TODO: From request
-	// }
-	// _environ.push_back("REQUEST_URI" + _fileLocation);
-
-	// // --- CLIENT ENVIRON ---
-
-	// // _environ["HTTP_ACCEPT" + ""); //Todo: what MIME can the client accept,
-	// from client. Needed ?
-	// // _environ["HTTP_ACCEPT_LANGUAGE" + ""); //Todo: Language accepted, from
-	// client. Needed ?
-	// // _environ["HTTP_USER_AGENT" + "" //Todo: User agent, from client.
-	// Needed ? _environ["HTTP_COOKIE" + ""); //?Do I have to define it?
 }
 
 void CgiHandler::child_is_in_orbit() {
@@ -135,7 +97,6 @@ void CgiHandler::child_is_in_orbit() {
 	}
 	environ[_environ.size()] = NULL;
 
-	// std::cout << "About to launch : " << _cgi_path << std::endl;
 	_child_pid = execve(_cgi_path.c_str(), args, environ);
 
 	delete[] args;
@@ -144,9 +105,8 @@ void CgiHandler::child_is_in_orbit() {
 	std::exit(EXIT_FAILURE);
 }
 
-void CgiHandler::launch_child() {
-	// check_args_env(); //TODO: to implement
-
+void CgiHandler::launch_child()
+{
 	_child_pid = fork();
 	if (_child_pid == -1) {
 		std::runtime_error("Houston we have a problem, abord launch of child");
@@ -159,7 +119,8 @@ void CgiHandler::launch_child() {
 	}
 }
 
-std::string CgiHandler::capture_child_return() {
+std::string CgiHandler::capture_child_return()
+{
 	char read_buffer[CGI_BUFFER_SIZE + 1];
 	ssize_t size_read;
 	std::string return_str;
@@ -170,15 +131,17 @@ std::string CgiHandler::capture_child_return() {
 		std::cerr << "No child launched or error while waiting.\n";
 
 	if (WIFEXITED(wstatus))
-		std::cout << "Child return code : " << WEXITSTATUS(wstatus)
-				  << std::endl;	 //! For debug only, to be removed.
+	{
+		if (WEXITSTATUS(wstatus) == 1)
+			throw std::runtime_error("Child exit code is 1.");
+	}
 
 	lseek(_child_out_pipe, 0, SEEK_SET);
 	do {
 		size_read =
 			read(_child_out_pipe, read_buffer, CGI_BUFFER_SIZE);
 		if (size_read == -1)
-			throw std::runtime_error("Could not read from file.");  // TODO: add errno output
+			throw std::runtime_error("Could not read from file.");
 		read_buffer[size_read] = '\0';
 		if (size_read != 0)
 			return_str += read_buffer;
@@ -189,37 +152,22 @@ std::string CgiHandler::capture_child_return() {
 #define WRITE_SIZE 32768
 
 void CgiHandler::sendBody() {
-	std::cout << "SIZE: " << _body.size() << std::endl;
+	// std::cout << "SIZE: " << _body.size() << std::endl;
 	if (_body.size() != 0)
-	{
 		write(_child_in_pipe, _body.c_str(), _body.size());
-		// lseek(_child_in_pipe, 0, SEEK_SET);
-	}
-	std::cout << "SEND" << std::endl;
-	// char buff[1025];
-	// buff[1024] = '\0';
-	// ssize_t readLenght;
-	// do {
-	// 	memset(buff, '\0', 1024);
-	// 	readLenght = read(_child_in_pipe, buff, 1024);
-	// 	std::cout << buff;
-	// }while (readLenght != 0);
+	// std::cout << "SEND" << std::endl;
 	lseek(_child_in_pipe, 0, SEEK_SET);
 }
 
 std::string CgiHandler::generateReturnResponse(std::string return_str) {
-	std::string status;
-	std::string contentBody;
-	std::string cookieSet;
+	std::string status, contentBody, cookieSet, contentType, line, bodyBuffer;
 	std::vector<std::string> extraHeaders;
-	std::string contentType;
-
 	std::istringstream returnStream(return_str);
-	std::cout << "SIZE : " << return_str.size() << std::endl;
-	std::string line, bodyBuffer;
+
+	// std::cout << "SIZE : " << return_str.size() << std::endl;
 
 	while (std::getline(returnStream, line)) {
-		if (line == "" || line == "\r\n" || line == "\n")
+		if (line == "" || line.find_first_not_of("\r\n") == std::string::npos)
 			break;
 		else if (line.find(':') == std::string::npos)
 		{
@@ -287,8 +235,11 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 			}
 		}
 	}
-	
-	while (std::getline(returnStream, bodyBuffer)) {
+
+	while (std::getline(returnStream, bodyBuffer))
+	{
+		if (contentBody.empty() && (bodyBuffer == "" || bodyBuffer.find_first_not_of("\r\n") == std::string::npos))
+			continue;
 		contentBody += bodyBuffer;
 		contentBody += "\n";
 		if (returnStream.eof())
@@ -304,16 +255,6 @@ std::string CgiHandler::generateReturnResponse(std::string return_str) {
 }
 
 std::string CgiHandler::execute() {
-	// if (pipe(_child_out_pipe))
-	// 	throw std::runtime_error("Could not pipe process.");
-
-	// _child_in_pipe = open("temp_cgi", O_RDWR | O_TRUNC | O_CREAT);
-	// if (_child_in_pipe == -1)
-	// {
-	// 	close(_child_out_pipe[PIPE_READ]);
-	// 	close(_child_out_pipe[PIPE_WRITE]);
-	// 	throw std::runtime_error("Could not open temp file for CGI.");
-	// }
 	build_args_env();
 
 	sendBody();
