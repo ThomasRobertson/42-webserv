@@ -246,15 +246,15 @@ std::string CgiHandler::capture_child_return()
 		size_read = read(_child_out_pipe, read_buffer, CGI_BUFFER_SIZE);
 		if (size_read == -1)
 			throw std::runtime_error("Could not read from file.");
+
 		read_buffer[size_read] = '\0';
+
 		if (size_read != 0)
 			return_str += read_buffer;
-	} while (size_read == CGI_BUFFER_SIZE);
+	} while (size_read);
 
 	return (return_str);
 }
-
-#define WRITE_SIZE 32768
 
 void CgiHandler::sendBody()
 {
