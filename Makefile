@@ -94,7 +94,7 @@ $(NAME): FORCE header cgi
 FORCE: ;
 
 cgi:
-	@gcc cgi-bin/test-cgi.c -o cgi-bin/test-cgi
+	@gcc -g3 cgi-bin/test-cgi.c -o cgi-bin/test-cgi
 
 $(OBJ): $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
 	@echo -n "${COLOR_YELLOW}#${COLOR_END}"
