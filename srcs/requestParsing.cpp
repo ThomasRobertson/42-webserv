@@ -91,58 +91,59 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 
         if (line.empty())
             break;
-        else if (line.find("Host:") != std::string::npos || line.find("host:") != std::string::npos)
-        {
-            countPost++;
-            countOther++;
+		if (line.compare(0, 5, "Host:") == 0 || line.compare(0, 5, "host:") == 0)
+		{
+		    countPost++;
+		    countOther++;
+		}
+		else if (line.compare(0, 18, "Transfer-Encoding:") == 0 || line.compare(0, 18, "transfer-encoding:") == 0)
+		{
+		    if (lenghtFind == true)
+		    {
+		        status = "400";
+		        return false;
+		    }
+		
+		    lenghtFind = true;
+		    countPost++;
+		}
+		else if (line.compare(0, 16, "Content-Length:") == 0 || line.compare(0, 16, "content-length:") == 0)
+		{
+		    if (lenghtFind == true)
+		    {
+		        status = "400";
+		        return false;
+		    }
+		
+		    lenghtFind = true;
+		    countPost++;
+		    std::string lengthValue = line.substr(16); // Extract the value after "Content-Length:" or "content-length:"
+		    std::istringstream lengthStream(lengthValue);
+		    int contentLength;
+		
+		    if (!(lengthStream >> contentLength))
+		    {
+		        status = "400";
+		        return false;
+		    }
+		
+		    if (contentLength < 0)
+		    {
+		        status = "400";
+		        return false;
+		    }
+		
+		    if (contentLength > 0 && (method == "DELETE" || method == "GET"))
+		    {
+		        status = "400";
+		        return false;
+		    }
+		}
+		else if (line.compare(0, 14, "Content-Type:") == 0 || line.compare(0, 14, "content-type:") == 0)
+		{
+		    countPost++;
+		}
 
-        }
-        else if (line.find("Transfer-Encoding:") != std::string::npos || line.find("transfer-encoding:") != std::string::npos)
-        {
-			if (lenghtFind == true)
-			{
-				status = "400";
-				return false;
-			}
-
-			lenghtFind = true;
-			countPost++;
-        }
-        else if (line.find("Content-Length:") != std::string::npos || line.find("content-length:") != std::string::npos)
-        {
-			if (lenghtFind == true)
-			{
-				status = "400";
-				return false;
-			}
-
-			lenghtFind = true;
-			countPost++;
-            std::string lengthValue = line.substr(16); // Extract the value after "Content-Length:" or "content-length:"
-            std::istringstream lengthStream(lengthValue);
-            int contentLength;
-
-			if (!(lengthStream >> contentLength))
-			{
-    		    status = "400";
-    		    return false;
-    		}
-
-            if (contentLength < 0)
-			{
-				status = "400";
-				return false;
-			}
-
-			if (contentLength > 0 && (method == "DELETE" || method == "GET"))
-			{
-				status = "400";
-				return false;
-			}
-                
-        }
-        else if (line.find("Content-Type:") != std::string::npos || line.find("content-type:") != std::string::npos)
-            countPost++;
 
         if (line.length() > 8000)
 		{
