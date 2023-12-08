@@ -56,6 +56,22 @@ class ConfigFile
         std::string getServerName(int serverIndex);
         std::string getRoot(int serverIndex);
         std::string getPostRoot(int serverIndex);
+
+        bool hasSingleTabLocation(const std::string &line);
+        int setLocationIndex(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
+        int setLocationMethods(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
+        int setLocationListing(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
+        int setLocationRoot(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
+        int setLocationAuthBasic(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
+        int setLocationAuthBasicUserFile(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
+        int setLocationPostRoot(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
+        int checkFile(std::ifstream &file, std::string line);
+
+        int setPorts(std::string line, size_t positionSemicolon, size_t positionSpace);
+        int setErrors(std::string line, size_t positionSemicolon, size_t positionSpace, std::map<std::string, std::string> &newErrorMap);
+        int setCgi(std::string line, size_t positionSemicolon, size_t positionSpace, std::map<std::string, std::string> &newCgiMap);
+
+
 };
 
 #endif

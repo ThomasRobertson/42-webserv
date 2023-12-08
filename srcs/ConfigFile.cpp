@@ -63,14 +63,7 @@ std::string ConfigFile::getRoot(int serverIndex)
 	return this->_configVecOfMap[serverIndex]["root"];
 }
 
-/* 	 _______________________________________________________________
-	|					   ___ _____ _  _ ___ ___ 					|
-	|					  / _ \_   _| || | __| _ \					|
-	|					 | (_) || | | __ | _||   /					|
-	|					  \___/ |_| |_||_|___|_|_\					|
-	|_______________________________________________________________| */
-
-bool hasSingleTabLocation(const std::string &line)
+bool ConfigFile::hasSingleTabLocation(const std::string &line)
 {
 	size_t tabPos = line.find("\t");
 	size_t locPos = line.find("location");
@@ -79,6 +72,130 @@ bool hasSingleTabLocation(const std::string &line)
 		return tabPos < locPos;
 	
 	return false;
+}
+
+int ConfigFile::setLocationIndex(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string locationIndexStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	newPage.index = locationIndexStr;
+	return 1;
+}
+
+int ConfigFile::setLocationMethods(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string locationMethodStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	std::vector<std::string> methodsVector;
+	splitStrInVector(locationMethodStr, ' ', methodsVector);
+
+	newPage.methods = methodsVector;
+	return 1;
+}
+
+int ConfigFile::setLocationListing(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace)
+{
+	bool listingBool = false;
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string locationListingStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	if (locationListingStr == "on")
+		listingBool = true;
+	else if (locationListingStr == "off")
+		listingBool = false;
+	else
+		return 0;
+	newPage.listing = listingBool;
+	return 1;
+}
+
+int ConfigFile::setLocationRoot(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string locationRootStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	if (*locationRootStr.rbegin() == '/')
+		return 0;
+	newPage.rootDir = locationRootStr;
+	return 1;
+}
+
+int ConfigFile::setLocationAuthBasic(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string locationAuthBasicStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	newPage.authBasic = locationAuthBasicStr;
+	return 1;
+}
+
+int ConfigFile::setLocationAuthBasicUserFile(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string locationAuthBasicUserFileStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	newPage.authBasicUserFile = locationAuthBasicUserFileStr;
+	return 1;
+}
+
+int ConfigFile::setLocationPostRoot(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string locationPostRootStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	newPage.postRoot = locationPostRootStr;
+	return 1;
+}
+
+int ConfigFile::setPorts(std::string line, size_t positionSemicolon, size_t positionSpace)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string portsStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	std::vector<std::string> portsVector;
+	splitStrInVector(portsStr, ' ', portsVector);
+	this->_portsVec.push_back(portsVector);
+	portsVector.clear();
+	return 1;
+}
+
+int ConfigFile::setErrors(std::string line, size_t positionSemicolon, size_t positionSpace, std::map<std::string, std::string> &newErrorMap)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string errorCodeStr = line.substr(positionSpace + 1, (positionSpace + 4) - (positionSpace + 1));
+	std::string errorPathStr = line.substr(positionSpace + 5, (positionSemicolon) - (positionSpace + 5));
+	newErrorMap[errorCodeStr] = errorPathStr;
+	return 1;
+}
+
+int ConfigFile::setCgi(std::string line, size_t positionSemicolon, size_t positionSpace, std::map<std::string, std::string> &newCgiMap)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string cgiNameStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	if (!splitStrInMap(cgiNameStr, ' ', newCgiMap))
+		return 0;
+	return 1;
+}
+
+int ConfigFile::checkFile(std::ifstream &file, std::string line)
+{
+	if (!file.is_open())
+	{
+		std::cerr << "Error: could not open config file.\n";
+		return 0;
+	}
+
+	if (std::getline(file, line) && line != "server {\r")
+	{
+		file.close();
+		std::cerr << "Config file not starting with the right first line.\n";
+		return 0;
+	}
+	return 1;
 }
 
 int ConfigFile::loadDataConfigFile(const std::string &filename)
@@ -92,20 +209,9 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 	std::map<std::string, std::string> newConfigMap;
 	std::map<std::string, std::string> newCgiMap;
 
-
 	std::ifstream file(filename.c_str());
-	if (!file.is_open())
-	{
-		std::cerr << "Error: could not open config file.\n";
+	if (!checkFile(file, line))
 		return 0;
-	}
-
-	if (std::getline(file, line) && line != "server {\r")
-	{
-		file.close();
-		std::cerr << "Config file not starting with the right first line.\n";
-		return 0;
-	}
 
 	while (std::getline(file, line))
 	{
@@ -148,64 +254,38 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				}
 				else if (positionIndex != std::string::npos && line[2] != '\t')
 				{
-					if (positionSemicolon == std::string::npos)
+					if (!setLocationIndex(newPage, line, positionSemicolon, positionSpace))
 						return 0;
-					std::string locationIndexStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-					newPage.index = locationIndexStr;
 				}
 				else if (positionMethods != std::string::npos && line[2] != '\t')
 				{
-					if (positionSemicolon == std::string::npos)
+					if (!setLocationMethods(newPage, line, positionSemicolon, positionSpace))
 						return 0;
-					std::string locationMethodStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-					std::vector<std::string> methodsVector;
-					splitStrInVector(locationMethodStr, ' ', methodsVector);
-
-					newPage.methods = methodsVector;
 				}
 				else if (positionListing != std::string::npos && line[2] != '\t')
 				{
-					bool listingBool = false;
-					if (positionSemicolon == std::string::npos)
+					if (!setLocationListing(newPage, line, positionSemicolon, positionSpace))
 						return 0;
-					std::string locationListingStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-					if (locationListingStr == "on")
-						listingBool = true;
-					else if (locationListingStr == "off")
-						listingBool = false;
-					else
-						return 0;
-					newPage.listing = listingBool;
 				}
 				else if (positionRoot != std::string::npos && line[2] != '\t')
 				{
-					if (positionSemicolon == std::string::npos)
+					if (!setLocationRoot(newPage, line, positionSemicolon, positionSpace))
 						return 0;
-					std::string locationRootStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-					if (*locationRootStr.rbegin() == '/')
-						return 0;
-					newPage.rootDir = locationRootStr;
 				}
 				else if (positionAuthBasic != std::string::npos && line[2] != '	')
 				{
-					if (positionSemicolon == std::string::npos)
+					if (!setLocationAuthBasic(newPage, line, positionSemicolon, positionSpace))
 						return 0;
-					std::string locationAuthBasicStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-					newPage.authBasic = locationAuthBasicStr;
 				}
 				else if (positionAuthBasicUserFile != std::string::npos && line[2] != '	')
 				{
-					if (positionSemicolon == std::string::npos)
+					if (!setLocationAuthBasicUserFile(newPage, line, positionSemicolon, positionSpace))
 						return 0;
-					std::string locationAuthBasicUserFileStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-					newPage.authBasicUserFile = locationAuthBasicUserFileStr;
 				}
 				else if (positionPostRoot != std::string::npos && line[2] != '	')
 				{
-					if (positionSemicolon == std::string::npos)
+					if (!setLocationPostRoot(newPage, line, positionSemicolon, positionSpace))
 						return 0;
-					std::string locationPostRootStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-					newPage.postRoot = locationPostRootStr;
 				}
 				else
 				{
@@ -222,28 +302,17 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				return 0;
 			else if (positionPorts != std::string::npos && line[1] != '\t')
 			{
-				if (positionSemicolon == std::string::npos)
+				if (!setPorts(line, positionSemicolon, positionSpace))
 					return 0;
-				std::string portsStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-				std::vector<std::string> portsVector;
-				splitStrInVector(portsStr, ' ', portsVector);
-				this->_portsVec.push_back(portsVector);
-				portsVector.clear();
 			}
 			else if (positionErrors != std::string::npos && line[1] != '\t')
 			{
-				if (positionSemicolon == std::string::npos)
+				if (!setErrors(line, positionSemicolon, positionSpace, newErrorMap))
 					return 0;
-				std::string errorCodeStr = line.substr(positionSpace + 1, (positionSpace + 4) - (positionSpace + 1));
-				std::string errorPathStr = line.substr(positionSpace + 5, (positionSemicolon) - (positionSpace + 5));
-				newErrorMap[errorCodeStr] = errorPathStr;
 			}
 			else if (positionCgi != std::string::npos && line[1] != '\t')
 			{
-				if (positionSemicolon == std::string::npos)
-					return 0;
-				std::string cgiNameStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-				if (!splitStrInMap(cgiNameStr, ' ', newCgiMap))
+				if (!setCgi(line, positionSemicolon, positionSpace, newCgiMap))
 					return 0;
 			}
 			else
@@ -281,13 +350,13 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 void ConfigFile::setValuesConfigFile(int serverIndex)
 {
 	this->serverNumber = serverIndex;
-	// displayValuesConfigFile(serverIndex);
+	//displayValuesConfigFile(serverIndex);
 }
 
 void ConfigFile::displayValuesConfigFile(int serverIndex)
 {
 	std::cout << "Server number " << serverIndex + 1 << std::endl;
-	std::cout << "host: " << this->_configVecOfMap[serverIndex]["host"] << std::endl;
+	std::cout << "server_name: " << this->_configVecOfMap[serverIndex]["server_name"] << std::endl;
 	std::cout << "port: " << this->_portsVec[serverIndex][0] << std::endl;
 	std::cout << "maxClientBodySize: " << convertStrToInt(this->_configVecOfMap[serverIndex]["maxClientBodySize"]) << std::endl;
 
