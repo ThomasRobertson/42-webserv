@@ -149,6 +149,15 @@ int ConfigFile::setLocationPostRoot(Location &newPage, std::string line, size_t 
 	return 1;
 }
 
+int ConfigFile::setLocationRedirect(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string locationRedirectStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	newPage.redirect = locationRedirectStr;
+	return 1;
+}
+
 int ConfigFile::setPorts(std::string line, size_t positionSemicolon, size_t positionSpace)
 {
 	if (positionSemicolon == std::string::npos)
@@ -248,6 +257,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				size_t positionAuthBasic = line.find("\t\tauth_basic");
 				size_t positionAuthBasicUserFile = line.find("\t\tauth_basic_user_file");
 				size_t positionPostRoot = line.find("\t\tpost_root");
+				size_t positionRedirect = line.find("\t\tredirect");
 				if (positionRightBracket != std::string::npos && line[1] != '	')
 				{
 					break;
@@ -285,6 +295,11 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				else if (positionPostRoot != std::string::npos && line[2] != '	')
 				{
 					if (!setLocationPostRoot(newPage, line, positionSemicolon, positionSpace))
+						return 0;
+				}
+				else if (positionRedirect != std::string::npos && line[2] != '	')
+				{
+					if (!setLocationRedirect(newPage, line, positionSemicolon, positionSpace))
 						return 0;
 				}
 				else

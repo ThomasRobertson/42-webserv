@@ -19,6 +19,7 @@ struct Location {
 	std::string authBasic;
 	std::string authBasicUserFile;
 	std::string postRoot;
+	std::string redirect;
 };
 
 class ConfigFile
@@ -65,6 +66,8 @@ class ConfigFile
         int setLocationAuthBasic(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
         int setLocationAuthBasicUserFile(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
         int setLocationPostRoot(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
+        int setLocationRedirect(Location &newPage, std::string line, size_t positionSemicolon, size_t positionSpace);
+
         int checkFile(std::ifstream &file, std::string line);
 
         int setPorts(std::string line, size_t positionSemicolon, size_t positionSpace);
