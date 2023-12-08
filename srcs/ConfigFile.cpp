@@ -255,7 +255,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				size_t positionListing = line.find("\t\tautoindex");
 				size_t positionRoot = line.find("\t\troot");
 				size_t positionAuthBasic = line.find("\t\tauth_basic");
-				size_t positionAuthBasicUserFile = line.find("\t\tauth_basic_user_file");
+				size_t positionAuthBasicUserFile = line.find("\t\tauth_password");
 				size_t positionPostRoot = line.find("\t\tpost_root");
 				size_t positionRedirect = line.find("\t\tredirect");
 				if (positionRightBracket != std::string::npos && line[1] != '	')
