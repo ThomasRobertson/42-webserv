@@ -29,7 +29,7 @@ class ConfigFile
 		std::vector<std::vector<std::string> > _portsVec;
 
         std::vector<std::map<std::string, std::string> > _configVecOfMap;
-        std::vector<std::map<std::string, Location> > _htmlPageVecOfMap;
+        std::vector<std::map<std::string, Location> > _htmlLocationVecOfMap;
         std::vector<std::map<std::string, std::string> > _errorsVecOfMap;
         std::vector<std::map<std::string, std::string> > _cgiVecOfMap;
 

@@ -22,7 +22,7 @@ void Server::setServerValues()
     this->_maxClientBodySize = this->_configFile.getMaxClientBodySize(_serverIndex);
     this->_errorsMap = this->_configFile.getErrorPages(_serverIndex);
     this->_cgiMap = this->_configFile.getCgiPages(_serverIndex);
-    this->_htmlPageMap = this->_configFile.getFileRoutes(_serverIndex);
+    this->_htmlLocationMap = this->_configFile.getFileRoutes(_serverIndex);
     this->_root = this->_configFile.getRoot(_serverIndex);
     // this->_server_name = this->_configFile.getServerName(_serverIndex);
     //this->_postRoot = this->_configFile.getPostRoot(_serverIndex);
@@ -42,16 +42,6 @@ std::string Server::getRoot()
 {
     return this->_root;
 }
-
-// std::string Server::getPostRoot()
-// {
-//     return this->_postRoot;
-// }
-
-// std::string Server::getServerName()
-// {
-//     return this->_server_name;
-// }
 
 int Server::getMaxClientBodySize()
 {
@@ -101,7 +91,7 @@ std::string Server::testAccessPath(std::string location, std::string method)
 
 std::pair<std::string, Location> Server::getRootDir(std::string url)
 {
-	while (_htmlPageMap.find(url) == _htmlPageMap.end())
+	while (_htmlLocationMap.find(url) == _htmlLocationMap.end())
 	{
 		if (url.length() == 0)
 			throw std::invalid_argument("Root is not present in config.");
@@ -110,7 +100,7 @@ std::pair<std::string, Location> Server::getRootDir(std::string url)
 		if (url.empty())
 			url = "/";
 	}
-	return *(_htmlPageMap.find(url));
+	return *(_htmlLocationMap.find(url));
 }
 
 std::string Server::getFileRoute(const std::string fileName, std::string &status, std::string method, bool &is_dir, bool isCGI)
@@ -127,6 +117,13 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		status = "404";
 		return fileName;
 	}
+	
+	if (!location.second.authBasic.empty())
+	{
+		status = "401";
+		return fileName;
+	}
+
 
 	if (!isCGI && std::find(location.second.methods.begin(), location.second.methods.end(), method) == location.second.methods.end())
 	{
@@ -162,12 +159,9 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		return fileName;
 	}
 
-	// std::cout << "root : " << rootDir << " filename: " << fileName << " location: " << location.first << " index: " << location.second.index << std::endl << "method: " << method << std::endl;
-
 	std::string locationAfterRoot = fileName.substr(location.first.size(), std::string::npos);
 	
 	fileLocation = rootDir + locationAfterRoot;
-	// std::cout << "second file loc : " << fileLocation<< std::endl;
 
 	if (!location.second.index.empty())
 	{
@@ -175,7 +169,6 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		if (*fileLocation.rbegin() != '/')
 			rootIndex += "/";
 		rootIndex += location.second.index;
-		// std::cout << "Testing index file : " << rootIndex << std::endl;
 		status = testAccessPath(rootIndex, method);
 		if (status != "404")
 			return (rootIndex);
@@ -207,19 +200,25 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	return fileLocation;
 }
 
+// Location Server::getLocation(std::string route)
+// {
+// 	std::map<std::string, Location>::iterator locationIt = _htmlLocationMap.find("route");
+// 		return locationIt;
+// }
+
 bool Server::getListing(std::string fileLocation)
 {
-    return _htmlPageMap[fileLocation].listing;
+    return _htmlLocationMap[fileLocation].listing;
 }
 
 std::string Server::getFileName(std::string fileName)
 {
-    return _htmlPageMap[fileName].index;
+    return _htmlLocationMap[fileName].index;
 }
 
 std::string Server::getPostRoot(std::string fileName)
 {
-    return _htmlPageMap[fileName].postRoot;
+    return _htmlLocationMap[fileName].postRoot;
 }
 
 std::map<std::string, std::string> Server::getCgiPages()

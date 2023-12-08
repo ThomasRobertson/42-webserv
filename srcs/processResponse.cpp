@@ -30,6 +30,7 @@ void StartServers::processResponse(epoll_event currentEvent)
 	GenerateMethod genMethod(currentClient, currentServer);
 
 	// std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
+	std::cout << "method: " << currentClient.request.method << std::endl;
 
 	try
 	{

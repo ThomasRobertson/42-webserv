@@ -25,10 +25,9 @@ class Server
         int _maxClientBodySize;
         int _serverIndex;
         std::string _root;
-        // std::string _server_name;
         std::string _postRoot;
 
-        std::map<std::string, Location> _htmlPageMap;
+        std::map<std::string, Location> _htmlLocationMap;
         std::map<std::string, std::string> _errorsMap;
         std::map<std::string, std::string> _cgiMap;
 
@@ -39,13 +38,13 @@ class Server
         ~Server();
 
         std::string getHost();
-        std::vector<std::string> getPort();
-        int getMaxClientBodySize();
-        std::string getServerName();
         std::string getRoot();
+        int getMaxClientBodySize();
+        std::vector<std::string> getPort();
         bool getListing(std::string fileLocation);
         std::string getFileName(std::string fileName);
         std::string getPostRoot(std::string fileName);
+        Location getLocation(std::string route);
 
         int getServerSocket(int i);
         int getServerSocketSize();

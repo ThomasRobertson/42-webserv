@@ -1,18 +1,26 @@
 #include "ConfigFile.hpp"
 
-ConfigFile::ConfigFile()
-{
-	return ;
-}
+/* 	 _______________________________________________________________
+	|	   ___ ___  _  _ ___ _____ ___ _   _  ___ _____ ___  ___ 	|
+	|	  / __/ _ \| \| / __|_   _| _ \ | | |/ __|_   _/ _ \| _ \	|
+	|	 | (_| (_) | .` \__ \ | | |   / |_| | (__  | || (_) |   /	|
+	|	  \___\___/|_|\_|___/ |_| |_|_\\___/ \___| |_| \___/|_|_\	|
+	|_______________________________________________________________| */
 
-ConfigFile::~ConfigFile()
-{
-	return ;
-}
+ConfigFile::ConfigFile() {}
+
+ConfigFile::~ConfigFile() {}
+
+/* 	 _______________________________________________________________
+	|			    _   ___ ___ ___ ___ ___  ___  ___ 				|
+	|			   /_\ / __/ __| __/ __/ __|/ _ \| _ \				|
+	|			  / _ \ (_| (__| _|\__ \__ \ (_) |   /				|
+	|			 /_/ \_\___\___|___|___/___/\___/|_|_\				|
+	|_______________________________________________________________| */
 
 std::string ConfigFile::getHost(int serverIndex)
 {
-	return this->_configVecOfMap[serverIndex]["server_name"];
+	return this->_configVecOfMap[serverIndex]["server_name"]; // TO CHECK
 }
 
 std::vector<std::string> ConfigFile::getPort(int serverIndex)
@@ -27,7 +35,7 @@ int ConfigFile::getMaxClientBodySize(int serverIndex)
 
 std::map<std::string, Location> ConfigFile::getFileRoutes(int serverIndex)
 {
-    return this->_htmlPageVecOfMap[serverIndex];
+    return this->_htmlLocationVecOfMap[serverIndex];
 }
 
 std::map<std::string, std::string> ConfigFile::getErrorPages(int serverIndex)
@@ -45,11 +53,6 @@ int ConfigFile::getServerNumber()
 	return serverNumber;
 }
 
-// std::string ConfigFile::getServerName(int serverIndex)
-// {
-// 	return this->_configVecOfMap[serverIndex]["server_name"];
-// }
-
 std::string ConfigFile::getPostRoot(int serverIndex)
 {
 	return this->_configVecOfMap[serverIndex]["post_root"];
@@ -59,6 +62,13 @@ std::string ConfigFile::getRoot(int serverIndex)
 {
 	return this->_configVecOfMap[serverIndex]["root"];
 }
+
+/* 	 _______________________________________________________________
+	|					   ___ _____ _  _ ___ ___ 					|
+	|					  / _ \_   _| || | __| _ \					|
+	|					 | (_) || | | __ | _||   /					|
+	|					  \___/ |_| |_||_|___|_|_\					|
+	|_______________________________________________________________| */
 
 bool hasSingleTabLocation(const std::string &line)
 {
@@ -252,7 +262,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 		{
 			this->_configVecOfMap.push_back(newConfigMap);
 			this->_errorsVecOfMap.push_back(newErrorMap);
-			this->_htmlPageVecOfMap.push_back(newHtmlPageMap);
+			this->_htmlLocationVecOfMap.push_back(newHtmlPageMap);
 			this->_cgiVecOfMap.push_back(newCgiMap);
 
 			setValuesConfigFile(serverIndex);
@@ -282,7 +292,7 @@ void ConfigFile::displayValuesConfigFile(int serverIndex)
 	std::cout << "maxClientBodySize: " << convertStrToInt(this->_configVecOfMap[serverIndex]["maxClientBodySize"]) << std::endl;
 
 	std::map<std::string, Location>::iterator it;
-	for (it = _htmlPageVecOfMap[serverIndex].begin(); it != _htmlPageVecOfMap[serverIndex].end(); it++)
+	for (it = _htmlLocationVecOfMap[serverIndex].begin(); it != _htmlLocationVecOfMap[serverIndex].end(); it++)
 	{
 		// std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method 1: " << it->second.methods[0] << " Method 2: " << it->second.methods[1] << std::endl;
 		std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method 1: " << it->second.methods[0] << std::endl;
@@ -303,7 +313,6 @@ int ConfigFile::convertStrToInt(std::string str)
 			return valueInt;
 	return -1;
 }
-
 
 void ConfigFile::splitStrInVector(std::string input, char delimiter, std::vector<std::string> &result)
 {

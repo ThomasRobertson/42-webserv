@@ -43,8 +43,8 @@ std::string GenerateMethod::GETMethod()
 	std::string response, fileLocation, contentType, status, htmlContent;
 	bool is_dir = false;
 	fileLocation = _server.getFileRoute(_client.request.route, status, "GET", is_dir);
-	std::cout << "File location : " << fileLocation << std::endl;
-	std::cout << "Status : " << status << std::endl;
+	// std::cout << "File location : " << fileLocation << std::endl;
+	// std::cout << "Status : " << status << std::endl;
 
 	if (status != "200")
 	{
@@ -90,14 +90,14 @@ std::string GenerateMethod::POSTMethod()
 	if (_client.request.transferEncoding == "default")
 	{
 		body = getRequestBody();
-		std::cout << YELLOW << "DEFAULT BODY:" << std::endl;
-		std::cout << body << DEFAULT << std::endl;
+		// std::cout << YELLOW << "DEFAULT BODY:" << std::endl;
+		// std::cout << body << DEFAULT << std::endl;
 	}
 	else
 	{
 		body = getChunkedRequestBody();
-		std::cout << YELLOW << "CHUNKED BODY:" << std::endl;
-		std::cout << body << DEFAULT << std::endl;
+		// std::cout << YELLOW << "CHUNKED BODY:" << std::endl;
+		// std::cout << body << DEFAULT << std::endl;
 	}
 
 	bool is_dir = false; //TODO: Check value
@@ -147,15 +147,6 @@ std::string GenerateMethod::getRequestBody()
 
 	return body;
 }
-
-// POST 127.0.0.1 HTTP1.1\r\n
-// \r\n
-// 5\r\n
-// Hello\r\n
-// 2\r\n
-// cv\r\n
-// 0\r\n
-// \r\n
 
 std::string GenerateMethod::getChunkedRequestBody()
 {

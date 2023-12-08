@@ -278,3 +278,5 @@ std::string CgiHandler::execute()
 
 	return (return_str);
 }
+
+// curl -X POST -d 'hello test' http://127.0.0.1:4243/directory/youpi.bla
