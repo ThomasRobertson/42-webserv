@@ -32,3 +32,7 @@ alt_list_dir_button.addEventListener("click", () => {
 invalid_list_dir_button.addEventListener("click", () => {
 	changeLink("/no_list_dir");
 });
+
+cgi_button.addEventListener("click", () => {
+	changeLink("/cgi");
+});

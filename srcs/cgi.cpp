@@ -178,7 +178,7 @@ void CgiHandler::build_args_env()
 		value += *it;
 		it++;
 		if (it != _client.request.cookies.end())
-			value += ", ";
+			value += "; ";
 	}
 	_environ.push_back(value);
 }
@@ -272,8 +272,9 @@ std::string CgiHandler::execute()
 	sendBody();
 	launch_child();
 	std::string return_str = capture_child_return();
-	// std::cout << RED << return_str << DEFAULT << std::endl;
+	//std::cout << RED << "The return str is : " << return_str << DEFAULT << std::endl;
 	return_str = generateReturnResponse(return_str);
+	//std::cout << GREEN << "reponse is:" << return_str << DEFAULT << std::endl;
 
 	return (return_str);
 }

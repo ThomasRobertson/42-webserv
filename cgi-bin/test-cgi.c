@@ -27,6 +27,7 @@ int main(int ac, char **av, char **env)
 {
 	(void)ac;
 	char *cookie;
+	char *cookie_value;
 
 	for (int i = 0; env[i]; i++)
 	{
@@ -43,25 +44,23 @@ int main(int ac, char **av, char **env)
 	}
 	if (token && strncmp("hello", token, 5) == 0)
 	{
-		char *cookie_value;
 		if ((token + 6))
 			cookie_value = strdup(token + 6);
 		else
-			cookie_value = strdup("0");
+			cookie_value = strdup("1");
 
-		if (*cookie_value < '9')
+		if (strlen(cookie_value) == 1  && *cookie_value < '9')
 			*cookie_value += 1;
 		else
-			*cookie_value = '0';
-
-		settingCookie(cookie_value);
-		free(cookie_value);
+		{
+			free(cookie_value);
+			cookie_value = strdup("1");
+		}
 	}
 	else
-	{
-		settingCookie("0");
-	}
-	free(cookie);
+		cookie_value = strdup("1");
+	settingCookie(cookie_value);
+	printf("Content-Type: text/plain");
 
 	printf("\n\n");
 	printf("       444444444   222222222222222                 CCCCCCCCCCCCC       GGGGGGGGGGGGGIIIIIIIIII\n");
@@ -80,6 +79,17 @@ int main(int ac, char **av, char **env)
 	printf("        44::::::442::::::2222222:::::2        CC:::::::::::::::C  GG:::::::::::::::GI::::::::I\n");
 	printf("        4::::::::42::::::::::::::::::2          CCC::::::::::::C    GGG::::::GGG:::GI::::::::I\n");
 	printf("        444444444422222222222222222222             CCCCCCCCCCCCC       GGGGGG   GGGGIIIIIIIIII\n");
+
+	printf("\nHello ! You've been visiting this (awesome) website for the ");
+	if (strcmp("1", cookie_value) == 0)
+		printf("1st");
+	else if (strcmp("2", cookie_value) == 0)
+		printf("2nd");
+	else if (strcmp("3", cookie_value) == 0)
+		printf("3rd");
+	else
+		printf("%sth", cookie_value);
+	printf(" time!\n");
 
 	printf("\n\nDisplaying arguments :");
 	for (int i = 0; av[i]; i++)
@@ -102,4 +112,7 @@ int main(int ac, char **av, char **env)
 	} while (len > 0);
 
 	printf("\n\nEND OF FILE\n");
+
+	free(cookie);
+	free(cookie_value);
 }
