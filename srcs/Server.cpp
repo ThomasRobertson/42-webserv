@@ -24,8 +24,6 @@ void Server::setServerValues()
     this->_cgiMap = this->_configFile.getCgiPages(_serverIndex);
     this->_htmlLocationMap = this->_configFile.getFileRoutes(_serverIndex);
     this->_root = this->_configFile.getRoot(_serverIndex);
-    // this->_server_name = this->_configFile.getServerName(_serverIndex);
-    //this->_postRoot = this->_configFile.getPostRoot(_serverIndex);
 }
 
 std::string Server::getHost()

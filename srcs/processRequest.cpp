@@ -76,76 +76,70 @@ bool isLastChunkReceived(std::string str)
     return false;
 }
 
-std::vector<std::string> getCookie(std::string requestStr)
+void StartServers::getRequestChunk(Client &client, std::string requestStr)
 {
-    std::vector<std::string> cookies;
-    size_t startPos, endPos;
-    std::string cookieSubStr, cookie;
-
-    startPos = requestStr.find("Cookie: ");
-    if (startPos == std::string::npos)
-        return cookies;
-
-    startPos += std::strlen("Cookie: ");
-    endPos = requestStr.find("\r\n", startPos);
-    if (endPos == std::string::npos)
-        return cookies;
-
-    cookieSubStr = requestStr.substr(startPos, endPos - startPos);
-    startPos = 0;
-    endPos = cookieSubStr.find("; ");
-    while (endPos != std::string::npos)
+    // Cookies
+    size_t pos = requestStr.find("Cookie:");
+    if (pos != std::string::npos)
     {
-        cookie = cookieSubStr.substr(startPos, endPos - startPos);
-        // std::cout << cookie << std::endl;
-        cookies.push_back(cookie);
-        startPos = endPos + std::strlen("; ");
-        endPos = cookieSubStr.find(";", startPos);
+        std::string cookieSubstr = requestStr.substr(pos + 8);
+        std::string delimiter = "; ";
+        size_t start = 0;
+        size_t end = cookieSubstr.find(delimiter);
+        
+        while (end != std::string::npos)
+        {
+            std::string cookie = cookieSubstr.substr(start, end - start);
+            client.request.cookies.push_back(cookie);
+            start = end + delimiter.length();
+            end = cookieSubstr.find(delimiter, start);
+        }
+        
+        std::string lastCookie = cookieSubstr.substr(start, cookieSubstr.find_first_of("\n\r"));
+        client.request.cookies.push_back(lastCookie);
     }
-    cookie = cookieSubStr.substr(startPos);
-    // std::cout << cookie << std::endl;
-    cookies.push_back(cookie);
-    return cookies;
-}
 
-void getAuth(std::string chunkStr)
-{
-    // size_t authPos = chunkStr.find("Authorization:");
-    // if (authPos != std::string::npos)
-    // {
-    //     std::string authHeader = chunkStr.substr(authPos);
+    // Authorization
+    size_t authPos = requestStr.find("Authorization:");
+    if (authPos != std::string::npos)
+    {
+        std::string authHeader = requestStr.substr(authPos);
 
-    //     if (authHeader.find("Basic") != std::string::npos)
-    //     {
-    //         size_t spacePos = authHeader.find(' ');
-    //         if (spacePos != std::string::npos)
-    //             std::string credentials = authHeader.substr(spacePos + 1);
-    //     }
-    // }
-}
+        if (authHeader.find("Basic ") != std::string::npos)
+        {
+			size_t startPos = authHeader.find("Basic ") + 6;
+			size_t endPost = authHeader.find("\r\n");
+			std::string value = authHeader.substr(startPos, endPost - startPos);
+			if (!value.empty())
+				client.request.credential = value;
+        }
+    }
 
-void StartServers::getRequestChunk(Client &client, std::string chunkStr)
-{
-
-
-	client.request.fullStr += chunkStr;
+	client.request.fullStr += requestStr;
 
     if (!client.request.isHeaderComplete) // if header was not complete yet, check if it is now
-    {
         client.request.isHeaderComplete = isHeaderComplete(client.request.fullStr);
-        if (!client.request.isHeaderComplete) // if header is still not complete, stop here ; else, get and set all header data
-            return;
-        std::cout << "GET AND SET ALL HEADER DATA" << std::endl;
+
+    if (!client.request.isHeaderComplete) // if header is still not complete, stop here
+        return;
+
+    if (client.request.method.empty())
         client.request.method = getRequestMethod(client.request);
+
+    if (client.request.route.empty())
         client.request.route = getRequestRoute(client.request);
-        client.request.transferEncoding = getRequestTransferEncoding(client.request);
-        client.request.contentLength = getContentLength(client.request.fullStr);
-        client.request.isCGI = isCGIFile(*(client.server), client.request.route);
-        client.request.cookies = getCookie(client.request.fullStr);
-    }
 
     if (client.request.method == "POST")
     {
+        if (client.request.transferEncoding.empty())
+            client.request.transferEncoding = getRequestTransferEncoding(client.request);
+
+        if (client.request.contentLength == -1)
+            client.request.contentLength = getContentLength(client.request.fullStr);
+
+        if (!client.request.isCGI)
+            client.request.isCGI = isCGIFile(*(client.server), client.request.route);
+
         client.request.bodySize = getBodysize(client.request.fullStr);
 
         if (!client.request.isCGI && client.request.bodySize > client.server->getMaxClientBodySize())
@@ -175,7 +169,8 @@ void StartServers::getRequestChunk(Client &client, std::string chunkStr)
 
 void StartServers::processRequest(epoll_event currentEvent)
 {
-    int chunkSize = 65536;
+    // int chunkSize = 65536;
+    int chunkSize = 1048576;
     char buffer[chunkSize];
     ssize_t bytesRead;
     struct epoll_event event;
@@ -196,10 +191,7 @@ void StartServers::processRequest(epoll_event currentEvent)
     }
 
     std::string requestData(buffer, bytesRead);
-    if (requestData.size() > 200)
-        std::cout << requestData.substr(0, 100) << std::endl;
-    else
-        std::cout << requestData << std::endl;
+    std::cout << requestData << std::endl;
 
     try
     {

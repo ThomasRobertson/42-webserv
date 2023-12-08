@@ -7,6 +7,7 @@
 #include "GenerateMethod.hpp"
 #include "utils.hpp"
 #include <vector>
+#include "Autorization.hpp"
 
 bool DEBUG_VERBOSE = false;
 
@@ -21,58 +22,88 @@ bool StartServers::isCGIFile(Server server, std::string request)
 	return false;
 }
 
-void StartServers::processResponse(epoll_event currentEvent)
+std::string StartServers::generateResponse(Server server, Client client)
 {
-	std::string response, status;
-	
-	Client currentClient = _clientList[currentEvent.data.fd];
-	Server currentServer = *(currentClient.server);
-	GenerateMethod genMethod(currentClient, currentServer);
+	std::string status;
+	GenerateMethod genMethod(client, server);
+	std::pair<std::string, Location> location;
+	try
+	{
+		location = server.getRootDir(client.request.route);
+	}
+	catch (const std::exception&)
+	{
+		status = "404";
+		std::cout << RED << "Invalid header, generating error page.\n" << DEFAULT;
+		return genMethod.getErrorPageResponse(status);
+	}
 
-	// std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
-	std::cout << "method: " << currentClient.request.method << std::endl;
+	Autorization autorizationCheck(client, location);
+
+	switch (autorizationCheck.ShallYouPass()) {
+	case YOU_SALL_NOT_PASS:
+		return autorizationCheck.generateErrorPage("test");
+		break;
+	case RUN_YOU_FOOLS:
+		break;
+	case NO_AUTH_HEADER_FOUND:
+		return autorizationCheck.generateErrorPage("test");
+		break;
+	}
 
 	try
 	{
-		bool isCGI = isCGIFile(currentServer, currentClient.request.route);
-		if (!isValidRequest(currentClient.request, status, isCGI))
+		bool isCGI = isCGIFile(server, client.request.route);
+
+		if (!isValidRequest(client.request, status, isCGI))
 		{
 			std::cout << RED << "Invalid header, generating error page.\n" << DEFAULT;
-			response = genMethod.getErrorPageResponse(status);
+			return genMethod.getErrorPageResponse(status);
 		}
 		else if (isCGI)
 		{
 			std::cout << GREEN << "Launching CGI.\n" << DEFAULT;
-			response = genMethod.CGIMethod();
+			return genMethod.CGIMethod();
 		}
-		else if (currentClient.request.method == "GET")
+		else if (client.request.method == "GET")
 		{
 			std::cout << GREEN << "Launching GET Method.\n" << DEFAULT;
-			response = genMethod.GETMethod();
+			return genMethod.GETMethod();
 		}
-		else if (currentClient.request.method == "POST")
+		else if (client.request.method == "POST")
 		{
 			std::cout << GREEN << "Launching POST Method.\n" << DEFAULT;
-			// std::cout << currentClient.request.body << std::endl;
-			response = genMethod.POSTMethod();
+			// std::cout << client.request.body << std::endl;
+			return genMethod.POSTMethod();
 		}
-		else if (currentClient.request.method == "DELETE")
+		else if (client.request.method == "DELETE")
 		{
 			std::cout << GREEN << "Launching DELETE Method.\n" << DEFAULT;
 			// std::cout << "DELETE METH" << std::endl;
-			response = genMethod.DELETEMethod();
+			return genMethod.DELETEMethod();
 		}
 		else
 		{
 			std::cout << RED << "No valid method found, return error.\n" << DEFAULT;
-			response = genMethod.getErrorPageResponse("405");
+			return genMethod.getErrorPageResponse("405");
 		}
 	}
 	catch (const std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;
-		response = genMethod.getErrorPageResponse("500");
+		return genMethod.getErrorPageResponse("500");
 	}
+}
+
+void StartServers::processResponse(epoll_event currentEvent)
+{
+	std::string response;
+	Client currentClient = _clientList[currentEvent.data.fd];
+	Server currentServer = *(currentClient.server);
+
+	// std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
+
+	response = generateResponse(currentServer, currentClient);
 
 	write(currentEvent.data.fd, response.c_str(), response.length());
 	// std::cout << YELLOW << response << DEFAULT << std::endl;

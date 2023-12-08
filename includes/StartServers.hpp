@@ -69,7 +69,7 @@ class StartServers
         void getRequestChunk(Client &client, std::string requestStr);
         UserRequest getUserRequest(std::string requestStr);
         std::string getUserResponse(Client &client);
-
+		std::string generateResponse(Server server, Client client);
 
         void createFile(UserRequest request, Server currentServer);
         int deleteFiles(UserRequest request, Server currentServer);
