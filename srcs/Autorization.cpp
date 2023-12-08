@@ -7,7 +7,9 @@ std::string Autorization::generateErrorPage(std::string realm)
 	std::string response;
 
 	response = "HTTP/1.1 401 Unauthorized\n";
-	response += "WWW-Authenticate: Basic realm=\"Access to staging site\"";
+	response += "WWW-Authenticate: Basic realm=\"";
+	response += realm;
+	response += "\"";
 
 	return response;	
 }
@@ -17,7 +19,7 @@ int Autorization::ShallYouPass()
 	if (isAuthLocationPresent() == false)
 		return RUN_YOU_FOOLS;
 	if (isRequestWithAutorization() == false)
-		return NO_AUTH_HEADER_FOUND;
+		return YOU_SALL_NOT_PASS;
 	if (isAutorizationValid() == true)
 		return RUN_YOU_FOOLS;
 	else

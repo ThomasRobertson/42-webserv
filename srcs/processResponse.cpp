@@ -42,12 +42,9 @@ std::string StartServers::generateResponse(Server server, Client client)
 
 	switch (autorizationCheck.ShallYouPass()) {
 	case YOU_SALL_NOT_PASS:
-		return autorizationCheck.generateErrorPage("test");
+		return autorizationCheck.generateErrorPage(location.second.authBasic);
 		break;
 	case RUN_YOU_FOOLS:
-		break;
-	case NO_AUTH_HEADER_FOUND:
-		return autorizationCheck.generateErrorPage("test");
 		break;
 	}
 
