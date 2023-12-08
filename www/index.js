@@ -10,7 +10,7 @@ button_404.addEventListener("click", () => {
 });
 
 button_form.addEventListener("click", () => {
-	changeLink("/working_form");
+	changeLink("/form");
 });
 
 alt_form_button.addEventListener("click", () => {

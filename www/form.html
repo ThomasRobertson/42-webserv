@@ -27,10 +27,9 @@
 			form.addEventListener("submit", function (e) {
 				const form_data = new FormData(form);
 				const host = window.location.hostname;
-				
 				e.preventDefault();
-				
-				fetch(host, {
+
+				fetch("/form", {
 					method: 'POST',
 					body: form_data,
 				})
