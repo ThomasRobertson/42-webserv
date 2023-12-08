@@ -26,4 +26,5 @@ class GenerateMethod
 	std::string CGIMethod();
 	std::string getErrorPageResponse(std::string errorCode);
 	std::string listingDirectory(const std::string &fileLocation, std::string &fileName);
+	std::string generateRedirect(std::string url);
 };

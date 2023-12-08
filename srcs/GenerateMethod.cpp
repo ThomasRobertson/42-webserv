@@ -7,6 +7,17 @@
 #include <stdexcept>
 #include <string>
 
+std::string GenerateMethod::generateRedirect(std::string url)
+{
+	std::string response;
+
+	response = "HTTP/1.1 307 Temporary Redirect\n";
+	response += "Location:";
+	response += url;
+
+	return response;	
+}
+
 std::string GenerateMethod::CGIMethod()
 {
 	std::string status, body, response, cgiBinLocation;

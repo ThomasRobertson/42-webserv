@@ -38,6 +38,9 @@ std::string StartServers::generateResponse(Server server, Client client)
 		return genMethod.getErrorPageResponse(status);
 	}
 
+	if (!location.second.redirect.empty())
+		return genMethod.generateRedirect(location.second.redirect);
+
 	Autorization autorizationCheck(client, location);
 
 	switch (autorizationCheck.ShallYouPass()) {
