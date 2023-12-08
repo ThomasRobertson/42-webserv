@@ -21,7 +21,7 @@ class GenerateMethod
 	~GenerateMethod() {}
 
 	std::string GETMethod();
-	std::string POSTMethod();
+	std::string POSTMethod(Location location);
 	std::string DELETEMethod();
 	std::string CGIMethod();
 	std::string getErrorPageResponse(std::string errorCode);

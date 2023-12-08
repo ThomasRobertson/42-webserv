@@ -1,5 +1,6 @@
 #include "GenerateMethod.hpp"
 #include "ClientResponse.hpp"
+#include "ConfigFile.hpp"
 #include "Settings.hpp"
 #include "cgi.hpp"
 #include "utils.hpp"
@@ -90,7 +91,7 @@ std::string GenerateMethod::GETMethod()
 	return response;
 }
 
-std::string GenerateMethod::POSTMethod()
+std::string GenerateMethod::POSTMethod(Location location)
 {
 	if (_client.request.bodySize > _client.server->getMaxClientBodySize())
 		return getErrorPageResponse("413");
@@ -113,7 +114,7 @@ std::string GenerateMethod::POSTMethod()
 
 	bool is_dir = false; //TODO: Check value
 	
-	std::string fileLocation = _server.getFileRoute(_client.request.route, status, "POST", is_dir); //TODO: replace "/form" with the correct URL
+	std::string fileLocation = _server.getFileRoute(location.postRoot, status, "POST", is_dir);
 
 	if (status != "200")
 	{

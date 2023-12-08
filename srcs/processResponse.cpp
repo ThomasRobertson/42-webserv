@@ -74,7 +74,7 @@ std::string StartServers::generateResponse(Server server, Client client)
 		{
 			std::cout << GREEN << "Launching POST Method.\n" << DEFAULT;
 			// std::cout << client.request.body << std::endl;
-			return genMethod.POSTMethod();
+			return genMethod.POSTMethod(location.second);
 		}
 		else if (client.request.method == "DELETE")
 		{
