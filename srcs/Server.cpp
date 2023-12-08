@@ -115,13 +115,6 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		status = "404";
 		return fileName;
 	}
-	
-	if (!location.second.authBasic.empty())
-	{
-		status = "401";
-		return fileName;
-	}
-
 
 	if (!isCGI && std::find(location.second.methods.begin(), location.second.methods.end(), method) == location.second.methods.end())
 	{
