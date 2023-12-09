@@ -114,7 +114,9 @@ std::string GenerateMethod::POSTMethod(Location location)
 
 	bool is_dir = false; //TODO: Check value
 	
-	std::string fileLocation = _server.getFileRoute(location.postRoot, status, "POST", is_dir);
+	(void)location;
+
+	std::string fileLocation = _server.getFileRoute(_client.request.route, status, "POST", is_dir);
 
 	if (status != "200")
 	{
