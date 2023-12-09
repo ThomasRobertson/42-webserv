@@ -2,37 +2,41 @@ function changeLink(link) {
 	window.location.href = link;
 }
 
-const button_404 = document.getElementById("404_button");
-const button_form = document.getElementById("form_button");
+const errors_button = document.getElementById("errors_button");
+const auth_button = document.getElementById("auth_button");
 
-button_404.addEventListener("click", () => {
+errors_button.addEventListener("click", () => {
 	changeLink("/errors");
 });
 
-button_form.addEventListener("click", () => {
+auth_button.addEventListener("click", () => {
+	changeLink("/auth");
+});
+
+cookies_button.addEventListener("click", () => {
+	changeLink("/cgi");
+});
+
+cgi_alt_button.addEventListener("click", () => {
+	changeLink("/cgi_alt");
+});
+
+upload_button.addEventListener("click", () => {
 	changeLink("/form");
 });
 
-alt_form_button.addEventListener("click", () => {
-	changeLink("/working_form/");
-});
-
-invalid_form_button.addEventListener("click", () => {
-	changeLink("/form");
-});
-
-list_dir_button.addEventListener("click", () => {
-	changeLink("/list_dir_test");
-});
-
-alt_list_dir_button.addEventListener("click", () => {
-	changeLink("/list_dir_test/");
+invalid_upload_button.addEventListener("click", () => {
+	changeLink("/post_body");
 });
 
 invalid_list_dir_button.addEventListener("click", () => {
 	changeLink("/no_list_dir");
 });
 
-cgi_button.addEventListener("click", () => {
-	changeLink("/cgi");
+redirect_button.addEventListener("click", () => {
+	changeLink("/cgi_redirect");
+});
+
+redirect_google_button.addEventListener("click", () => {
+	changeLink("/google");
 });
