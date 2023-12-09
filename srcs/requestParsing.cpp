@@ -93,6 +93,7 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
             break;
 		if (line.compare(0, 5, "Host:") == 0 || line.compare(0, 5, "host:") == 0)
 		{
+
 		    countPost++;
 		    countOther++;
 		}
@@ -107,7 +108,7 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		    lenghtFind = true;
 		    countPost++;
 		}
-		else if (line.compare(0, 16, "Content-Length:") == 0 || line.compare(0, 16, "content-length:") == 0)
+		else if (line.compare(0, 15, "Content-Length:") == 0 || line.compare(0, 15, "content-length:") == 0)
 		{
 		    if (lenghtFind == true)
 		    {
@@ -139,7 +140,7 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		        return false;
 		    }
 		}
-		else if (line.compare(0, 14, "Content-Type:") == 0 || line.compare(0, 14, "content-type:") == 0)
+		else if (line.compare(0, 13, "Content-Type:") == 0 || line.compare(0, 13, "content-type:") == 0)
 		{
 		    countPost++;
 		}
@@ -184,6 +185,10 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
         return true;
     else
 	{
+		std::cout << "countPost" << countPost << std::endl;
+		std::cout << "countOther" << countOther << std::endl;
+		std::cout << "method" << method << std::endl;
+
 		status = "400";
 		return false;
 	}

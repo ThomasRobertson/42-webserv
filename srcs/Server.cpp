@@ -119,6 +119,7 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	if (!isCGI && std::find(location.second.methods.begin(), location.second.methods.end(), method) == location.second.methods.end())
 	{
 		status = "405";
+		std::cout << RED << "ERROR ICI POUR POST " << method << DEFAULT << std::endl;
 		return fileName;
 	}
 
