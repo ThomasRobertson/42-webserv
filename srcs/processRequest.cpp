@@ -129,8 +129,6 @@ std::string getAuth(std::string requestStr)
 
 void StartServers::getRequestChunk(Client &client, std::string chunkStr)
 {
-
-
 	client.request.fullStr += chunkStr;
 
     if (!client.request.isHeaderComplete) // if header was not complete yet, check if it is now
@@ -200,10 +198,7 @@ void StartServers::processRequest(epoll_event currentEvent)
     }
 
     std::string requestData(buffer, bytesRead);
-    if (requestData.size() > 200)
-        std::cout << requestData.substr(0, 100) << std::endl;
-    else
-        std::cout << requestData << std::endl;
+    std::cout << requestData << std::endl;
 
     try
     {
@@ -216,7 +211,7 @@ void StartServers::processRequest(epoll_event currentEvent)
         currentClient.request.isBodyComplete = true;
 		currentClient.request.isBodyTooLarge = true;
     }
- 
+
     if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
     {
         // std::cout << RED << "REQUEST UNCOMPLETE" << DEFAULT << std::endl;
@@ -234,3 +229,5 @@ void StartServers::processRequest(epoll_event currentEvent)
 // - Multiple files in one POST request
 // - Body in DELETE request
 // - Chunked response
+// - get default body (not chunked and boundary)
+// - set a random filename for chunked POST
