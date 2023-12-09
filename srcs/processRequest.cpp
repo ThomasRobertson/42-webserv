@@ -198,7 +198,7 @@ void StartServers::processRequest(epoll_event currentEvent)
     }
 
     std::string requestData(buffer, bytesRead);
-    std::cout << requestData << std::endl;
+    std::cout << requestData.substr(0, 1000) << std::endl;
 
     try
     {

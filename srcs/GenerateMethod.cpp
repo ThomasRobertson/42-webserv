@@ -38,7 +38,7 @@ std::string GenerateMethod::CGIMethod()
 	}
 
 	if (_client.request.transferEncoding == "default")
-		body = getRequestBody();
+		body = getBoundaryRequestBody();
 	else
 		body = getChunkedRequestBody();
 
@@ -101,7 +101,7 @@ std::string GenerateMethod::POSTMethod(Location location)
 
 	if (_client.request.transferEncoding == "default")
 	{
-		body = getRequestBody();
+		body = getBoundaryRequestBody();
 		// std::cout << YELLOW << "DEFAULT BODY:" << std::endl;
 		// std::cout << body << DEFAULT << std::endl;
 	}
@@ -141,7 +141,12 @@ std::string GenerateMethod::POSTMethod(Location location)
 	return response.getReponse();
 }
 
-std::string GenerateMethod::getRequestBody()
+// std::string GenerateMethod::getDefaultRequestBody()
+// {
+	
+// }
+
+std::string GenerateMethod::getBoundaryRequestBody()
 {
 	std::string request = _client.request.fullStr;
 	size_t boundaryStartPos, boundaryEndPos, bodyStartPos, bodyEndPos;
@@ -190,7 +195,8 @@ std::string GenerateMethod::getChunkedRequestBody()
 
 std::string GenerateMethod::getFileName()
 {
-	size_t nameStartPos = _client.request.fullStr.find("filename=") + std::strlen("filename=\"");
+	size_t nameStartPos = _client.request.fullStr.find("filename=");
+	nameStartPos += std::strlen("filename=\"");
 	size_t nameEndPos = _client.request.fullStr.find("\"", nameStartPos);
 
 	return _client.request.fullStr.substr(nameStartPos, nameEndPos - nameStartPos);

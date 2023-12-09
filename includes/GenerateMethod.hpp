@@ -12,7 +12,7 @@ class GenerateMethod
 	Client _client;
 	Server _server;
 
-	std::string getRequestBody();
+	std::string getBoundaryRequestBody();
 	std::string getChunkedRequestBody();
 	std::string getFileName();
 
