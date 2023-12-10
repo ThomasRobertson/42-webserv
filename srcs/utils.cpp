@@ -199,14 +199,14 @@ std::string generateErrorPage(std::string errorCode)
 	bodyReponse += "    <title>";
 	bodyReponse += status.first;
 	bodyReponse += "</title>\n";
+	bodyReponse += "<link rel=\"stylesheet\" type=\"text/css\" href=\"/styles/style.css\">";
 	bodyReponse += "  </head>\n";
 	bodyReponse += "  <body>\n";
-	bodyReponse += "    <h1>";
+	bodyReponse += "    <h1 class=\"main-title\">";
 	bodyReponse += status.first;
-	bodyReponse += "</h1>\n";
-	bodyReponse += "    <p>";
+	bodyReponse += " - ";
 	bodyReponse += status.second;
-	bodyReponse += "</p>\n";
+	bodyReponse += "</h1>\n";
 	bodyReponse += "  </body>\n";
 	bodyReponse += "</html>\n";
 
