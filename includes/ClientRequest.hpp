@@ -10,6 +10,7 @@ struct UserRequest {
     std::string method;
     std::string route;
     std::string transferEncoding;
+    std::string contentType;
 
     bool isHeaderComplete;
     bool isBodyComplete;

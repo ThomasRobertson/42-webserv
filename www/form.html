@@ -51,7 +51,7 @@
 			const delete_btn = document.getElementById("delete-button");
 
 			delete_btn.addEventListener("click", function (e) {
-				fetch(host, {
+				fetch("/form", {
 					method: 'DELETE',
 					headers: {
 						'Content-Type': 'application/json',

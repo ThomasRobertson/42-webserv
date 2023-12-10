@@ -14,7 +14,7 @@ int getBodysize(std::string requestStr)
     return body.size();
 }
 
-int getContentLength(std::string requestStr)
+int getHeaderContentLength(std::string requestStr)
 {
     size_t contentLengthStartPos = requestStr.find("Content-Length: ");
     if (contentLengthStartPos == std::string::npos)
@@ -37,46 +37,46 @@ bool isHeaderComplete(std::string requestStr)
     return true;
 }
 
-std::string getRequestMethod(UserRequest request)
+std::string getHeaderRequestMethod(std::string requestStr)
 {
-    size_t methodEndPos = request.fullStr.find(" ");
+    size_t methodEndPos = requestStr.find(" ");
     if (methodEndPos != std::string::npos)
-        return request.fullStr.substr(0, methodEndPos);
+        return requestStr.substr(0, methodEndPos);
     return "";
 }
 
-std::string getRequestRoute(UserRequest request)
+std::string getHeaderRequestRoute(std::string requestStr)
 {
-    size_t startPos = request.fullStr.find(" ");
+    size_t startPos = requestStr.find(" ");
     if (startPos != std::string::npos)
     {
         startPos++;
-        size_t endPos = request.fullStr.find(" ", startPos);
-        return request.fullStr.substr(startPos, endPos - startPos);
+        size_t endPos = requestStr.find(" ", startPos);
+        return requestStr.substr(startPos, endPos - startPos);
     }
     return "";
 }
 
-std::string getRequestTransferEncoding(UserRequest request)
+std::string getHeaderRequestTransferEncoding(std::string requestStr)
 {
-    size_t transferStartPos = request.fullStr.find("Transfer-Encoding: ");
+    size_t transferStartPos = requestStr.find("Transfer-Encoding: ");
     if (transferStartPos != std::string::npos)
     {
         transferStartPos += std::strlen("Transfer-Encoding: ");
-        size_t transferEndPos = request.fullStr.find("\r\n", transferStartPos);
-        return request.fullStr.substr(transferStartPos, transferEndPos - transferStartPos);
+        size_t transferEndPos = requestStr.find("\r\n", transferStartPos);
+        return requestStr.substr(transferStartPos, transferEndPos - transferStartPos);
     }
     return "default";
 }
 
-bool isLastChunkReceived(std::string str)
+bool isLastChunkReceived(std::string requestStr)
 {
-    if (str.find("\r\n0\r\n\r\n") != std::string::npos)
+    if (requestStr.find("\r\n0\r\n\r\n") != std::string::npos)
         return true;
     return false;
 }
 
-std::vector<std::string> getCookie(std::string requestStr)
+std::vector<std::string> getHeaderCookie(std::string requestStr)
 {
     std::vector<std::string> cookies;
     size_t startPos, endPos;
@@ -97,18 +97,16 @@ std::vector<std::string> getCookie(std::string requestStr)
     while (endPos != std::string::npos)
     {
         cookie = cookieSubStr.substr(startPos, endPos - startPos);
-        // std::cout << cookie << std::endl;
         cookies.push_back(cookie);
         startPos = endPos + std::strlen("; ");
         endPos = cookieSubStr.find(";", startPos);
     }
     cookie = cookieSubStr.substr(startPos);
-    // std::cout << cookie << std::endl;
     cookies.push_back(cookie);
     return cookies;
 }
 
-std::string getAuth(std::string requestStr)
+std::string getHeaderAuth(std::string requestStr)
 {
  	size_t authPos = requestStr.find("Authorization:");
     if (authPos != std::string::npos)
@@ -127,6 +125,24 @@ std::string getAuth(std::string requestStr)
 	return "";
 }
 
+std::string getHeaderContentType(std::string requestStr)
+{
+    size_t startPos, endPos;
+
+    startPos = requestStr.find("Content-Type: ");
+    if (startPos == std::string::npos)
+        return "";
+    startPos += std::strlen("Content-Type: ");
+    endPos = requestStr.find(";", startPos);
+    if (endPos == std::string::npos)
+    {
+        endPos = requestStr.find("\r\n", startPos);
+        if (endPos == std::string::npos)
+            return "";
+    }
+    return requestStr.substr(startPos, endPos - startPos);
+}
+
 void StartServers::getRequestChunk(Client &client, std::string chunkStr)
 {
 	client.request.fullStr += chunkStr;
@@ -136,14 +152,14 @@ void StartServers::getRequestChunk(Client &client, std::string chunkStr)
         client.request.isHeaderComplete = isHeaderComplete(client.request.fullStr);
         if (!client.request.isHeaderComplete) // if header is still not complete, stop here ; else, get and set all header data
             return;
-        //std::cout << "GET AND SET ALL HEADER DATA" << std::endl;
-        client.request.method = getRequestMethod(client.request);
-        client.request.route = getRequestRoute(client.request);
-        client.request.transferEncoding = getRequestTransferEncoding(client.request);
-        client.request.contentLength = getContentLength(client.request.fullStr);
+        client.request.method = getHeaderRequestMethod(client.request.fullStr);
+        client.request.route = getHeaderRequestRoute(client.request.fullStr);
+        client.request.transferEncoding = getHeaderRequestTransferEncoding(client.request.fullStr);
+        client.request.contentType = getHeaderContentType(client.request.fullStr);
+        client.request.contentLength = getHeaderContentLength(client.request.fullStr);
         client.request.isCGI = isCGIFile(*(client.server), client.request.route);
-        client.request.cookies = getCookie(client.request.fullStr);
-		client.request.credential = getAuth(client.request.fullStr);
+        client.request.cookies = getHeaderCookie(client.request.fullStr);
+		client.request.credential = getHeaderAuth(client.request.fullStr);
     }
 
     if (client.request.method == "POST")
@@ -226,8 +242,6 @@ void StartServers::processRequest(epoll_event currentEvent)
 }
 
 // To check:
-// - Multiple files in one POST request
 // - Body in DELETE request
-// - Chunked response
 // - get default body (not chunked and boundary)
 // - set a random filename for chunked POST

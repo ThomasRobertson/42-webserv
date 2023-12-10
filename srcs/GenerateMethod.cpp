@@ -91,31 +91,107 @@ std::string GenerateMethod::GETMethod()
 	return response;
 }
 
+std::string getFileName(std::string body)
+{
+	size_t startPos = body.find("filename=");
+	if (startPos == std::string::npos)
+	{
+		time_t date = getDate();
+		std::stringstream ss;
+    	ss << date;
+		return ss.str();
+	}
+	startPos += std::strlen("filename=\"");
+	size_t endPos = body.find("\"", startPos);
+
+	return body.substr(startPos, endPos - startPos);
+}
+
+void createFile(std::string multipartHeader, std::string multipartBinary, std::string postRoot)
+{
+	std::string fileName = getFileName(multipartHeader);
+	std::string fileLocation = "./" + postRoot + "/" + fileName; // change with upload dir of the server
+
+	std::ofstream outputFile(fileLocation.c_str(), std::ios::binary);
+	if (outputFile.is_open())
+	{
+		outputFile.write(multipartBinary.c_str(), multipartBinary.size());
+		outputFile.close();
+		std::cout << "Binary data has been written to " << std::endl;
+	}
+	else
+		std::cerr << "Failed to open the file for writing." << std::endl;
+}
+
+std::string getMultipartBoundary(std::string body)
+{
+	std::string boundary;
+	size_t startPos, endPos;
+
+	startPos = body.find("boundary=");
+	if (startPos == std::string::npos)
+		return boundary;
+	startPos += std::strlen("boundary=");
+
+	endPos = body.find("\r\n", startPos);
+	if (endPos == std::string::npos)
+		return boundary;
+	boundary = "--" + body.substr(startPos, endPos - startPos);
+	return boundary;
+}
+
+void parseMultipartRequest(std::string body, std::string postRoot)
+{
+	std::string boundary, multipartHeader, multipartBinary;
+	size_t endPos, startPos = 0;
+
+	boundary = getMultipartBoundary(body);
+	if (boundary.empty())
+		return;
+
+	while (1)
+	{
+		startPos = body.find(boundary, startPos);
+		if (startPos == std::string::npos)
+			return;
+		startPos += boundary.size() + std::strlen("\r\n");
+
+		endPos = body.find("\r\n\r\n", startPos);
+		if (endPos != std::string::npos) // add multipartHeader only if it was found.
+		{
+			multipartHeader = body.substr(startPos, endPos - startPos);
+			startPos = endPos + std::strlen("\r\n\r\n");
+		}
+
+		endPos = body.find(boundary, startPos);
+		if (endPos == std::string::npos)
+			return;
+		endPos -= std::strlen("\r\n");
+
+		multipartBinary = body.substr(startPos, endPos - startPos);
+		createFile(multipartHeader, multipartBinary, postRoot);
+
+		// std::cout << RED << multipartBinary << DEFAULT << std::endl;
+		startPos = endPos;
+	}
+}
+
 std::string GenerateMethod::POSTMethod(Location location)
 {
 	if (_client.request.bodySize > _client.server->getMaxClientBodySize())
 		return getErrorPageResponse("413");
 
-	std::string fileName = getFileName();
 	std::string status, contentType, body;
 
-	if (_client.request.transferEncoding == "default")
-	{
-		body = getBoundaryRequestBody();
-		// std::cout << YELLOW << "DEFAULT BODY:" << std::endl;
-		// std::cout << body << DEFAULT << std::endl;
-	}
-	else
-	{
+	if (_client.request.transferEncoding == "chunked")
 		body = getChunkedRequestBody();
-		// std::cout << YELLOW << "CHUNKED BODY:" << std::endl;
-		// std::cout << body << DEFAULT << std::endl;
-	}
+	// else if (_client.request.contentType == "multipart/form-data")
+	// 	body = getBoundaryRequestBody();
+	else
+		body = getDefaultRequestBody();
 
 	bool is_dir = false; //TODO: Check value
 	
-	(void)location;
-
 	std::string fileLocation = _server.getFileRoute(_client.request.route, status, "POST", is_dir);
 
 	if (status != "200")
@@ -124,29 +200,35 @@ std::string GenerateMethod::POSTMethod(Location location)
 		return getErrorPageResponse(status);
 	}
 
-	fileLocation += "/";
-	fileLocation += fileName;
-	std::cout << "Trying to post to : " << fileLocation << "(from fileName: " << fileName << ")" << std::endl;
-
-	std::ofstream outputFile(fileLocation.c_str(), std::ios::binary);
-	if (outputFile.is_open())
-	{
-		outputFile.write(body.c_str(), body.size());
-		outputFile.close();
-		std::cout << "Binary data has been written to " << std::endl;
-	}
-	else
-		std::cerr << "Failed to open the file for writing." << std::endl;
+	if (_client.request.contentType == "multipart/form-data")
+		parseMultipartRequest(_client.request.fullStr, location.postRoot);
 
 	ClientResponse response(true, status, "text/plain");
 
 	return response.getReponse();
 }
 
-// std::string GenerateMethod::getDefaultRequestBody()
-// {
-	
-// }
+std::string GenerateMethod::getDefaultRequestBody()
+{
+	std::string body;
+	size_t startPos;
+	std::string request = _client.request.fullStr;
+	int contentLength = _client.request.contentLength;
+
+	startPos = request.find("\r\n\r\n");
+	if (startPos == std::string::npos)
+		return "";
+	startPos += std::strlen("\r\n\r\n");
+
+	if (startPos + contentLength > request.size())
+		body = request.substr(startPos);
+	else
+	{
+		body = request.substr(startPos, contentLength);
+		std::cout << "IN CONTENT LENGTH RANGE" << std::endl;
+	}
+	return body;
+}
 
 std::string GenerateMethod::getBoundaryRequestBody()
 {
@@ -193,15 +275,6 @@ std::string GenerateMethod::getChunkedRequestBody()
 		startPos += chunkSize + std::strlen("\r\n");
 	}
 	return body;
-}
-
-std::string GenerateMethod::getFileName()
-{
-	size_t nameStartPos = _client.request.fullStr.find("filename=");
-	nameStartPos += std::strlen("filename=\"");
-	size_t nameEndPos = _client.request.fullStr.find("\"", nameStartPos);
-
-	return _client.request.fullStr.substr(nameStartPos, nameEndPos - nameStartPos);
 }
 
 std::string GenerateMethod::DELETEMethod()

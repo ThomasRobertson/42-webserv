@@ -12,9 +12,9 @@ class GenerateMethod
 	Client _client;
 	Server _server;
 
+	std::string getDefaultRequestBody();
 	std::string getBoundaryRequestBody();
 	std::string getChunkedRequestBody();
-	std::string getFileName();
 
 	public:
 	GenerateMethod(Client client, Server server) : _client(client), _server(server) {}
