@@ -305,12 +305,19 @@ std::string GenerateMethod::DELETEMethod()
 	while ((entry = readdir(dir)) != NULL)
 	{
 		if (entry->d_type == DT_REG) // Check if it's a regular file
-			std::cout << entry->d_name << std::endl; // Print the file name
+		{
+			std::string filename = "./" + fileLocation + "/" + entry->d_name;
+
+			if (std::remove(filename.c_str()) == 0)
+				std::cout << "File '" << filename << "' successfully deleted.\n";
+			else
+				std::cout << "Error deleting the file.\n";
+		}
 	}
 	closedir(dir);
 
 	ClientResponse response("200", "application/json", "{\"status\": \"success\", \"message\": \"The DELETE request was processed successfully.\"}");
-
+	
 	return response.getReponse();
 }
 

@@ -130,7 +130,7 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		else
 			rootDir = location.second.rootDir;
 	}
-	else if (method == "POST" || method == "DETELE")
+	else if (method == "POST" || method == "DELETE")
 	{
 		if (location.second.postRoot.empty())
 		{
