@@ -59,8 +59,6 @@ std::string GenerateMethod::GETMethod()
 	std::string response, fileLocation, contentType, status, htmlContent;
 	bool is_dir = false;
 	fileLocation = _server.getFileRoute(_client.request.route, status, "GET", is_dir);
-	// std::cout << "File location : " << fileLocation << std::endl;
-	// std::cout << "Status : " << status << std::endl;
 
 	if (status != "200")
 	{

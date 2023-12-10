@@ -106,6 +106,7 @@ void StartServers::processResponse(epoll_event currentEvent)
 	response = generateResponse(currentServer, currentClient);
 
 	write(currentEvent.data.fd, response.c_str(), response.length());
+	print(response);
 	// std::cout << YELLOW << response << DEFAULT << std::endl;
 
 	_clientList.erase(currentEvent.data.fd);

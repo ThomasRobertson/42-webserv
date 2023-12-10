@@ -215,7 +215,7 @@ void StartServers::processRequest(epoll_event currentEvent)
     }
 
     std::string requestData(buffer, bytesRead);
-    // std::cout << requestData.substr(0, 1000) << std::endl;
+    print(requestData);
 
     try
     {
@@ -236,8 +236,3 @@ void StartServers::processRequest(epoll_event currentEvent)
     event.events = EPOLLOUT;
     epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
 }
-
-// To check:
-// - Body in DELETE request
-// - get default body (not chunked and boundary)
-// - set a random filename for chunked POST

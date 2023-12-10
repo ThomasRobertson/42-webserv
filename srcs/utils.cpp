@@ -239,3 +239,27 @@ std::string parseFileExtension(std::string fileLocation)
 		return fileLocation;
 	}
 }
+
+void print(std::string response)
+{
+	size_t startPos, endPos;
+	std::string header, body;
+
+	startPos = 0;
+	endPos = response.find("\r\n\r\n");
+	if (endPos == std::string::npos)
+	{
+		header = response.substr(startPos);
+		std::cout << header << std::endl;
+		return;
+	}
+	header = response.substr(startPos, endPos - startPos);
+	startPos = endPos + 2;
+	body = response.substr(startPos);
+
+	std::cout << header << std::endl;
+	if (body.size() > 100)
+		std::cout << body.substr(0, 100) << "..." << std::endl;
+	else
+		std::cout << body << std::endl;
+}

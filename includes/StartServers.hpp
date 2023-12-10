@@ -54,6 +54,7 @@ class StartServers
         bool getNewConnexion(epoll_event currentEvent);
         void processRequest(epoll_event currentEvent);
         void processResponse(epoll_event currentEvent);
+        void disconnectClient(int clientFd);
         void closeServers();
 
         void listenClientRequest();

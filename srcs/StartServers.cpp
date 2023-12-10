@@ -106,6 +106,14 @@ void StartServers::checkTimeout()
     }
 }
 
+void StartServers::disconnectClient(int clientFd)
+{
+    epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, NULL);
+    close(clientFd);
+    _clientList.erase(clientFd);
+    std::cout << RED << "[i] Client disconnected from error: " << clientFd << DEFAULT << std::endl;
+}
+
 void StartServers::listenClientRequest()
 {
     epoll_event events[64];
@@ -113,6 +121,8 @@ void StartServers::listenClientRequest()
     while (true)
     {
         int numEvents = epoll_wait(_epollFd, events, 64, 1000);
+        if (numEvents == -1)
+            return;
         checkTimeout();
         if (EXIT_G == true)
             break;
@@ -122,7 +132,8 @@ void StartServers::listenClientRequest()
 
             if (!isNewClient)
             {
-                // if (events[i].events & EPOLLERR) check epoll error
+                if (events[i].events & EPOLLERR)
+                    disconnectClient(events[i].data.fd);
                 if (events[i].events & EPOLLIN)
                     processRequest(events[i]);
                 if (events[i].events & EPOLLOUT)

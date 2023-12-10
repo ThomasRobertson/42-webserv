@@ -190,12 +190,6 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	return fileLocation;
 }
 
-// Location Server::getLocation(std::string route)
-// {
-// 	std::map<std::string, Location>::iterator locationIt = _htmlLocationMap.find("route");
-// 		return locationIt;
-// }
-
 bool Server::getListing(std::string fileLocation)
 {
     return _htmlLocationMap[fileLocation].listing;
