@@ -13,7 +13,6 @@ class GenerateMethod
 	Server _server;
 
 	std::string getDefaultRequestBody();
-	std::string getBoundaryRequestBody();
 	std::string getChunkedRequestBody();
 
 	public:

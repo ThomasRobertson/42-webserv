@@ -21,14 +21,6 @@
 
 extern bool EXIT_G;
 
-// struct Client
-// {
-//     int fd;
-//     int serverIndex;
-//     UserRequest request;
-//     bool toComplete;
-// };
-
 struct Client
 {
     int fd;
@@ -67,12 +59,8 @@ class StartServers
         void listenClientRequest();
 
         void getRequestChunk(Client &client, std::string requestStr);
-        UserRequest getUserRequest(std::string requestStr);
-        std::string getUserResponse(Client &client);
 		std::string generateResponse(Server server, Client client);
 
-        void createFile(UserRequest request, Server currentServer);
-        int deleteFiles(UserRequest request, Server currentServer);
         bool isValidRequest(UserRequest requestData, std::string &status, bool isCGI);
 };
 
