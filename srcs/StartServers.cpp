@@ -95,7 +95,7 @@ void StartServers::checkTimeout()
         if (getDate() - clientIter->second.lastActionDate > timeoutValue)
         {
             int clientFd = clientIter->second.fd;
-            std::cout << RED << "Client: " << clientFd << " disconnected from timeout." << DEFAULT << std::endl;
+            std::cout << RED << "[i] Client disconnected from timeout: " << clientFd << DEFAULT << std::endl;
             clientIter++;
             _clientList.erase(clientFd);
             epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL);

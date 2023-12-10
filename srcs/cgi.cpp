@@ -9,8 +9,6 @@ std::string CgiHandler::generateReturnResponse(std::string return_str)
 	std::vector<std::string> extraHeaders;
 	std::istringstream returnStream(return_str);
 
-	// std::cout << "SIZE : " << return_str.size() << std::endl;
-
 	while (std::getline(returnStream, line))
 	{
 		if (line == "" || line.find_first_not_of("\r\n") == std::string::npos)
@@ -261,7 +259,7 @@ void CgiHandler::sendBody()
 	if (_body.size() != 0)
 	{
 		write(_child_in_pipe, _body.c_str(), _body.size());
-		lseek(_child_in_pipe, 0, SEEK_SET); // set fd ptr to beginning of the file (may need protection)
+		lseek(_child_in_pipe, 0, SEEK_SET); // set fd ptr to beginning of the file
 	}
 }
 
@@ -272,9 +270,7 @@ std::string CgiHandler::execute()
 	sendBody();
 	launch_child();
 	std::string return_str = capture_child_return();
-	//std::cout << RED << "The return str is : " << return_str << DEFAULT << std::endl;
 	return_str = generateReturnResponse(return_str);
-	//std::cout << GREEN << "reponse is:" << return_str << DEFAULT << std::endl;
 
 	return (return_str);
 }

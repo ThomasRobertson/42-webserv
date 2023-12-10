@@ -119,7 +119,6 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	if (!isCGI && std::find(location.second.methods.begin(), location.second.methods.end(), method) == location.second.methods.end())
 	{
 		status = "405";
-		std::cout << RED << "ERROR ICI POUR POST " << method << DEFAULT << std::endl;
 		return fileName;
 	}
 
@@ -146,7 +145,6 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 	}
 	else
 	{
-		std::cout << RED << "Invalid method: " << method << DEFAULT << std::endl;
 		status = "500";
 		return fileName;
 	}
@@ -339,8 +337,6 @@ void Server::startServers(int epollFd)
             close(serverSocket);
             continue ;
         }
-
-
 
         std::cout << YELLOW << "[i] Server listening on port " << port << "..." << DEFAULT << std::endl;
 

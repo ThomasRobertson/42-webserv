@@ -27,6 +27,7 @@ std::string StartServers::generateResponse(Server server, Client client)
 	std::string status;
 	GenerateMethod genMethod(client, server);
 	std::pair<std::string, Location> location;
+
 	try
 	{
 		location = server.getRootDir(client.request.route);
@@ -57,34 +58,32 @@ std::string StartServers::generateResponse(Server server, Client client)
 
 		if (!isValidRequest(client.request, status, isCGI))
 		{
-			std::cout << RED << "Invalid header, generating error page.\n" << DEFAULT;
+			// std::cout << RED << "Invalid header, generating error page.\n" << DEFAULT;
 			return genMethod.getErrorPageResponse(status);
 		}
 		else if (isCGI)
 		{
-			std::cout << GREEN << "Launching CGI.\n" << DEFAULT;
+			// std::cout << GREEN << "Launching CGI.\n" << DEFAULT;
 			return genMethod.CGIMethod();
 		}
 		else if (client.request.method == "GET")
 		{
-			std::cout << GREEN << "Launching GET Method.\n" << DEFAULT;
+			// std::cout << GREEN << "Launching GET Method.\n" << DEFAULT;
 			return genMethod.GETMethod();
 		}
 		else if (client.request.method == "POST")
 		{
-			std::cout << GREEN << "Launching POST Method.\n" << DEFAULT;
-			// std::cout << client.request.body << std::endl;
+			// std::cout << GREEN << "Launching POST Method.\n" << DEFAULT;
 			return genMethod.POSTMethod(location.second);
 		}
 		else if (client.request.method == "DELETE")
 		{
-			std::cout << GREEN << "Launching DELETE Method.\n" << DEFAULT;
-			// std::cout << "DELETE METH" << std::endl;
+			// std::cout << GREEN << "Launching DELETE Method.\n" << DEFAULT;
 			return genMethod.DELETEMethod();
 		}
 		else
 		{
-			std::cout << RED << "No valid method found, return error.\n" << DEFAULT;
+			// std::cout << RED << "No valid method found, return error.\n" << DEFAULT;
 			return genMethod.getErrorPageResponse("405");
 		}
 	}
@@ -101,12 +100,13 @@ void StartServers::processResponse(epoll_event currentEvent)
 	Client currentClient = _clientList[currentEvent.data.fd];
 	Server currentServer = *(currentClient.server);
 
-	std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
+	// std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
+	std::cout << YELLOW << "[R] Response sent to client " << currentEvent.data.fd << DEFAULT << std::endl;
 
 	response = generateResponse(currentServer, currentClient);
 
 	write(currentEvent.data.fd, response.c_str(), response.length());
-	std::cout << YELLOW << response << DEFAULT << std::endl;
+	// std::cout << YELLOW << response << DEFAULT << std::endl;
 
 	_clientList.erase(currentEvent.data.fd);
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);

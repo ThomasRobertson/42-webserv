@@ -19,6 +19,8 @@ std::string GenerateMethod::generateRedirect(std::string url)
 	return response;	
 }
 
+// ----------------------------- CGI ----------------------------- //
+
 std::string GenerateMethod::CGIMethod()
 {
 	std::string status, body, response, cgiBinLocation;
@@ -37,16 +39,18 @@ std::string GenerateMethod::CGIMethod()
 		throw std::runtime_error("");
 	}
 
-	if (_client.request.transferEncoding == "default")
-		body = getBoundaryRequestBody();
-	else
+	if (_client.request.transferEncoding == "chunked")
 		body = getChunkedRequestBody();
+	else
+		body = getDefaultRequestBody();
 
 	CgiHandler CGI(_client, _server, fileLocation, cgiBinLocation,body);
 	response = CGI.execute();
 
 	return response;
 }
+
+// ----------------------------- GET METHOD ----------------------------- //
 
 std::string GenerateMethod::GETMethod()
 {
@@ -82,7 +86,6 @@ std::string GenerateMethod::GETMethod()
 	}
 
 	htmlContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-	std::cout << "Content generated for " << fileLocation << "." << std::endl;
 
 	ClientResponse clientReponse(true, status, contentType, htmlContent);
 	response = clientReponse.getReponse();
@@ -90,6 +93,8 @@ std::string GenerateMethod::GETMethod()
 	file.close();
 	return response;
 }
+
+// ----------------------------- POST METHOD ----------------------------- //
 
 std::string getFileName(std::string body)
 {
@@ -185,8 +190,6 @@ std::string GenerateMethod::POSTMethod(Location location)
 
 	if (_client.request.transferEncoding == "chunked")
 		body = getChunkedRequestBody();
-	// else if (_client.request.contentType == "multipart/form-data")
-	// 	body = getBoundaryRequestBody();
 	else
 		body = getDefaultRequestBody();
 
@@ -230,25 +233,6 @@ std::string GenerateMethod::getDefaultRequestBody()
 	return body;
 }
 
-std::string GenerateMethod::getBoundaryRequestBody()
-{
-	std::string request = _client.request.fullStr;
-	size_t boundaryStartPos, boundaryEndPos, bodyStartPos, bodyEndPos;
-	std::string boundary, body;
-
-	boundaryStartPos = request.find("boundary=") + std::strlen("boundary=");
-	boundaryEndPos = request.find("\r", boundaryStartPos);
-	boundary = "--" + request.substr(boundaryStartPos, boundaryEndPos - boundaryStartPos);
-
-	bodyStartPos = request.find(boundary) + boundary.size();
-	bodyStartPos = request.find("\r\n\r\n", bodyStartPos) + std::strlen("\r\n\r\n");
-	bodyEndPos = request.find(boundary + "--") - std::strlen("\r\n");
-
-	body = request.substr(bodyStartPos, bodyEndPos - bodyStartPos);
-
-	return body;
-}
-
 std::string GenerateMethod::getChunkedRequestBody()
 {
 	std::string request = _client.request.fullStr;
@@ -258,13 +242,13 @@ std::string GenerateMethod::getChunkedRequestBody()
 	std::string body;
 
 	startPos = request.find("\r\n\r\n") + std::strlen("\r\n\r\n");
-	if (startPos == std::string::npos) // throw internal server error
+	if (startPos == std::string::npos)
 		return body;
 
 	while (true)
 	{
 		endPos = request.find("\r\n", startPos);
-		if (endPos == std::string::npos) // throw internal server error
+		if (endPos == std::string::npos)
 			break ;
 		chunkSizeStr = request.substr(startPos, endPos - startPos);
 		chunkSize = hexStringToInt(chunkSizeStr);
@@ -276,6 +260,8 @@ std::string GenerateMethod::getChunkedRequestBody()
 	}
 	return body;
 }
+
+// ----------------------------- DELETE METHOD ----------------------------- //
 
 std::string GenerateMethod::DELETEMethod()
 {
@@ -293,8 +279,7 @@ std::string GenerateMethod::DELETEMethod()
 	DIR* dir;
 	struct dirent* entry;
 
-	// Open the directory
-	dir = opendir(fileLocation.c_str());
+	dir = opendir(fileLocation.c_str()); // Open the directory
 
 	if (!dir)
 	{
@@ -317,7 +302,7 @@ std::string GenerateMethod::DELETEMethod()
 	closedir(dir);
 
 	ClientResponse response(true, "200", "application/json", "{\"status\": \"success\", \"message\": \"The DELETE request was processed successfully.\"}");
-	
+
 	return response.getReponse();
 }
 

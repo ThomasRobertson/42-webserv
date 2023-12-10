@@ -188,7 +188,7 @@ std::string generateErrorPage(std::string errorCode)
 	if (errorCode.empty())
 		errorCode = "500";
 
-	std::cout << YELLOW << "Generating page for status : " << errorCode << std::endl;
+	// std::cout << YELLOW << "Generating page for status : " << errorCode << std::endl;
 
 	std::pair<std::string, std::string> status = getStatus(errorCode);
 

@@ -39,7 +39,7 @@ class CgiHandler
 			{
 				fclose(_fIn);
 				fclose(_fOut);
-				std::cout << RED << "Could not create temp files for CGI.\n" << DEFAULT;
+				// std::cout << RED << "Could not create temp files for CGI.\n" << DEFAULT;
 				throw std::runtime_error("");
 			}
 			_child_in_pipe = fileno(_fIn);
@@ -48,11 +48,12 @@ class CgiHandler
 			{
 				fclose(_fIn);
 				fclose(_fOut);
-				std::cout << RED << "Could not create temp files for CGI.\n" << DEFAULT;
+				// std::cout << RED << "Could not create temp files for CGI.\n" << DEFAULT;
 				throw std::runtime_error("");
 			}
 		}
-		~CgiHandler() {
+		~CgiHandler()
+		{
 			fclose(_fIn);
 			fclose(_fOut);
 		};

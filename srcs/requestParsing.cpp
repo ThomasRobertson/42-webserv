@@ -19,8 +19,6 @@ bool isValidChunkedBody()
 
 bool StartServers::isValidRequest(UserRequest requestData, std::string &status, bool isCGI)
 {
-    // std::cout << "requestData: fullRequest: " << requestData.fullRequest << std::endl << "END" << std::endl;
-
     std::string httpRequest = requestData.fullStr;
 
     std::size_t pos = 0;
@@ -185,10 +183,6 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
         return true;
     else
 	{
-		std::cout << "countPost" << countPost << std::endl;
-		std::cout << "countOther" << countOther << std::endl;
-		std::cout << "method" << method << std::endl;
-
 		status = "400";
 		return false;
 	}

@@ -199,7 +199,8 @@ void StartServers::processRequest(epoll_event currentEvent)
     struct epoll_event event;
     Client &currentClient = _clientList[currentEvent.data.fd];
 
-    std::cout << "----------------------- NEW REQUEST: " << currentEvent.data.fd << " -----------------------" << std::endl;
+    // std::cout << "----------------------- NEW REQUEST: " << currentEvent.data.fd << " -----------------------" << std::endl;
+    std::cout << YELLOW << "[R] New request received from client " << currentEvent.data.fd << DEFAULT << std::endl;
 
     currentClient.lastActionDate = getDate(); // update timeout
 
@@ -209,12 +210,12 @@ void StartServers::processRequest(epoll_event currentEvent)
         epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, &event);
         close(currentEvent.data.fd);
         _clientList.erase(currentEvent.data.fd);
-        std::cout << "Client disconnected from error: " << currentEvent.data.fd << std::endl;
+        std::cout << RED << "[i] Client disconnected from error: " << currentEvent.data.fd << DEFAULT << std::endl;
         return;
     }
 
     std::string requestData(buffer, bytesRead);
-    std::cout << requestData.substr(0, 1000) << std::endl;
+    // std::cout << requestData.substr(0, 1000) << std::endl;
 
     try
     {
@@ -229,13 +230,8 @@ void StartServers::processRequest(epoll_event currentEvent)
     }
 
     if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
-    {
-        // std::cout << RED << "REQUEST UNCOMPLETE" << DEFAULT << std::endl;
-        // std::cout << currentClient.request.bodySize << "/" << currentClient.request.contentLength << std::endl;
         return;
-    }
 
-    std::cout << GREEN << "REQUEST COMPLETE" << DEFAULT << std::endl;
     event.data.fd = currentEvent.data.fd;
     event.events = EPOLLOUT;
     epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);

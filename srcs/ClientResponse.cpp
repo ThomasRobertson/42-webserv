@@ -30,7 +30,7 @@ ClientResponse::ClientResponse(bool parseStatus, std::string status, std::string
 		_status += statusCode.second;
 		
 	}
-	std::cout << RED << _status << DEFAULT << std::endl;
+	// std::cout << RED << _status << DEFAULT << std::endl;
 }
 
 std::string ClientResponse::getReponse()
