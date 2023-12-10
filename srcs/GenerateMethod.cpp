@@ -316,7 +316,7 @@ std::string GenerateMethod::DELETEMethod()
 	}
 	closedir(dir);
 
-	ClientResponse response("200", "application/json", "{\"status\": \"success\", \"message\": \"The DELETE request was processed successfully.\"}");
+	ClientResponse response(true, "200", "application/json", "{\"status\": \"success\", \"message\": \"The DELETE request was processed successfully.\"}");
 	
 	return response.getReponse();
 }
