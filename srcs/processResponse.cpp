@@ -56,7 +56,7 @@ std::string StartServers::generateResponse(Server server, Client client)
 	{
 		bool isCGI = isCGIFile(server, client.request.route);
 
-		if (!isValidRequest(client.request, status, isCGI))
+		if (!isValidRequest(client.request, status, isCGI, server))
 		{
 			// std::cout << RED << "Invalid header, generating error page.\n" << DEFAULT;
 			return genMethod.getErrorPageResponse(status);

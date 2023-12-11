@@ -37,7 +37,7 @@ class Server
         Server(ConfigFile configFile, int serverIndex);
         ~Server();
 
-        std::string getHost();
+        std::string getServerName();
         std::string getRoot();
         int getMaxClientBodySize();
         std::vector<std::string> getPort();

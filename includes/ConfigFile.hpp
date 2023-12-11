@@ -47,14 +47,13 @@ class ConfigFile
         void splitStrInVector(std::string input, char delimiter, std::vector<std::string> &result);
         int splitStrInMap(std::string input, char delimiter, std::map<std::string, std::string> &result);
 
-        std::string getHost(int serverIndex);
+        std::string getServerName(int serverIndex);
         std::vector<std::string> getPort(int serverIndex);
         int getMaxClientBodySize(int serverIndex);
         std::map<std::string, std::string> getErrorPages(int serverIndex);
         std::map<std::string, std::string> getCgiPages(int serverIndex);
         std::map<std::string, Location> getFileRoutes(int serverIndex);
         int getServerNumber();
-        std::string getServerName(int serverIndex);
         std::string getRoot(int serverIndex);
         std::string getPostRoot(int serverIndex);
 

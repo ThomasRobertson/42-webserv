@@ -62,7 +62,7 @@ class StartServers
         void getRequestChunk(Client &client, std::string requestStr);
 		std::string generateResponse(Server server, Client client);
 
-        bool isValidRequest(UserRequest requestData, std::string &status, bool isCGI);
+        bool isValidRequest(UserRequest requestData, std::string &status, bool isCGI, Server server);
 };
 
 class Problem : public std::exception

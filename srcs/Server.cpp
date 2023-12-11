@@ -17,7 +17,7 @@ Server::~Server()
 
 void Server::setServerValues()
 {  
-    this->_host = this->_configFile.getHost(_serverIndex);
+    this->_host = this->_configFile.getServerName(_serverIndex);
     this->_port = this->_configFile.getPort(_serverIndex);
     this->_maxClientBodySize = this->_configFile.getMaxClientBodySize(_serverIndex);
     this->_errorsMap = this->_configFile.getErrorPages(_serverIndex);
@@ -26,7 +26,7 @@ void Server::setServerValues()
     this->_root = this->_configFile.getRoot(_serverIndex);
 }
 
-std::string Server::getHost()
+std::string Server::getServerName()
 {
     return this->_host;
 }
@@ -289,7 +289,7 @@ void Server::startServers(int epollFd)
         struct addrinfo *result;
         struct addrinfo *rp;
 
-        std::string hostStr = this->getHost();
+        std::string hostStr = this->getServerName();
         std::string portStr = *portIt;
 
         const char *host = hostStr.c_str();

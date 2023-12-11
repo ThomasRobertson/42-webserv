@@ -18,7 +18,7 @@ ConfigFile::~ConfigFile() {}
 	|			 /_/ \_\___\___|___|___/___/\___/|_|_\				|
 	|_______________________________________________________________| */
 
-std::string ConfigFile::getHost(int serverIndex)
+std::string ConfigFile::getServerName(int serverIndex)
 {
 	return this->_configVecOfMap[serverIndex]["server_name"]; // TO CHECK
 }

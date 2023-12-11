@@ -17,7 +17,7 @@ bool isValidChunkedBody()
     return true;
 }
 
-bool StartServers::isValidRequest(UserRequest requestData, std::string &status, bool isCGI)
+bool StartServers::isValidRequest(UserRequest requestData, std::string &status, bool isCGI, Server server)
 {
     std::string httpRequest = requestData.fullStr;
 
@@ -59,11 +59,6 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		status = "505"; 
 		return false;
 	}
-    // if (uri.find('/') != 0) //!Ne marche pas
-    // {   
-	// 	status = "400"; 
-	// 	return false;
-	// }
     if (line.length() > 8000)
     {   
 		status = "414"; 
@@ -91,9 +86,20 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
             break;
 		if (line.compare(0, 5, "Host:") == 0 || line.compare(0, 5, "host:") == 0)
 		{
-
-		    countPost++;
+			countPost++;
 		    countOther++;
+
+			std::string serverName = server.getServerName();
+			if (!serverName.empty())
+			{
+				std::string hostValue = line.substr(6);
+				hostValue = hostValue.substr(0, hostValue.find(":"));
+				if (hostValue != server.getServerName())
+				{
+					status = "400";
+					return false;
+				}
+			}
 		}
 		else if (line.compare(0, 18, "Transfer-Encoding:") == 0 || line.compare(0, 18, "transfer-encoding:") == 0)
 		{
