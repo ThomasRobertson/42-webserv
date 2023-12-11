@@ -4,8 +4,6 @@
 const std::string ClientResponse::spaceDelimiter = " ";
 const std::string ClientResponse::newLineDelimiter = "\r\n";
 
-// ClientResponse::ClientResponse(std::string status, std::string contentType, std::string contentBody) : 
-// _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE)
 ClientResponse::ClientResponse(bool parseStatus, std::string status, std::string contentType, std::string contentBody, std::string authenticateRealm, std::string cookieSet, std::vector<std::string> extraHeaders) : _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE), _cookieSet(cookieSet), _authenticateRealm(authenticateRealm), _extraHeaders(extraHeaders)
 {
 	std::stringstream _dateStream;
@@ -82,4 +80,15 @@ std::string ClientResponse::getReponse()
 	_response += _contentBody;
 
 	return _response;
+}
+
+bool isValidServerName(std::string host)
+{
+	std::vector<std::string> serverNameList;
+
+	if (serverNameList.size() == 0)
+		return true;
+	if (std::find(serverNameList.begin(), serverNameList.end(), host) != serverNameList.end())
+		return true;
+	return false;
 }
