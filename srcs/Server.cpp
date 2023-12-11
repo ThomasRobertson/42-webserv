@@ -212,7 +212,14 @@ std::map<std::string, std::string> Server::getCgiPages()
 
 int Server::getServerSocket(int i)
 {
-    return this->_serverSocketVec[i];
+	try
+	{
+		return this->_serverSocketVec.at(i);
+	}
+	catch(const std::exception&)
+	{
+		return -1;
+	}
 }
 
 int Server::getServerSocketSize()
@@ -286,7 +293,7 @@ void Server::startServers(int epollFd)
         std::string portStr = *portIt;
 
         const char *host = hostStr.c_str();
-        const char *port = portStr.c_str();
+		        const char *port = portStr.c_str();
 
         memset(&hints, 0, sizeof(struct addrinfo));
         hints.ai_family = AF_UNSPEC;
