@@ -22,6 +22,7 @@ class Server
         ConfigFile _configFile;
         std::string _host;
         std::vector<std::string> _port;
+        std::vector<std::string> _server_name;
         int _maxClientBodySize;
         int _serverIndex;
         std::string _root;

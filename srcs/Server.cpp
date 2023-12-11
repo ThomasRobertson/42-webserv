@@ -17,7 +17,8 @@ Server::~Server()
 
 void Server::setServerValues()
 {  
-    this->_host = this->_configFile.getServerName(_serverIndex);
+    this->_host = this->_configFile.getHost(_serverIndex);
+    this->_server_name = this->_configFile.getServerName(_serverIndex);
     this->_port = this->_configFile.getPort(_serverIndex);
     this->_maxClientBodySize = this->_configFile.getMaxClientBodySize(_serverIndex);
     this->_errorsMap = this->_configFile.getErrorPages(_serverIndex);

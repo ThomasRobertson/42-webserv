@@ -28,6 +28,7 @@ class ConfigFile
 
 		// std::vector<std::string> hostVec;
 		std::vector<std::vector<std::string> > _portsVec;
+		std::vector<std::vector<std::string> > _serverNamesVec;
 
         std::vector<std::map<std::string, std::string> > _configVecOfMap;
         std::vector<std::map<std::string, Location> > _htmlLocationVecOfMap;
@@ -47,13 +48,14 @@ class ConfigFile
         void splitStrInVector(std::string input, char delimiter, std::vector<std::string> &result);
         int splitStrInMap(std::string input, char delimiter, std::map<std::string, std::string> &result);
 
-        std::string getServerName(int serverIndex);
+        std::string getHost(int serverIndex);
         std::vector<std::string> getPort(int serverIndex);
         int getMaxClientBodySize(int serverIndex);
         std::map<std::string, std::string> getErrorPages(int serverIndex);
         std::map<std::string, std::string> getCgiPages(int serverIndex);
         std::map<std::string, Location> getFileRoutes(int serverIndex);
         int getServerNumber();
+        std::vector<std::string> getServerName(int serverIndex);
         std::string getRoot(int serverIndex);
         std::string getPostRoot(int serverIndex);
 
@@ -70,6 +72,7 @@ class ConfigFile
         int checkFile(std::ifstream &file, std::string line);
 
         int setPorts(std::string line, size_t positionSemicolon, size_t positionSpace);
+        int setServerNames(std::string line, size_t positionSemicolon, size_t positionSpace);
         int setErrors(std::string line, size_t positionSemicolon, size_t positionSpace, std::map<std::string, std::string> &newErrorMap);
         int setCgi(std::string line, size_t positionSemicolon, size_t positionSpace, std::map<std::string, std::string> &newCgiMap);
 

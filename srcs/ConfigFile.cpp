@@ -18,14 +18,19 @@ ConfigFile::~ConfigFile() {}
 	|			 /_/ \_\___\___|___|___/___/\___/|_|_\				|
 	|_______________________________________________________________| */
 
-std::string ConfigFile::getServerName(int serverIndex)
+std::string ConfigFile::getHost(int serverIndex)
 {
-	return this->_configVecOfMap[serverIndex]["server_name"]; // TO CHECK
+	return this->_configVecOfMap[serverIndex]["host"]; // TO CHECK
 }
 
 std::vector<std::string> ConfigFile::getPort(int serverIndex)
 {
 	return this->_portsVec[serverIndex];
+}
+
+std::vector<std::string> ConfigFile::getServerName(int serverIndex)
+{
+	return this->_serverNamesVec[serverIndex];
 }
 
 int ConfigFile::getMaxClientBodySize(int serverIndex)
@@ -170,6 +175,18 @@ int ConfigFile::setPorts(std::string line, size_t positionSemicolon, size_t posi
 	return 1;
 }
 
+int ConfigFile::setServerNames(std::string line, size_t positionSemicolon, size_t positionSpace)
+{
+	if (positionSemicolon == std::string::npos)
+		return 0;
+	std::string serverNamesStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
+	std::vector<std::string> serverNamesVector;
+	splitStrInVector(serverNamesStr, ' ', serverNamesVector);
+	this->_serverNamesVec.push_back(serverNamesVector);
+	serverNamesVector.clear();
+	return 1;
+}
+
 int ConfigFile::setErrors(std::string line, size_t positionSemicolon, size_t positionSpace, std::map<std::string, std::string> &newErrorMap)
 {
 	if (positionSemicolon == std::string::npos)
@@ -232,6 +249,7 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 		size_t positionErrors = line.find("\terror_page");
 		size_t positionCgi = line.find("\tcgi");
 		size_t positionPorts = line.find("\tlisten");
+		size_t positionServerNames = line.find("\tserver_name");
 
 		if (line == "server {\r")
 		{
@@ -320,6 +338,11 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				if (!setPorts(line, positionSemicolon, positionSpace))
 					return 0;
 			}
+			else if (positionServerNames != std::string::npos && line[1] != '\t')
+			{
+				if (!setServerNames(line, positionSemicolon, positionSpace))
+					return 0;
+			}
 			else if (positionErrors != std::string::npos && line[1] != '\t')
 			{
 				if (!setErrors(line, positionSemicolon, positionSpace, newErrorMap))
@@ -375,7 +398,7 @@ void ConfigFile::setValuesConfigFile(int serverIndex)
 void ConfigFile::displayValuesConfigFile(int serverIndex)
 {
 	std::cout << "Server number " << serverIndex + 1 << std::endl;
-	std::cout << "server_name: " << this->_configVecOfMap[serverIndex]["server_name"] << std::endl;
+	std::cout << "host: " << this->_configVecOfMap[serverIndex]["host"] << std::endl;
 	std::cout << "port: " << this->_portsVec[serverIndex][0] << std::endl;
 	std::cout << "maxClientBodySize: " << convertStrToInt(this->_configVecOfMap[serverIndex]["maxClientBodySize"]) << std::endl;
 
