@@ -14,7 +14,12 @@ void signalHandler(int signum)
 
 int	main(int argc, char **argv)
 {
-    if (argc != 2)
+    if (argc == 1)
+    {
+        std::cout << "Default Config File" << std::endl;
+        argv[1] = const_cast<char*>("config/config.conf");
+    }
+    else if (argc != 2)
     {
         std::cout << "Error: could not open config file." << std::endl;
         return 1;

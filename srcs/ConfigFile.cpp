@@ -349,6 +349,10 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 			this->_htmlLocationVecOfMap.push_back(newHtmlPageMap);
 			this->_cgiVecOfMap.push_back(newCgiMap);
 
+			newConfigMap.clear();
+			newErrorMap.clear();
+			newHtmlPageMap.clear();
+			newCgiMap.clear();
 			setValuesConfigFile(serverIndex);
 		}
 	}
@@ -379,7 +383,8 @@ void ConfigFile::displayValuesConfigFile(int serverIndex)
 	for (it = _htmlLocationVecOfMap[serverIndex].begin(); it != _htmlLocationVecOfMap[serverIndex].end(); it++)
 	{
 		// std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method 1: " << it->second.methods[0] << " Method 2: " << it->second.methods[1] << std::endl;
-		std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method 1: " << it->second.methods[0] << std::endl;
+		// std::cout << "Key: " << it->first << " Index: " << it->second.index << " Method 1: " << it->second.methods[0] << std::endl;
+		std::cout << "Key: " << it->first << " Index: " << it->second.index << std::endl;
 	}
 	std::map<std::string, std::string>::iterator it2;
 	for (it2 = _errorsVecOfMap[serverIndex].begin(); it2 != _errorsVecOfMap[serverIndex].end(); it2++)
