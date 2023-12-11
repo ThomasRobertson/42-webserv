@@ -3,8 +3,8 @@
 <html>
     <head>
         <title>Webserv 42</title>
-        <link rel="icon" href="styles/favicon.png" type="image/x-icon">
-        <link rel="stylesheet" type="text/css" href="styles/style.css">
+        <link rel="icon" href="/styles/favicon.png" type="image/x-icon">
+        <link rel="stylesheet" type="text/css" href="/styles/style.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap" rel="stylesheet">
@@ -15,7 +15,6 @@
 			<div>
 				<form id="form"  method="post" enctype="multipart/form-data">
 					<input id="input-file" type="file" name="file" accept=".jpg, .png, .txt"/>
-					<!-- <label for="file">File</label> -->
 					<button id="submit-button" type="submit">Upload File</button>
 				</form>
 				<button id="delete-button" type="button">Delete File</button>
@@ -34,22 +33,18 @@
 					body: form_data,
 				})
 				.then(response => {
-					if (response.ok) {
-						return response.json();
-					} else {
-						throw new Error('Network response was not ok');
-					}
-				})
-				.then(data => {
-					console.log(data);
-				})
-				.catch(error => {
-					console.error('There was a problem with the fetch operation:', error);
+					console.log(response);
 				});
+				// .then(data => {
+					// 	console.log(data);
+					// })
+					// .catch(error => {
+						// 	console.error('There was a problem with the fetch operation:', error);
+						// });
 			})
-			
-			const delete_btn = document.getElementById("delete-button");
 
+			const delete_btn = document.getElementById("delete-button");
+					
 			delete_btn.addEventListener("click", function (e) {
 				fetch("/form", {
 					method: 'DELETE',
@@ -58,17 +53,7 @@
 					}
 				})
 				.then(response => {
-					if (response.ok) {
-						return response.json();
-					} else {
-						throw new Error('Network response was not ok');
-					}
-				})
-				.then(data => {
-					console.log(data);
-				})
-				.catch(error => {
-					console.error('There was a problem with the fetch operation:', error);
+					console.log(response);
 				});
 			})
 		</script>
