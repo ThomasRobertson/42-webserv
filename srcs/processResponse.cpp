@@ -100,14 +100,15 @@ void StartServers::processResponse(epoll_event currentEvent)
 	Client currentClient = _clientList[currentEvent.data.fd];
 	Server currentServer = *(currentClient.server);
 
-	// std::cout << "----------------------- NEW REPONSE: " << currentEvent.data.fd << " -----------------------" << std::endl;
 	std::cout << YELLOW << "[R] Response sent to client " << currentEvent.data.fd << DEFAULT << std::endl;
 
 	response = generateResponse(currentServer, currentClient);
 
-	write(currentEvent.data.fd, response.c_str(), response.length());
-	print(response);
-	// std::cout << YELLOW << response << DEFAULT << std::endl;
+	size_t byteSent = write(currentEvent.data.fd, response.c_str(), response.length());
+	if (byteSent <= 0)
+		std::cout << RED << "[R] Error while sending response to client: " << currentEvent.data.fd << DEFAULT << std::endl;
+	else
+		print(response);
 
 	_clientList.erase(currentEvent.data.fd);
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);

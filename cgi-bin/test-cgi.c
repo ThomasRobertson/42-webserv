@@ -9,11 +9,6 @@
 void print(char *str)
 {
 	printf("%s\n", str);
-	// int len = 0;
-	// while (str[len])
-	// 	len++;
-	// write(STDOUT_FILENO, str, len);
-	// write(STDOUT_FILENO, "\n", 1);
 }
 
 void settingCookie(char *str)
