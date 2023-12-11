@@ -165,10 +165,6 @@ std::pair<std::string, std::string> getStatus(std::string statusCode)
 
 	std::map<std::string, std::string> statusConversionMap = constructMapStatus();
 
-	#ifdef DEBUG
-	assert(statusConversionMap.find("500") != statusConversionMap.end());
-	#endif // DEBUG
-
 	std::map<std::string, std::string>::iterator key_pos = statusConversionMap.find(statusCode);
 	if (key_pos == statusConversionMap.end())
 		return *(statusConversionMap.find("500"));

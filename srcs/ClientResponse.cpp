@@ -8,12 +8,6 @@ const std::string ClientResponse::newLineDelimiter = "\r\n";
 // _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE)
 ClientResponse::ClientResponse(bool parseStatus, std::string status, std::string contentType, std::string contentBody, std::string authenticateRealm, std::string cookieSet, std::vector<std::string> extraHeaders) : _status(status), _contentType(contentType), _contentBody(contentBody), _serverProtocol(SERVER_PROTOCOL), _serverSoftware(SERVER_SOFTWARE), _cookieSet(cookieSet), _authenticateRealm(authenticateRealm), _extraHeaders(extraHeaders)
 {
-	#ifdef DEBUG
-
-	assert(!_status.empty());
-	assert(!_contentType.empty());
-	
-	#endif // DEBUG
 	std::stringstream _dateStream;
 	std::time_t result = std::time(NULL);
 	_dateStream << std::gmtime(&result);
