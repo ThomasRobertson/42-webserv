@@ -38,7 +38,7 @@ class Server
         Server(ConfigFile configFile, int serverIndex);
         ~Server();
 
-        std::string getServerName();
+        std::string getHost();
         std::string getRoot();
         int getMaxClientBodySize();
         std::vector<std::string> getPort();
@@ -46,6 +46,7 @@ class Server
         std::string getFileName(std::string fileName);
         std::string getPostRoot(std::string fileName);
         Location getLocation(std::string route);
+        std::vector<std::string> getServerName();
 
         int getServerSocket(int i);
         int getServerSocketSize();

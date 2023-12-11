@@ -73,7 +73,7 @@ void StartServers::closeServers()
         {
             if (serverIt->getServerSocket(portIndex) != -1)
                 close(serverIt->getServerSocket(portIndex));
-            std::cout << YELLOW << "[i] Server shutdown: " << serverIt->getServerName() << "::" << *portIt << DEFAULT << std::endl;
+            std::cout << YELLOW << "[i] Server shutdown: " << serverIt->getHost() << "::" << *portIt << DEFAULT << std::endl;
         }
     }
 

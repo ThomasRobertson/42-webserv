@@ -111,7 +111,7 @@ void CgiHandler::build_args_env()
 	_environ.push_back(value);
 
 	value = "SERVER_NAME=";
-	value += _server.getServerName();
+	value += _server.getHost();
 	_environ.push_back(value);
 
 	value = "GATEWAY_INTERFACE=";

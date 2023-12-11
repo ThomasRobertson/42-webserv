@@ -1,20 +1,36 @@
 #include "ClientRequest.hpp"
 #include "StartServers.hpp"
 
-bool isValidHeader()
+bool isValidServerName(std::string request, Server server)
 {
-    
-    return true;
-}
+	size_t startPos, endPos;
+	std::vector<std::string> serverNames = server.getServerName();
 
-bool isValidBody()
-{
-    return true;
-}
+	if (serverNames.size() == 0)
+	{
+		std::cout << "NO SERVER NAME WAS SET" << std::endl;
+		return true;
+	}
 
-bool isValidChunkedBody()
-{
-    return true;
+	startPos = request.find("Host: ");
+	if (startPos == std::string::npos)
+		return false;
+	startPos += std::strlen("Host: ");
+	endPos = request.find(":", startPos);
+	if (endPos == std::string::npos)
+	{
+		endPos = request.find("\r\n", startPos);
+		if (endPos == std::string::npos)
+			return false;
+	}
+	std::string host = request.substr(startPos, endPos - startPos);
+
+	if(std::find(serverNames.begin(), serverNames.end(), host) == serverNames.end())
+	{
+		std::cout << "SERVER NAME: " << host << " NOT FOUND IN SERVER_NAME" << std::endl;
+		return false;
+	}
+	return true;
 }
 
 bool StartServers::isValidRequest(UserRequest requestData, std::string &status, bool isCGI, Server server)
@@ -27,6 +43,13 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
     int countPost = 0;
     int countOther = 0;
     std::string method, uri, version;
+
+	if (!isValidServerName(requestData.fullStr, server))
+	{
+		std::cout << RED << "NOT VALID SERVER NAME" << DEFAULT << std::endl;
+		status = "400";
+		return false;
+	}
 
 	if (!isCGI && requestData.isBodyTooLarge)
 	{
@@ -89,12 +112,12 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 			countPost++;
 		    countOther++;
 
-			std::string serverName = server.getServerName();
+			std::string serverName = server.getHost();
 			if (!serverName.empty())
 			{
 				std::string hostValue = line.substr(6);
 				hostValue = hostValue.substr(0, hostValue.find(":"));
-				if (hostValue != server.getServerName())
+				if (hostValue != server.getHost())
 				{
 					status = "400";
 					return false;
@@ -181,7 +204,6 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 
         }
     }
-
 
     if (countOther == 1 && (method == "GET" || method == "DELETE"))
         return true;

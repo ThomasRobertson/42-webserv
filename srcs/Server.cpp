@@ -17,17 +17,24 @@ Server::~Server()
 
 void Server::setServerValues()
 {  
-    this->_host = this->_configFile.getHost(_serverIndex);
     this->_server_name = this->_configFile.getServerName(_serverIndex);
+    this->_host = this->_configFile.getHost(_serverIndex);
     this->_port = this->_configFile.getPort(_serverIndex);
     this->_maxClientBodySize = this->_configFile.getMaxClientBodySize(_serverIndex);
     this->_errorsMap = this->_configFile.getErrorPages(_serverIndex);
     this->_cgiMap = this->_configFile.getCgiPages(_serverIndex);
     this->_htmlLocationMap = this->_configFile.getFileRoutes(_serverIndex);
     this->_root = this->_configFile.getRoot(_serverIndex);
+
+	// for (std::vector<std::string>::iterator ite = _server_name.begin() ; ite != _server_name.end() ; ite++)
+		// std::cout << "server_name: " << *ite << std::endl;
+	// std::cout << "host: " << _host << std::endl;
+	// for (std::vector<std::string>::iterator ite = _port.begin() ; ite != _port.end() ; ite++)
+	// 	std::cout << "port: " << *ite << std::endl;
+	// std::cout << "----------------------------------" << std::endl;
 }
 
-std::string Server::getServerName()
+std::string Server::getHost()
 {
     return this->_host;
 }
@@ -228,6 +235,11 @@ int Server::getServerSocketSize()
     return this->_serverSocketVec.size();
 }
 
+std::vector<std::string> Server::getServerName()
+{
+	return _server_name;
+}
+
 void Server::addSocketToEpoll(int epollFd, int serverSocket)
 {
     epoll_event event;
@@ -290,11 +302,10 @@ void Server::startServers(int epollFd)
         struct addrinfo *result;
         struct addrinfo *rp;
 
-        std::string hostStr = this->getServerName();
+        std::string host = this->getHost();
         std::string portStr = *portIt;
 
-        const char *host = hostStr.c_str();
-		        const char *port = portStr.c_str();
+		const char *port = portStr.c_str();
 
         memset(&hints, 0, sizeof(struct addrinfo));
         hints.ai_family = AF_UNSPEC;
@@ -303,7 +314,7 @@ void Server::startServers(int epollFd)
 
         int serverSocket = -1;
 
-        if (getaddrinfo(host, port, &hints, &result) != 0)
+        if (getaddrinfo(host.c_str(), port, &hints, &result) != 0)
         {
             std::cerr << "Error retrieving host information" << std::endl;
             return ;
