@@ -32,7 +32,18 @@ SRC_DIR= srcs/
 #                                .C & .H FILES                                 #
 # **************************************************************************** #
 
-SRC_FILE=	$(shell find srcs/*.cpp -exec basename \ {} \;)
+SRC_FILE=	Autorization.cpp  \
+			cgi.cpp  \
+			ClientResponse.cpp  \
+			ConfigFile.cpp  \
+			GenerateMethod.cpp  \
+			main.cpp  \
+			processRequest.cpp  \
+			processResponse.cpp  \
+			requestParsing.cpp  \
+			Server.cpp  \
+			StartServers.cpp  \
+			utils.cpp 
 
 SRC=		$(addprefix $(SRC_DIR), $(SRC_FILE))
 OBJ=		$(addprefix $(OBJ_DIR), ${SRC_FILE:.cpp=.o})
