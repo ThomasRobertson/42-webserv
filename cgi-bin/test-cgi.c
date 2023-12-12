@@ -8,7 +8,7 @@
 
 void print(char *str)
 {
-	printf("%s\n", str);
+	printf("%s<br>", str);
 }
 
 void settingCookie(char *str)
@@ -55,27 +55,36 @@ int main(int ac, char **av, char **env)
 	else
 		cookie_value = strdup("1");
 	settingCookie(cookie_value);
-	printf("Content-Type: text/plain");
+	printf("Content-Type: text/html");
 
 	printf("\n\n");
-	printf("       444444444   222222222222222                 CCCCCCCCCCCCC       GGGGGGGGGGGGGIIIIIIIIII\n");
-	printf("      4::::::::4  2:::::::::::::::22            CCC::::::::::::C    GGG::::::::::::GI::::::::I\n");
-	printf("     4:::::::::4  2::::::222222:::::2         CC:::::::::::::::C  GG:::::::::::::::GI::::::::I\n");
-	printf("    4::::44::::4  2222222     2:::::2        C:::::CCCCCCCC::::C G:::::GGGGGGGG::::GII::::::II\n");
-	printf("   4::::4 4::::4              2:::::2       C:::::C       CCCCCCG:::::G       GGGGGG  I::::I  \n");
-	printf("  4::::4  4::::4              2:::::2      C:::::C             G:::::G                I::::I  \n");
-	printf(" 4::::4   4::::4           2222::::2       C:::::C             G:::::G                I::::I  \n");
-	printf("4::::444444::::444    22222::::::22        C:::::C             G:::::G    GGGGGGGGGG  I::::I  \n");
-	printf("4::::::::::::::::4  22::::::::222          C:::::C             G:::::G    G::::::::G  I::::I  \n");
-	printf("4444444444:::::444 2:::::22222             C:::::C             G:::::G    GGGGG::::G  I::::I  \n");
-	printf("          4::::4  2:::::2                  C:::::C             G:::::G        G::::G  I::::I  \n");
-	printf("          4::::4  2:::::2                   C:::::C       CCCCCCG:::::G       G::::G  I::::I  \n");
-	printf("          4::::4  2:::::2       222222       C:::::CCCCCCCC::::C G:::::GGGGGGGG::::GII::::::II\n");
-	printf("        44::::::442::::::2222222:::::2        CC:::::::::::::::C  GG:::::::::::::::GI::::::::I\n");
-	printf("        4::::::::42::::::::::::::::::2          CCC::::::::::::C    GGG::::::GGG:::GI::::::::I\n");
-	printf("        444444444422222222222222222222             CCCCCCCCCCCCC       GGGGGG   GGGGIIIIIIIIII\n");
 
-	printf("\nHello ! You've been visiting this (awesome) website for the ");
+	printf("<html>\n");
+    printf("<head>\n");
+    printf("<style>\n");
+    printf("body { font-family: Arial, sans-serif; background: linear-gradient(0deg, #537895 0%%, #09203f 100%%); color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-size: 1em;\n");
+    printf("</style>\n");
+    printf("</head>\n");
+    printf("<body>\n");
+
+	printf("<pre>       444444444   222222222222222                 CCCCCCCCCCCCC       GGGGGGGGGGGGGIIIIIIIIII     <br>");
+	printf("      4::::::::4  2:::::::::::::::22            CCC::::::::::::C    GGG::::::::::::GI::::::::I     <br>");
+	printf("     4:::::::::4  2::::::222222:::::2         CC:::::::::::::::C  GG:::::::::::::::GI::::::::I     <br>");
+	printf("    4::::44::::4  2222222     2:::::2        C:::::CCCCCCCC::::C G:::::GGGGGGGG::::GII::::::II     <br>");
+	printf("   4::::4 4::::4              2:::::2       C:::::C       CCCCCCG:::::G       GGGGGG  I::::I       <br>");
+	printf("  4::::4  4::::4              2:::::2      C:::::C             G:::::G                I::::I       <br>");
+	printf(" 4::::4   4::::4           2222::::2       C:::::C             G:::::G                I::::I       <br>");
+	printf("4::::444444::::444    22222::::::22        C:::::C             G:::::G    GGGGGGGGGG  I::::I       <br>");
+	printf("4::::::::::::::::4  22::::::::222          C:::::C             G:::::G    G::::::::G  I::::I       <br>");
+	printf("4444444444:::::444 2:::::22222             C:::::C             G:::::G    GGGGG::::G  I::::I       <br>");
+	printf("          4::::4  2:::::2                  C:::::C             G:::::G        G::::G  I::::I       <br>");
+	printf("          4::::4  2:::::2                   C:::::C       CCCCCCG:::::G       G::::G  I::::I       <br>");
+	printf("          4::::4  2:::::2       222222       C:::::CCCCCCCC::::C G:::::GGGGGGGG::::GII::::::II     <br>");
+	printf("        44::::::442::::::2222222:::::2        CC:::::::::::::::C  GG:::::::::::::::GI::::::::I     <br>");
+	printf("        4::::::::42::::::::::::::::::2          CCC::::::::::::C    GGG::::::GGG:::GI::::::::I     <br>");
+	printf("        444444444422222222222222222222             CCCCCCCCCCCCC       GGGGGG   GGGGIIIIIIIIII     <br></pre>");
+
+	printf("<br>Hello ! You've been visiting this (awesome) website for the ");
 	if (strcmp("1", cookie_value) == 0)
 		printf("1st");
 	else if (strcmp("2", cookie_value) == 0)
@@ -84,16 +93,16 @@ int main(int ac, char **av, char **env)
 		printf("3rd");
 	else
 		printf("%sth", cookie_value);
-	printf(" time!\n");
+	printf(" time!<br>");
 
-	printf("\n\nDisplaying arguments :");
+	printf("<br><br>Displaying arguments :<br>");
 	for (int i = 0; av[i]; i++)
 		print(av[i]);
-	printf("\n\nDisplaying env :");
+	printf("<br><br>Displaying env :<br>");
 	for (int i = 0; env[i]; i++)
 		print(env[i]);
 
-	printf("\n\nDisplaying body send (if any) :\n");
+	printf("<br><br>Displaying body send (if any) :<br>");
 	char ch[BUFFER_SIZE + 1];
 	sleep(1);
 	size_t len = 0;
@@ -101,13 +110,15 @@ int main(int ac, char **av, char **env)
 	{
 		memset(ch, '\0', BUFFER_SIZE + 1);
 		len = read(STDIN_FILENO, ch, BUFFER_SIZE);
-		printf("%s", ch);
+		printf("%s<br>", ch);
 		//write(STDOUT_FILENO, ch, len);
 		// printf(ch, len);
 	} while (len > 0);
 
-	printf("\n\nEND OF FILE\n");
+	printf("<br><br>END OF FILE<br>");
 
+    printf("</body>\n");
+    printf("</html>\n");
 	free(cookie);
 	free(cookie_value);
 }
