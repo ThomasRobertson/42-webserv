@@ -258,6 +258,7 @@ void CgiHandler::sendBody()
 {
 	if (_body.size() != 0)
 	{
+		// replace to std::ofstream _child_in_pipe << body;
 		write(_child_in_pipe, _body.c_str(), _body.size());
 		lseek(_child_in_pipe, 0, SEEK_SET); // set fd ptr to beginning of the file
 	}
