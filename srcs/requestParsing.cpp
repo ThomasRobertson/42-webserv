@@ -43,8 +43,7 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
     int countPost = 0;
     int countOther = 0;
     std::string method, uri, version;
-	// std::cout << RED << status << DEFAULT;
-	std::cout << "TESTTTTTTTTTTTTTTTTTT" << std::endl;
+	std::cout << RED << status << DEFAULT;
 
 	if (!isValidServerName(requestData.fullStr, server))
 	{
@@ -95,8 +94,6 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		status = "400"; 
 		return false;
 	}
-		std::cout << "TESTTTTTTTTTTTTTTTTTT" << std::endl;
-
 
 	bool lenghtFind = false;
     while (httpRequest.find("\r\n") != std::string::npos)
@@ -116,27 +113,6 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		{
 			countPost++;
 		    countOther++;
-
-			std::vector<std::string> serverName = server.getServerName();
-			if (!serverName.empty())
-			{
-				bool serverNameFound = false;
-				std::string hostValue = line.substr(6);
-				hostValue = hostValue.substr(0, hostValue.find(":"));
-				for (std::vector<std::string>::iterator it = serverName.begin(); it != serverName.end(); it++)
-				{
-					if (hostValue == server.getHost())
-					{
-						serverNameFound = true;
-						break;
-					}
-				}
-				if (serverNameFound == false)
-				{
-					status = "400";
-		        	return false;
-				}
-			}
 		}
 		else if (line.compare(0, 18, "Transfer-Encoding:") == 0 || line.compare(0, 18, "transfer-encoding:") == 0)
 		{
