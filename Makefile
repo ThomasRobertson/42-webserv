@@ -18,7 +18,6 @@ NAME= webserv
 
 CXX= c++
 CXXFLAGS= -Wall -Wextra -Werror -g3 -std=c++98 $(DEPFLAGS) $(INCLUDE)
-CXXFLAGS=  -std=c++98 $(DEPFLAGS) $(INCLUDE)
 LDFLAGS= 
 DEPFLAGS= -MMD -MP
 
