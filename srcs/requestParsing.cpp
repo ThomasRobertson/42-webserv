@@ -112,15 +112,24 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 			countPost++;
 		    countOther++;
 
-			std::string serverName = server.getHost();
+			std::vector<std::string> serverName = server.getServerName();
 			if (!serverName.empty())
 			{
+				bool serverNameFound = false;
 				std::string hostValue = line.substr(6);
 				hostValue = hostValue.substr(0, hostValue.find(":"));
-				if (hostValue != server.getHost())
+				for (std::vector<std::string>::iterator it = serverName.begin(); it != serverName.end(); it++)
+				{
+					if (hostValue == server.getHost())
+					{
+						serverNameFound = true;
+						break;
+					}
+				}
+				if (serverNameFound == false)
 				{
 					status = "400";
-					return false;
+		        	return false;
 				}
 			}
 		}
