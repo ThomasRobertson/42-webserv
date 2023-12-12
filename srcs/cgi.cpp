@@ -1,5 +1,6 @@
 #include "cgi.hpp"
 #include "Settings.hpp"
+#include <stdexcept>
 
 #define SSTR(x) static_cast< std::ostringstream & >(( std::ostringstream() << std::dec << x) ).str()
 
@@ -216,6 +217,7 @@ void CgiHandler::launch_child()
 	}
 	else if (_child_pid == 0)
 	{
+		sendBody();
 		dup2(_child_out_pipe, STDOUT_FILENO);
 		dup2(_child_in_pipe, STDIN_FILENO);
 		child_is_in_orbit();
@@ -241,25 +243,24 @@ std::string CgiHandler::capture_child_return()
 
 	lseek(_child_out_pipe, 0, SEEK_SET);
 	do {
+		std::memset(&read_buffer, '\0', CGI_BUFFER_SIZE + 1);
 		size_read = read(_child_out_pipe, read_buffer, CGI_BUFFER_SIZE);
 		if (size_read == -1)
 			throw std::runtime_error("Could not read from file.");
-
-		read_buffer[size_read] = '\0';
-
 		if (size_read != 0)
 			return_str += read_buffer;
-	} while (size_read);
+	} while (size_read != 0);
 
 	return (return_str);
 }
 
 void CgiHandler::sendBody()
 {
-	if (_body.size() != 0)
+	if ((_client.request.method == "POST" || _client.request.method == "DELETE") && _body.size() != 0)
 	{
-		// replace to std::ofstream _child_in_pipe << body;
-		write(_child_in_pipe, _body.c_str(), _body.size());
+		ssize_t writeLen = write(_child_in_pipe, _body.c_str(), _body.size());
+		if (writeLen <= 0)
+			throw std::runtime_error("Could not write to stdin.");
 		lseek(_child_in_pipe, 0, SEEK_SET); // set fd ptr to beginning of the file
 	}
 }
@@ -268,7 +269,6 @@ std::string CgiHandler::execute()
 {
 	build_args_env();
 
-	sendBody();
 	launch_child();
 	std::string return_str = capture_child_return();
 	return_str = generateReturnResponse(return_str);
