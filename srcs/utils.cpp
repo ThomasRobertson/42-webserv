@@ -247,6 +247,7 @@ void print(std::string response)
 	{
 		header = response.substr(startPos);
 		std::cout << header << std::endl;
+		std::cout << "-------------------------------------------" << std::endl;
 		return;
 	}
 	header = response.substr(startPos, endPos - startPos);
@@ -258,4 +259,5 @@ void print(std::string response)
 		std::cout << body.substr(0, 100) << "..." << std::endl;
 	else
 		std::cout << body << std::endl;
+	std::cout << "-------------------------------------------" << std::endl;
 }

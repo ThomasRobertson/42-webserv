@@ -1,6 +1,8 @@
 #include "StartServers.hpp"
 #include "ClientRequest.hpp"
 
+// -------------------------------- Body -------------------------------- //
+
 int getBodysize(std::string requestStr)
 {
 	size_t startPos = requestStr.find("\r\n\r\n");
@@ -76,6 +78,8 @@ bool isLastChunkReceived(std::string requestStr)
     return false;
 }
 
+// -------------------------------- COOKIE / AUTH -------------------------------- //
+
 std::vector<std::string> getHeaderCookie(std::string requestStr)
 {
     std::vector<std::string> cookies;
@@ -124,6 +128,8 @@ std::string getHeaderAuth(std::string requestStr)
     }
 	return "";
 }
+
+// -------------------------------- GETTER -------------------------------- //
 
 std::string getHeaderContentType(std::string requestStr)
 {
@@ -198,6 +204,7 @@ void StartServers::processRequest(epoll_event currentEvent)
     ssize_t bytesRead;
     struct epoll_event event;
     Client &currentClient = _clientList[currentEvent.data.fd];
+    Server currentServer = *(currentClient.server);
 
     // std::cout << "----------------------- NEW REQUEST: " << currentEvent.data.fd << " -----------------------" << std::endl;
     std::cout << YELLOW << "[R] New request received from client " << currentEvent.data.fd << DEFAULT << std::endl;
@@ -207,7 +214,7 @@ void StartServers::processRequest(epoll_event currentEvent)
     bytesRead = read(currentEvent.data.fd, buffer, chunkSize);
     if (bytesRead <= 0) // error case
     {
-        epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, &event);
+        epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);
         close(currentEvent.data.fd);
         _clientList.erase(currentEvent.data.fd);
         std::cout << RED << "[i] Client disconnected from error: " << currentEvent.data.fd << DEFAULT << std::endl;
@@ -232,12 +239,30 @@ void StartServers::processRequest(epoll_event currentEvent)
     if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
         return;
 
-    // if (currentClient.request.method == "POST" && currentClient.request.contentType == "Multipart/form-data" && isValidRequest())
+    currentClient.response = generateResponse(currentServer, currentClient);
+
+    int fd = open("test.txt", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+    epoll_event testEvent;
+    testEvent.data.fd = fd;
+    testEvent.events = EPOLLOUT;
+    if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, &event) == 0)
+        std::cout << "file added to epoll: " << fd << std::endl;
+    else
+        std::cout << "error while adding file to epoll: " << fd << " " << strerror(errno) << std::endl;
+
+    // if (currentClient.filesToCreate.size() > 0)
     // {
-        // create file
-        // add fd to epoll;
-        // set EPOLLOUT
-        // return
+    //     for (std::vector<FileToCreate>::iterator it = currentClient.filesToCreate.begin() ; it != currentClient.filesToCreate.end() ; it++)
+    //     {
+    //         _clientList[it->fd] = currentClient;
+    //         event.data.fd = it->fd;
+    //         event.events = EPOLLOUT;
+    //         if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, it->fd, &event) == 0)
+    //             std::cout << "file added to epoll: " << it->fd << std::endl;
+    //         else
+    //             std::cout << "error while adding file to epoll: " << it->fd << " " << strerror(errno) << std::endl;
+    //     }
+    //     return;
     // }
 
     event.data.fd = currentEvent.data.fd;

@@ -21,14 +21,24 @@
 
 extern bool EXIT_G;
 
+struct FileToCreate {
+    int fd;
+
+    std::string fileName;
+    std::string binary;
+};
+
 struct Client
 {
     int fd;
 
     Server *server;
     UserRequest request;
+    std::string response;
 
     time_t lastActionDate;
+
+    std::vector<FileToCreate> filesToCreate;
 };
 
 class StartServers
@@ -60,7 +70,7 @@ class StartServers
         void listenClientRequest();
 
         void getRequestChunk(Client &client, std::string requestStr);
-		std::string generateResponse(Server server, Client client);
+		std::string generateResponse(Server server, Client &client);
 
         bool isValidRequest(UserRequest requestData, std::string &status, bool isCGI, Server server);
 };

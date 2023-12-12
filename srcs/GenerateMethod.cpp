@@ -115,15 +115,15 @@ void createFile(std::string multipartHeader, std::string multipartBinary, std::s
 	std::string fileName = getFileName(multipartHeader);
 	std::string fileLocation = "./" + postRoot + "/" + fileName; // change with upload dir of the server
 
-	std::ofstream outputFile(fileLocation.c_str(), std::ios::binary);
-	if (outputFile.is_open())
-	{
-		outputFile.write(multipartBinary.c_str(), multipartBinary.size());
-		outputFile.close();
-		std::cout << "Binary data has been written to " << std::endl;
-	}
-	else
-		std::cerr << "Failed to open the file for writing." << std::endl;
+	// std::ofstream outputFile(fileLocation.c_str(), std::ios::binary);
+	// if (outputFile.is_open())
+	// {
+		// outputFile.write(multipartBinary.c_str(), multipartBinary.size());
+		// outputFile.close();
+		// std::cout << "Binary data has been written to " << std::endl;
+	// }
+	// else
+	// 	std::cerr << "Failed to open the file for writing." << std::endl;
 }
 
 std::string getMultipartBoundary(std::string body)
@@ -143,20 +143,24 @@ std::string getMultipartBoundary(std::string body)
 	return boundary;
 }
 
-void parseMultipartRequest(std::string body, std::string postRoot)
+std::vector<FileToCreate> parseMultipartRequest(std::string body, std::string postRoot, int epollFd)
 {
+    std::vector<FileToCreate> filesToCreate;
+    struct FileToCreate file;
+
 	std::string boundary, multipartHeader, multipartBinary;
 	size_t endPos, startPos = 0;
+    epoll_event event;
 
 	boundary = getMultipartBoundary(body);
 	if (boundary.empty())
-		return;
+		return filesToCreate;
 
 	while (1)
 	{
 		startPos = body.find(boundary, startPos);
 		if (startPos == std::string::npos)
-			return;
+			return filesToCreate;
 		startPos += boundary.size() + std::strlen("\r\n");
 
 		endPos = body.find("\r\n\r\n", startPos);
@@ -168,18 +172,23 @@ void parseMultipartRequest(std::string body, std::string postRoot)
 
 		endPos = body.find(boundary, startPos);
 		if (endPos == std::string::npos)
-			return;
+			return filesToCreate;
 		endPos -= std::strlen("\r\n");
 
-		multipartBinary = body.substr(startPos, endPos - startPos);
-		createFile(multipartHeader, multipartBinary, postRoot);
-
+		file.fileName = getFileName(multipartHeader);
+        file.fileName = "./" + postRoot + "/" + file.fileName;
+		file.fd = open(file.fileName.c_str(), O_RDWR | O_CREAT);
+		file.binary = body.substr(startPos, endPos - startPos);
+        filesToCreate.push_back(file);
+        
+        // setNonBlocking(file.fd);
 		// std::cout << RED << multipartBinary << DEFAULT << std::endl;
 		startPos = endPos;
 	}
+    return filesToCreate;
 }
 
-std::string GenerateMethod::POSTMethod(Location location)
+std::string GenerateMethod::POSTMethod(Location location, int epollFd, Client &client)
 {
 	if (_client.request.bodySize > _client.server->getMaxClientBodySize())
 		return getErrorPageResponse("413");
@@ -202,7 +211,10 @@ std::string GenerateMethod::POSTMethod(Location location)
 	}
 
 	if (_client.request.contentType == "multipart/form-data")
-		parseMultipartRequest(_client.request.fullStr, location.postRoot);
+	{
+		client.filesToCreate = parseMultipartRequest(_client.request.fullStr, location.postRoot, epollFd); // throw error for 500 catch
+		std::cout << RED << "FILES CREATED" << DEFAULT << std::endl;
+	}
 
 	ClientResponse response(true, status, "text/plain");
 

@@ -22,7 +22,7 @@ bool StartServers::isCGIFile(Server server, std::string request)
 	return false;
 }
 
-std::string StartServers::generateResponse(Server server, Client client)
+std::string StartServers::generateResponse(Server server, Client &client)
 {
 	std::string status;
 	GenerateMethod genMethod(client, server);
@@ -74,7 +74,7 @@ std::string StartServers::generateResponse(Server server, Client client)
 		else if (client.request.method == "POST")
 		{
 			// std::cout << GREEN << "Launching POST Method.\n" << DEFAULT;
-			return genMethod.POSTMethod(location.second);
+			return genMethod.POSTMethod(location.second, _epollFd, client);
 		}
 		else if (client.request.method == "DELETE")
 		{
@@ -96,31 +96,53 @@ std::string StartServers::generateResponse(Server server, Client client)
 
 void StartServers::processResponse(epoll_event currentEvent)
 {
-
 	std::string response;
 	Client currentClient = _clientList[currentEvent.data.fd];
 	Server currentServer = *(currentClient.server);
 
-	// std::map<int fd, std::string binaryData> filesToCreate;
+	std::cout << "RESPONSE ENTER" << std::endl;
+	if (currentClient.filesToCreate.size() > 0)
+	{
+		std::cout << "RESPONSE ENTER 2" << std::endl;
+		Client &mainClient =  _clientList[currentClient.fd];
+		mainClient.filesToCreate.pop_back();
+		// FileToCreate file = _FilesToCreateList[currentEvent.data.fd];
+		// std::map<int fd, std::string binaryData> filesToCreate;
 
-	// if (currentClient.filesToCreate.size() > 0)
-	// {
-		// write(currentEvent.data.fd, filesBinary[], filesBinary[].size)
-		// currentClient.filesToCreate.deleteAt(fd)
+		// if (currentClient.request.filesToCreate.size() > 0)
+		// {
+		// 	// FileToCreate file = std::find(currentClient.request.filesToCreate.begin(), currentClient.request.filesToCreate.end());
 
-		// if (currentClient.filesToCreate.size() == 0)
-			// open EPOLLOUT FOR THE CLIENT FD
-	// }
+		// 	// write(currentEvent.data.fd, filesBinary[], filesBinary[].size)
+		// 	// currentClient.filesToCreate.deleteAt(fd)
 
-	std::cout << YELLOW << "[R] Response sent to client " << currentEvent.data.fd << DEFAULT << std::endl;
+		if (mainClient.filesToCreate.size() == 0)
+		{
+			epoll_event event;
+			
+			event.data.fd = currentClient.fd;
+			event.events = EPOLLOUT;
+			epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentClient.fd, &event);
+		}
 
-	response = generateResponse(currentServer, currentClient);
+		std::cout << "FILE TO CREATE FOUND BEFORE RESPONSE" << std::endl;
+		_clientList.erase(currentEvent.data.fd);
+		epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);
+		close(currentEvent.data.fd);
+		return;
+	}
+
+	// response = generateResponse(currentServer, currentClient);
+	response = currentClient.response;
 
 	size_t byteSent = write(currentEvent.data.fd, response.c_str(), response.length());
 	if (byteSent <= 0)
 		std::cout << RED << "[R] Error while sending response to client: " << currentEvent.data.fd << DEFAULT << std::endl;
 	else
+	{
+		std::cout << YELLOW << "[R] Response sent to client " << currentEvent.data.fd << DEFAULT << std::endl;
 		print(response);
+	}
 
 	_clientList.erase(currentEvent.data.fd);
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, currentEvent.data.fd, NULL);

@@ -20,7 +20,7 @@ class GenerateMethod
 	~GenerateMethod() {}
 
 	std::string GETMethod();
-	std::string POSTMethod(Location location);
+	std::string POSTMethod(Location location, int epollFd, Client &client);
 	std::string DELETEMethod();
 	std::string CGIMethod();
 	std::string getErrorPageResponse(std::string errorCode);
