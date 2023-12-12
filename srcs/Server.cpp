@@ -199,6 +199,7 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 		}
 	}
 
+
 	status = testAccessPath(fileLocation, method);
 	return fileLocation;
 }
@@ -285,6 +286,7 @@ int Server::acceptNewClient(int epollFd, int serverIndex)
 
     event.data.fd = clientSocket;
     event.events = EPOLLIN;
+
     epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event);
 
     std::cout << GREEN << "[i] New client connected: " << clientSocket << DEFAULT << std::endl;

@@ -8,7 +8,7 @@ bool isValidServerName(std::string request, Server server)
 
 	if (serverNames.size() == 0)
 	{
-		std::cout << "NO SERVER NAME WAS SET" << std::endl;
+		// std::cout << "NO SERVER NAME WAS SET" << std::endl;
 		return true;
 	}
 
@@ -27,7 +27,7 @@ bool isValidServerName(std::string request, Server server)
 
 	if(std::find(serverNames.begin(), serverNames.end(), host) == serverNames.end())
 	{
-		std::cout << "SERVER NAME: " << host << " NOT FOUND IN SERVER_NAME" << std::endl;
+		// std::cout << "SERVER NAME: " << host << " NOT FOUND IN SERVER_NAME" << std::endl;
 		return false;
 	}
 	return true;
@@ -43,7 +43,7 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
     int countPost = 0;
     int countOther = 0;
     std::string method, uri, version;
-	std::cout << RED << status << DEFAULT;
+	// std::cout << RED << status << DEFAULT;
 
 	if (!isValidServerName(requestData.fullStr, server))
 	{
@@ -121,7 +121,7 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		        status = "400";
 		        return false;
 		    }
-		
+
 		    lenghtFind = true;
 		    countPost++;
 		}
@@ -162,8 +162,6 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		    countPost++;
 		}
 
-	std::cout << "TESTTTTTTTTTTTTTTTTTT" << std::endl;
-
         if (line.length() > 8000)
 		{
 			status = "414";
@@ -195,8 +193,6 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 
         }
     }
-		std::cout << "TESTTTTTTTTTTTTTTTTTT" << std::endl;
-
 
     if (countOther == 1 && (method == "GET" || method == "DELETE"))
         return true;
