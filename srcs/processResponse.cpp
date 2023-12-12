@@ -102,17 +102,6 @@ void StartServers::processResponse(epoll_event currentEvent)
 	Client currentClient = _clientList[currentEvent.data.fd];
 	Server currentServer = *(currentClient.server);
 
-	// std::map<int fd, std::string binaryData> filesToCreate;
-
-	// if (currentClient.filesToCreate.size() > 0)
-	// {
-		// write(currentEvent.data.fd, filesBinary[], filesBinary[].size)
-		// currentClient.filesToCreate.deleteAt(fd)
-
-		// if (currentClient.filesToCreate.size() == 0)
-			// open EPOLLOUT FOR THE CLIENT FD
-	// }
-
 	std::cout << YELLOW << "[R] Response sent to client " << currentEvent.data.fd << DEFAULT << std::endl;
 
 	response = generateResponse(currentServer, currentClient);

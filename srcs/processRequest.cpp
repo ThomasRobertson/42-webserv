@@ -232,14 +232,6 @@ void StartServers::processRequest(epoll_event currentEvent)
     if (!currentClient.request.isHeaderComplete || !currentClient.request.isBodyComplete) // not opening EPOLLOUT if request is not fully complete
         return;
 
-    // if (currentClient.request.method == "POST" && currentClient.request.contentType == "Multipart/form-data" && isValidRequest())
-    // {
-        // create file
-        // add fd to epoll;
-        // set EPOLLOUT
-        // return
-    // }
-
     event.data.fd = currentEvent.data.fd;
     event.events = EPOLLOUT;
     epoll_ctl(_epollFd, EPOLL_CTL_MOD, currentEvent.data.fd, &event);
