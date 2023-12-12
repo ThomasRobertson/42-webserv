@@ -27,7 +27,7 @@ void Server::setServerValues()
     this->_root = this->_configFile.getRoot(_serverIndex);
 
 	// for (std::vector<std::string>::iterator ite = _server_name.begin() ; ite != _server_name.end() ; ite++)
-		// std::cout << "server_name: " << *ite << std::endl;
+	// 	std::cout << "server_name: " << *ite << std::endl;
 	// std::cout << "host: " << _host << std::endl;
 	// for (std::vector<std::string>::iterator ite = _port.begin() ; ite != _port.end() ; ite++)
 	// 	std::cout << "port: " << *ite << std::endl;
@@ -42,6 +42,11 @@ std::string Server::getHost()
 std::vector<std::string> Server::getPort()
 {
     return this->_port;
+}
+
+std::vector<std::string> Server::getServerName()
+{
+	return this->_server_name;
 }
 
 std::string Server::getRoot()
@@ -200,17 +205,17 @@ std::string Server::getFileRoute(const std::string fileName, std::string &status
 
 bool Server::getListing(std::string fileLocation)
 {
-    return _htmlLocationMap[fileLocation].listing;
+    return _htmlLocationMap.at(fileLocation).listing;
 }
 
 std::string Server::getFileName(std::string fileName)
 {
-    return _htmlLocationMap[fileName].index;
+    return _htmlLocationMap.at(fileName).index;
 }
 
 std::string Server::getPostRoot(std::string fileName)
 {
-    return _htmlLocationMap[fileName].postRoot;
+    return _htmlLocationMap.at(fileName).postRoot;
 }
 
 std::map<std::string, std::string> Server::getCgiPages()
@@ -233,11 +238,6 @@ int Server::getServerSocket(int i)
 int Server::getServerSocketSize()
 {
     return this->_serverSocketVec.size();
-}
-
-std::vector<std::string> Server::getServerName()
-{
-	return _server_name;
 }
 
 void Server::addSocketToEpoll(int epollFd, int serverSocket)

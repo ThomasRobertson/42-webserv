@@ -43,6 +43,8 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
     int countPost = 0;
     int countOther = 0;
     std::string method, uri, version;
+	// std::cout << RED << status << DEFAULT;
+	std::cout << "TESTTTTTTTTTTTTTTTTTT" << std::endl;
 
 	if (!isValidServerName(requestData.fullStr, server))
 	{
@@ -50,6 +52,7 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		status = "400";
 		return false;
 	}
+	std::cout << RED << status << DEFAULT;
 
 	if (!isCGI && requestData.isBodyTooLarge)
 	{
@@ -92,6 +95,8 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		status = "400"; 
 		return false;
 	}
+		std::cout << "TESTTTTTTTTTTTTTTTTTT" << std::endl;
+
 
 	bool lenghtFind = false;
     while (httpRequest.find("\r\n") != std::string::npos)
@@ -181,6 +186,7 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 		    countPost++;
 		}
 
+	std::cout << "TESTTTTTTTTTTTTTTTTTT" << std::endl;
 
         if (line.length() > 8000)
 		{
@@ -213,6 +219,8 @@ bool StartServers::isValidRequest(UserRequest requestData, std::string &status, 
 
         }
     }
+		std::cout << "TESTTTTTTTTTTTTTTTTTT" << std::endl;
+
 
     if (countOther == 1 && (method == "GET" || method == "DELETE"))
         return true;

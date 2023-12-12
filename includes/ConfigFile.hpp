@@ -71,8 +71,8 @@ class ConfigFile
 
         int checkFile(std::ifstream &file, std::string line);
 
-        int setPorts(std::string line, size_t positionSemicolon, size_t positionSpace);
-        int setServerNames(std::string line, size_t positionSemicolon, size_t positionSpace);
+        int setPorts(std::string line, size_t positionSemicolon, size_t positionSpace, std::vector<std::string> &portsVector);
+        int setServerNames(std::string line, size_t positionSemicolon, size_t positionSpace, std::vector<std::string> &serverNamesVector);
         int setErrors(std::string line, size_t positionSemicolon, size_t positionSpace, std::map<std::string, std::string> &newErrorMap);
         int setCgi(std::string line, size_t positionSemicolon, size_t positionSpace, std::map<std::string, std::string> &newCgiMap);
 

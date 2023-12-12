@@ -25,32 +25,32 @@ std::string ConfigFile::getHost(int serverIndex)
 
 std::vector<std::string> ConfigFile::getPort(int serverIndex)
 {
-	return this->_portsVec[serverIndex];
+	return this->_portsVec.at(serverIndex);
 }
 
 std::vector<std::string> ConfigFile::getServerName(int serverIndex)
 {
-	return this->_serverNamesVec[serverIndex];
+	return this->_serverNamesVec.at(serverIndex);
 }
 
 int ConfigFile::getMaxClientBodySize(int serverIndex)
 {
-	return convertStrToInt(this->_configVecOfMap[serverIndex]["maxClientBodySize"]);
+	return convertStrToInt(this->_configVecOfMap.at(serverIndex)["maxClientBodySize"]);
 }
 
 std::map<std::string, Location> ConfigFile::getFileRoutes(int serverIndex)
 {
-    return this->_htmlLocationVecOfMap[serverIndex];
+    return this->_htmlLocationVecOfMap.at(serverIndex);
 }
 
 std::map<std::string, std::string> ConfigFile::getErrorPages(int serverIndex)
 {
-	return this->_errorsVecOfMap[serverIndex];
+	return this->_errorsVecOfMap.at(serverIndex);
 }
 
 std::map<std::string, std::string> ConfigFile::getCgiPages(int serverIndex)
 {
-	return this->_cgiVecOfMap[serverIndex];
+	return this->_cgiVecOfMap.at(serverIndex);
 }
 
 int ConfigFile::getServerNumber()
@@ -60,12 +60,12 @@ int ConfigFile::getServerNumber()
 
 std::string ConfigFile::getPostRoot(int serverIndex)
 {
-	return this->_configVecOfMap[serverIndex]["post_root"];
+	return this->_configVecOfMap.at(serverIndex)["post_root"];
 }
 
 std::string ConfigFile::getRoot(int serverIndex)
 {
-	return this->_configVecOfMap[serverIndex]["root"];
+	return this->_configVecOfMap.at(serverIndex)["root"];
 }
 
 bool ConfigFile::hasSingleTabLocation(const std::string &line)
@@ -163,27 +163,22 @@ int ConfigFile::setLocationRedirect(Location &newPage, std::string line, size_t 
 	return 1;
 }
 
-int ConfigFile::setPorts(std::string line, size_t positionSemicolon, size_t positionSpace)
+int ConfigFile::setPorts(std::string line, size_t positionSemicolon, size_t positionSpace, std::vector<std::string> &portsVector)
 {
 	if (positionSemicolon == std::string::npos)
 		return 0;
 	std::string portsStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-	std::vector<std::string> portsVector;
 	splitStrInVector(portsStr, ' ', portsVector);
-	this->_portsVec.push_back(portsVector);
-	portsVector.clear();
+
 	return 1;
 }
 
-int ConfigFile::setServerNames(std::string line, size_t positionSemicolon, size_t positionSpace)
+int ConfigFile::setServerNames(std::string line, size_t positionSemicolon, size_t positionSpace, std::vector<std::string> &serverNamesVector)
 {
 	if (positionSemicolon == std::string::npos)
 		return 0;
 	std::string serverNamesStr = line.substr(positionSpace + 1, (positionSemicolon) - (positionSpace + 1));
-	std::vector<std::string> serverNamesVector;
 	splitStrInVector(serverNamesStr, ' ', serverNamesVector);
-	this->_serverNamesVec.push_back(serverNamesVector);
-	serverNamesVector.clear();
 	return 1;
 }
 
@@ -234,6 +229,9 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 	std::map<std::string, Location> newHtmlPageMap;
 	std::map<std::string, std::string> newConfigMap;
 	std::map<std::string, std::string> newCgiMap;
+
+	std::vector<std::string> serverNamesVector;
+	std::vector<std::string> portsVector;
 
 	std::ifstream file(filename.c_str());
 	if (!checkFile(file, line))
@@ -335,12 +333,12 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 				return 0;
 			else if (positionPorts != std::string::npos && line[1] != '\t')
 			{
-				if (!setPorts(line, positionSemicolon, positionSpace))
+				if (!setPorts(line, positionSemicolon, positionSpace, portsVector))
 					return 0;
 			}
 			else if (positionServerNames != std::string::npos && line[1] != '\t')
 			{
-				if (!setServerNames(line, positionSemicolon, positionSpace))
+				if (!setServerNames(line, positionSemicolon, positionSpace, serverNamesVector))
 					return 0;
 			}
 			else if (positionErrors != std::string::npos && line[1] != '\t')
@@ -371,11 +369,16 @@ int ConfigFile::loadDataConfigFile(const std::string &filename)
 			this->_errorsVecOfMap.push_back(newErrorMap);
 			this->_htmlLocationVecOfMap.push_back(newHtmlPageMap);
 			this->_cgiVecOfMap.push_back(newCgiMap);
+			this->_serverNamesVec.push_back(serverNamesVector);
+			this->_portsVec.push_back(portsVector);
 
 			newConfigMap.clear();
 			newErrorMap.clear();
 			newHtmlPageMap.clear();
 			newCgiMap.clear();
+			serverNamesVector.clear();
+			portsVector.clear();
+
 			setValuesConfigFile(serverIndex);
 		}
 	}
